@@ -1,0 +1,9 @@
+[project]
+name = "crash-port-launcher"
+version = "0.1.0"
+description = "Locked bootstrap environment for the Crash trilogy port"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+package = false
