@@ -1,0 +1,209 @@
+{
+  "title": "Crash Bandicoot: Warped",
+  "region": "North America (NTSC-U)",
+  "serial": "SCUS-94244",
+  "executable": "SCUS_942.44",
+  "file_size": 333824,
+  "sha1": "ffa9252384eb16ce5ae14061bb87c86701ab4893",
+  "sha256": "1b93cc563c90966e1d79b750f7d19bc1662859cceeb991775e9e9a22656d71d1",
+  "header": {
+    "entry": "0x800489F8",
+    "gp": "0x00000000",
+    "text_address": "0x80010000",
+    "text_size": "0x00051000",
+    "stack_address": "0x801FFFF0",
+    "stack_offset": "0x00000000"
+  },
+  "runtime": {
+    "game_main_entry": "0x80048AA0",
+    "game_main_call_ordinal": 3,
+    "first_syscall_entry": "0x80048C38",
+    "first_syscall_call_ordinal": 8,
+    "vsync": {
+      "entry": "0x8004B2A8",
+      "end": "0x8004B3F0",
+      "query_counter": "0x8005F384",
+      "body_sha256": "9de0bd51589e40ceb1c85119f26f3a0ab8ffd90e8435df340c529444e8a52e80"
+    },
+    "projection": {
+      "_note": "Every address, word and hash below was read out of the authenticated SCUS_942.44 Nothing here is a tuned constant.",
+      "_control_registers": {
+        "ofx": 24,
+        "ofy": 25,
+        "h": 26
+      },
+      "_census_words": 82944,
+      "_retail": {
+        "centre_x": 0,
+        "centre_y": 0
+      },
+      "gte_init": {
+        "entry": "0x8004F37C",
+        "end": "0x8004F400",
+        "body_sha256": "9b03088f5ca3b5d35a791a36b809f20ea15e0e677b5cb9ca11cda570d2a0ea40",
+        "h_word": "0x8004F3C8",
+        "h_value": 1000,
+        "ofx_word": "0x8004F3E8",
+        "ofy_word": "0x8004F3EC",
+        "h_instruction": "0x48C8D000",
+        "ofx_instruction": "0x48C0C000",
+        "ofy_instruction": "0x48C0C800"
+      },
+      "set_geom_offset": {
+        "entry": "0x8004F704",
+        "end": "0x8004F71C",
+        "body_sha256": "9aa95b09a0c5f31d49c3f954d1bc4cbe5101b46feb9a7a9a92673d0716fdfcf1",
+        "ofx_word": "0x8004F70C",
+        "ofy_word": "0x8004F710",
+        "ofx_instruction": "0x48C4C000",
+        "ofy_instruction": "0x48C5C800"
+      },
+      "set_geom_screen": {
+        "entry": "0x8004F724",
+        "end": "0x8004F730",
+        "body_sha256": "d8c79a8c2661cba5b0c79fdf925407b5a4945c383bb0c8c293287878a693cac2",
+        "h_word": "0x8004F724",
+        "h_instruction": "0x48C4D000"
+      },
+      "_call_sites": {
+        "gte_init": [
+          "0x800154D8"
+        ],
+        "set_geom_offset": [
+          "0x8001892C",
+          "0x80018C04",
+          "0x8001CFC4",
+          "0x8001D09C"
+        ],
+        "set_geom_screen": [
+          "0x80017A98",
+          "0x80018920",
+          "0x8001CFCC",
+          "0x8001D08C",
+          "0x80021D68",
+          "0x800304A8"
+        ]
+      },
+      "frame_publication": {
+        "in_function": "FUN_80018a54",
+        "entry": "0x80018A54",
+        "end": "0x80018DAC",
+        "body_sha256": "fe08c3c8b8f18647396acaf83ecb79bfffe1634d4749f07c2f5ec5b1b988ed7f",
+        "call_site": "0x80018C04",
+        "call_instruction": "0x0C013DC1"
+      },
+      "camera_setup": {
+        "in_function": "FUN_800188ec",
+        "entry": "0x800188EC",
+        "end": "0x8001898C",
+        "body_sha256": "0eb572bfd3dbd2743b1549170a5183aa881ae82af367b6ad43e6166740b7d680",
+        "retail_screen_distance": 288
+      },
+      "draw_area": {
+        "in_function": "unnamed body at 0x8004EAD0",
+        "lui_word": "0x8004ECF8",
+        "store_word": "0x8004ED18",
+        "value": "0xE1001000",
+        "meaning": "origin (0,4) with width and height zero, which on a PSX IS the whole display area; this title therefore has no second, narrower clip rectangle",
+        "lui_instruction": "0x3C03E100",
+        "store_instruction": "0xACA20000"
+      },
+      "screen_offset_readback": {
+        "in_function": "FUN_8004f6e4",
+        "entry": "0x8004F6E4",
+        "end": "0x8004F704",
+        "body_sha256": "2f9e759091975bad3585277ae26c3eb50addd764857351a5213c14fb2c857a89",
+        "ofx_word": "0x8004F6E4",
+        "ofy_word": "0x8004F6E8",
+        "ofx_store_word": "0x8004F6F4",
+        "ofy_store_word": "0x8004F6F8",
+        "call_sites": [
+          "0x8001CF8C"
+        ],
+        "republish_call_sites": [
+          "0x8001CFC4",
+          "0x8001D09C"
+        ],
+        "consumer": {
+          "in_function": "FUN_8001cd80",
+          "entry": "0x8001CD80",
+          "end": "0x8001D170",
+          "body_sha256": "86300566b32e97b471f68129611d14fe079934f8f314875eaf49fda22db19efa"
+        },
+        "meaning": "THIS TITLE READS THE PUBLISHED CENTRE BACK OUT OF THE COPROCESSOR. FUN_8004f6e4 does cfc2 $t0,$24 / cfc2 $t1,$25 / sra 16 / sra 16 / sw / sw, and FUN_8001cd80 hands the result straight back to SetGeomOffset. Crash 1 and Crash 2 have zero such reads; this is the measured reason a retail+margin widening is NOT idempotent here, and the reason the owner's per-call-site policy exists.",
+        "ofx_instruction": "0x4848C000",
+        "ofy_instruction": "0x4849C800",
+        "ofx_store_instruction": "0xAC880000",
+        "ofy_store_instruction": "0xACA90000"
+      },
+      "horizontal_bound": {
+        "global": "0x80065D54",
+        "writers": [
+          "0x80017A94",
+          "0x80018924"
+        ],
+        "readers": [
+          "0x8001922C",
+          "0x80019528"
+        ],
+        "_writer_form": "Both writers are sw $v, 0xC4($base) through a POINTER whose value a lui+displacement scan cannot see; the manifest names them and the probe verifies their instruction words instead. That is the shape of instrument C in the Crash 1 census, and it is stated here rather than counted by the displacement scan.",
+        "near_plane_consumer": {
+          "in_function": "FUN_8003c3d0",
+          "entry": "0x8003C3D0",
+          "end": "0x8003C994",
+          "body_sha256": "5fdbcff96dff22d037df65ca58a23a6ee682101aef4c1afdb68649e29d9a9a3d",
+          "far_limit_word": "0x8003C4D8",
+          "far_limit": 12000,
+          "argument_site": "0x8001C880",
+          "meaning": "rejects a vertex when NOT (H < Z < 12000), the same near-plane test Crash 1 and Crash 2 have, with the bound passed in from FUN_8001c824",
+          "far_limit_instruction": "0x24012EE0",
+          "argument_instruction": "0x24023C00"
+        },
+        "hud_consumer": {
+          "in_function": "FUN_80016634",
+          "entry": "0x80016634",
+          "end": "0x80016CE8",
+          "body_sha256": "5e5548fd4453cdd61358a8342b17428bc3f83425e2d697acdaea571b50a48dd5",
+          "read_site": "0x8001922C",
+          "threshold": 214,
+          "meaning": "sizes and positions a 2D overlay rectangle from (H * fog * 0xAA >> 20) - 0x6C, then clamps it to 0..216; H is a gameplay-VISIBLE HUD scalar here too",
+          "read_instruction": "0x8C425D54"
+        },
+        "light_consumers": [
+          {
+            "in_function": "FUN_800192f8",
+            "entry": "0x800192F8",
+            "end": "0x80019628",
+            "body_sha256": "ca9ad308ee4e50ceb9b05d394957023036064987addfde7fc996ab65bf893e15",
+            "read_site": "0x80019528",
+            "read_instruction": "0x8C425D54"
+          }
+        ],
+        "translation_vector_consumers": [
+          {
+            "in_function": "unnamed body at 0x8003E660",
+            "entry": "0x8003E660",
+            "end": "0x8003E6D0",
+            "read_word": "0x8003E6A0",
+            "meaning": "copies CR[26] into the MVMVA translation vector's Z (CR[7]). The cfc2 sits in the DELAY SLOT of the bltz at 0x8003E69C, so it executes only when that branch is not taken; either path reaches ctc2 $t7,$7 with no branch on H. Ghidra materialised no function here, so the range is a disassembly window and the word is verified directly.",
+            "read_instruction": "0x484FD000"
+          }
+        ]
+      },
+      "widenable": {
+        "horizontal_centre": true,
+        "holds": [
+          "h",
+          "ofy"
+        ],
+        "pass_through_call_sites": [
+          "0x8001D09C"
+        ],
+        "reason": "H is held because it is this title's GTE near plane AND a HUD rectangle scalar, both measured above - raising it would cull near geometry and resize a 2D overlay. OFX is moved, but only at the three call sites whose argument provably does not derive from CR[24]/CR[25]: 0x8001892C (the constant 0), 0x80018C04 (a guest global) and 0x8001CFC4 (a table value). 0x8001D09C passes through, because its argument is the read-back at 0x8001CF8C and widening it would compound the margin on every pass of that path."
+      }
+    }
+  },
+  "region_markers": [
+    "Sony Computer Entertainment Inc. for North America area"
+  ]
+}
