@@ -1,0 +1,199 @@
+{
+  "title": "Crash Bandicoot 2: Cortex Strikes Back",
+  "region": "North America (NTSC-U)",
+  "serial": "SCUS-94154",
+  "executable": "SCUS_941.54",
+  "file_size": 327680,
+  "sha1": "aabdade44a4ca863f71224daef51c45f34fb1bf8",
+  "sha256": "6e5b2449310b1ed87915f53c38f296f2152bfd0b42eaca5ef86f74a3d07b6043",
+  "header": {
+    "entry": "0x80049B2C",
+    "gp": "0x00000000",
+    "text_address": "0x80010000",
+    "text_size": "0x0004F800",
+    "stack_address": "0x801FFFF0",
+    "stack_offset": "0x00000000"
+  },
+  "runtime": {
+    "game_main_entry": "0x80049BD4",
+    "game_main_call_ordinal": 3,
+    "first_syscall_entry": "0x80049D1C",
+    "first_syscall_call_ordinal": 8,
+    "vsync": {
+      "entry": "0x8004A484",
+      "end": "0x8004A5CC",
+      "query_counter": "0x8005DC98",
+      "body_sha256": "25097695f5ebd26728662b7989487b139e140ccf2129a14df10b30a003865b4e"
+    },
+    "projection": {
+      "_note": "Every address, word and hash below was read out of the authenticated SCUS_941.54 Nothing here is a tuned constant.",
+      "_control_registers": {
+        "ofx": 24,
+        "ofy": 25,
+        "h": 26
+      },
+      "_census_words": 81408,
+      "_retail": {
+        "centre_x": 0,
+        "centre_y": 0
+      },
+      "gte_init": {
+        "entry": "0x8004EC30",
+        "end": "0x8004ECB0",
+        "body_sha256": "46ea1b7da8582832388f8723b77a59c31bf66febfab63ee62d20df27efc6e79a",
+        "h_word": "0x8004EC7C",
+        "h_value": 1000,
+        "ofx_word": "0x8004EC9C",
+        "ofy_word": "0x8004ECA0",
+        "h_instruction": "0x48C8D000",
+        "ofx_instruction": "0x48C0C000",
+        "ofy_instruction": "0x48C0C800"
+      },
+      "set_geom_offset": {
+        "entry": "0x8004EFE8",
+        "end": "0x8004F000",
+        "body_sha256": "9aa95b09a0c5f31d49c3f954d1bc4cbe5101b46feb9a7a9a92673d0716fdfcf1",
+        "ofx_word": "0x8004EFF0",
+        "ofy_word": "0x8004EFF4",
+        "ofx_instruction": "0x48C4C000",
+        "ofy_instruction": "0x48C5C800"
+      },
+      "set_geom_screen": {
+        "entry": "0x8004F008",
+        "end": "0x8004F014",
+        "body_sha256": "d8c79a8c2661cba5b0c79fdf925407b5a4945c383bb0c8c293287878a693cac2",
+        "h_word": "0x8004F008",
+        "h_instruction": "0x48C4D000"
+      },
+      "_call_sites": {
+        "gte_init": [
+          "0x80015640"
+        ],
+        "set_geom_offset": [
+          "0x800179CC",
+          "0x80017F70"
+        ],
+        "set_geom_screen": [
+          "0x80016EC4",
+          "0x800179C0",
+          "0x80020890",
+          "0x8002F8B4"
+        ]
+      },
+      "frame_publication": {
+        "in_function": "FUN_80017bc4",
+        "entry": "0x80017BC4",
+        "end": "0x8001816C",
+        "body_sha256": "f64750363389bde26332edb9fce0beee899e0ca6724d51988ce52c8098cfd3b2",
+        "call_site": "0x80017F70",
+        "call_instruction": "0x0C013BFA"
+      },
+      "camera_setup": {
+        "in_function": "FUN_8001798c",
+        "entry": "0x8001798C",
+        "end": "0x80017AFC",
+        "body_sha256": "a8e80cf2c83e8da8f4201026a1cfa05ac175558aa9cac2d3da1939e956999405",
+        "retail_screen_distance": 288
+      },
+      "draw_area": {
+        "in_function": "FUN_8004eafc",
+        "lui_word": "0x8004EB44",
+        "store_word": "0x8004EB64",
+        "value": "0xE1001000",
+        "meaning": "origin (0,4) with width and height zero, which on a PSX IS the whole display area; this title therefore has no second, narrower clip rectangle",
+        "lui_instruction": "0x3C03E100",
+        "store_instruction": "0xACA20000"
+      },
+      "screen_offset_readback": null,
+      "_screen_offset_readback_null": "Measured over all 81408 instruction words, this title has ZERO cfc2 control reads of CR[24] and ZERO of CR[25], so no guest code reads the published centre back out of the coprocessor. That is what makes `retail + margin` at the leaf idempotent here, and its absence in Crash 3 is the difference between the two titles.",
+      "horizontal_bound": {
+        "global": "0x80060884",
+        "writers": [
+          "0x80016EC0",
+          "0x800179C4",
+          "0x80020310",
+          "0x8002088C"
+        ],
+        "readers": [
+          "0x80016678",
+          "0x80016EAC",
+          "0x80018614",
+          "0x80018900",
+          "0x8001BDD0",
+          "0x8002087C",
+          "0x8002F8A0"
+        ],
+        "near_plane_consumer": {
+          "in_function": "FUN_8003d3cc",
+          "entry": "0x8003D3CC",
+          "end": "0x8003DA18",
+          "body_sha256": "1354137d12001dde052220b4fe50bf5b8bdb4f4671ede3cfe0a74031dc5a474f",
+          "far_limit_word": "0x8003D4D4",
+          "far_limit": 12000,
+          "meaning": "rejects a vertex when NOT (H < Z < 12000), where Z is the depth the rtps at 0x8003D4A8 produced: H is the GTE NEAR PLANE here exactly as it is in Crash 1",
+          "far_limit_instruction": "0x24012EE0"
+        },
+        "hud_consumer": {
+          "in_function": "FUN_8001645c",
+          "entry": "0x8001645C",
+          "end": "0x80016A68",
+          "body_sha256": "3b3240905c83acb5a08bfbb8eed85bec421b928704bff80d23eb0eb150524b0e",
+          "read_site": "0x80016678",
+          "threshold": 214,
+          "meaning": "sizes and positions a 2D overlay rectangle from (H * fog * 0xAA >> 20) - 0x6C, then clamps it to 0..216; H is a gameplay-VISIBLE HUD scalar here",
+          "read_instruction": "0x8C840884"
+        },
+        "light_consumers": [
+          {
+            "in_function": "FUN_8001856c",
+            "entry": "0x8001856C",
+            "end": "0x800186DC",
+            "body_sha256": "cbd3a4e812841de664247302ea6bb124bc434192a6c81619aca13bc0d1e9b660",
+            "read_site": "0x80018614",
+            "read_instruction": "0x8C420884"
+          },
+          {
+            "in_function": "FUN_800186d8",
+            "entry": "0x800186D8",
+            "end": "0x800189C8",
+            "body_sha256": "d158b5c7e1d5b150640dafa50d5af718a5ebd7ae48b32ba76f95dca21407d58f",
+            "read_site": "0x80018900",
+            "read_instruction": "0x8C420884"
+          }
+        ],
+        "translation_vector_consumers": [
+          {
+            "in_function": "FUN_80044558",
+            "entry": "0x80044558",
+            "end": "0x80044598",
+            "body_sha256": "7977c9983a0aa43e30b74793bb311507779545bfc4c3e9d07689efd3a12b6cf6",
+            "read_word": "0x8004457C",
+            "meaning": "copies CR[26] into the MVMVA translation vector's Z (CR[7]) with no branch on it",
+            "read_instruction": "0x484FD000"
+          },
+          {
+            "in_function": "FUN_80044780",
+            "entry": "0x80044780",
+            "end": "0x800447E0",
+            "body_sha256": "4329024fa45a24cd9afe0ba8ac5a22c7ffc3e40d886296847d9008756fa3b97d",
+            "read_word": "0x800447C4",
+            "meaning": "the same translation-vector copy, reached as entry 0x800447DC of the GTE command table at 0x8005B698 rather than by any direct call",
+            "read_instruction": "0x484FD000"
+          }
+        ]
+      },
+      "widenable": {
+        "horizontal_centre": true,
+        "holds": [
+          "h",
+          "ofy"
+        ],
+        "reason": "No cfc2 reads CR[24]/CR[25] anywhere in the image, and every one of the four SetGeomOffset call sites computes its centre from a guest global or a constant, never from the register a widening would move - so `retail + margin` at the leaf cannot compound. H is held because it is this title's GTE near plane AND a HUD rectangle scalar, both measured above."
+      }
+    }
+  },
+  "region_markers": [
+    "Sony Computer Entertainment Inc. for North America area",
+    "BASCUS-94154"
+  ]
+}
