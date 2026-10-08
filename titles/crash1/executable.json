@@ -1,0 +1,471 @@
+{
+  "title": "Crash Bandicoot",
+  "region": "North America (NTSC-U)",
+  "serial": "SCUS-94900",
+  "executable": "SCUS_949.00",
+  "file_size": 290816,
+  "sha1": "b2af088a162e046ad07f532d46b655cfcc42a05c",
+  "sha256": "aabf1464f90b2e0b81e712b77aebbdb88f303b16ce830535e2b0cd886ee280f2",
+  "header": {
+    "entry": "0x8003E018",
+    "gp": "0x00000000",
+    "text_address": "0x80010000",
+    "text_size": "0x00046800",
+    "stack_address": "0x801FFFF0",
+    "stack_offset": "0x00000000"
+  },
+  "runtime": {
+    "game_main_entry": "0x8003E0C0",
+    "game_main_call_ordinal": 3,
+    "first_syscall_entry": "0x8003E1F8",
+    "first_syscall_call_ordinal": 8,
+    "first_bios_dispatch_address": "0x000000B0",
+    "first_bios_dispatch_function": "0x00000056",
+    "first_bios_dispatch_return_address": "0x800431B8",
+    "post_get_c0_dispatch_address": "0x000000A0",
+    "post_get_c0_dispatch_function": "0x00000044",
+    "post_get_c0_dispatch_return_address": "0x800431E8",
+    "vsync": {
+      "entry": "0x8003E4F0",
+      "end": "0x8003E638",
+      "query_counter": "0x800549F0",
+      "body_sha256": "915c96a114984906cdf7e9db7a82f361d9a716a593f5f8afead14b9f45edb8c7"
+    },
+    "native_boot": {
+      "c_main": {
+        "entry": "0x80011D88",
+        "end": "0x80011DD0",
+        "body_sha256": "9291f128ba877c4a6c721b3592c2f820d733be75ea1762421a372f9fc3157d6d"
+      },
+      "static_constructors": {
+        "entry": "0x8003E0C0",
+        "end": "0x8003E120",
+        "body_sha256": "c2ac1d39b778c1db99fdeb6c59432d0573265fc962f2f588ac234b9628a8bbf1"
+      },
+      "use_cd_address": "0x80056410",
+      "init": {
+        "entry": "0x8001652C",
+        "end": "0x8001668C",
+        "body_sha256": "c89cc07740fbd3c377b5dfaeff889722efe73cd90e872bd8b65e29a1065f96d7"
+      },
+      "cd_initialize": {
+        "entry": "0x80044E8C",
+        "end": "0x8004519C",
+        "body_sha256": "324b9740be681b9a59bf593f716ff83190c4a66a41200655f9861893ae4f4492"
+      },
+      "disc_index": {
+        "entry": "0x8002F8C4",
+        "end": "0x8002FD30",
+        "body_sha256": "a6c2f1f6da4eb367c0302ebdab8d2ac09f7660d4266e74db02b9a1b95b1d8c99"
+      },
+      "cd_control": {
+        "entry": "0x80043520",
+        "end": "0x80043668",
+        "body_sha256": "85e8a778583ce35579a6b12ab3a78a197fbdfdea9ba2a359e0b7f68f11e25f0b"
+      },
+      "cd_control_f": {
+        "entry": "0x80043668",
+        "end": "0x80043984",
+        "body_sha256": "6ea487267989422129fbd71c1fca52e7ea4dec9666a9bb871965d9b48eccdde6"
+      },
+      "cd_sync_wrapper": {
+        "entry": "0x80043498",
+        "end": "0x800434B8",
+        "body_sha256": "9bca8d5f5fb62f11c456910ea661acc0a91a7c9818e3eae173657b7a3b79ee76"
+      },
+      "cd_sync": {
+        "entry": "0x800440EC",
+        "end": "0x80044370",
+        "body_sha256": "54e814a746debdbcec8b75a5725aca3c691fb5ec220b23932d8f45feb05054af"
+      },
+      "cd_read": {
+        "entry": "0x800439A4",
+        "end": "0x80043A24",
+        "body_sha256": "81b3a35adfe4c0bb3910b49ab6b51e29af8c3ea551abb74bc6c674bb450d2cc2"
+      },
+      "cd_read_sync": {
+        "entry": "0x80043984",
+        "end": "0x800439A4",
+        "body_sha256": "bee80a79c612d3799fc45d22ddfe29217b474b22a79aee9c1b9fd886735f941d"
+      },
+      "callback_initialize": {
+        "entry": "0x8003CB9C",
+        "end": "0x8003CD3C",
+        "body_sha256": "09ed430a53363e1319406ef1f58cd32f70629ddb433c8ca62bd8fcb250d4b467"
+      },
+      "gpu_watchdog_start": {
+        "entry": "0x80042864",
+        "end": "0x80042898",
+        "body_sha256": "45add9a2f73fa7f54b05a9e34b79ae4f52da997588d6b94284cd74183ab8cf56"
+      },
+      "gpu_watchdog_check": {
+        "entry": "0x80042898",
+        "end": "0x80042A04",
+        "body_sha256": "fe2b7bf9a393232084b985c0dcd0a069a383adb188d74893b237403589c29838"
+      }
+    },
+    "projection": {
+      "_measured_by": "read from the authenticated executable",
+      "_note": "Crash 1's horizontal projection is the GTE screen offset OFX (cop2 control register 24), NOT a viewport rectangle. A whole-image census of every instruction word found exactly two control-register writers for OFX, for OFY (25) and for H (26), and zero control-register readers of any of them; the three ranges below are every one of them. Ghidra's reference model reports 0 references to set_geom_screen and 2 to set_geom_offset, and the display/draw-area owner is reachable only through the GPU driver pointer table at 0x80054A24 - see docs/issues/0015.",
+      "gte_init": {
+        "entry": "0x80042B1C",
+        "end": "0x80042B9C",
+        "body_sha256": "d4c38c7e03b4ae7a55a82ca11f8202ea37f36e86337ed841932eb9314d8e01f6"
+      },
+      "set_geom_offset": {
+        "entry": "0x80042F8C",
+        "end": "0x80042FA4",
+        "body_sha256": "9aa95b09a0c5f31d49c3f954d1bc4cbe5101b46feb9a7a9a92673d0716fdfcf1"
+      },
+      "set_geom_screen": {
+        "entry": "0x80042FAC",
+        "end": "0x80042FB8",
+        "body_sha256": "d8c79a8c2661cba5b0c79fdf925407b5a4945c383bb0c8c293287878a693cac2"
+      },
+      "_control_registers": {
+        "ofx": 24,
+        "ofy": 25,
+        "h": 26,
+        "retail_ofx": "0x0",
+        "retail_ofy": "0x0",
+        "init_h": "0x3E8"
+      },
+      "horizontal_bound": {
+        "_measured_by": "read from the authenticated executable",
+        "_note": "H (CR[26]) is not a coprocessor register the guest branches on; the guest keeps its horizontal bound in a MAIN-RAM global and RE-SENDS it into CR[26] every frame. That global is the variable bound a literal-immediate cull census structurally cannot see, so the 21 sites below are the honest answer to 'does anything consume a horizontal bound'. Measured two ways (a lui+offset word scan and Ghidra's reference database); the four sites the word scan misses are the compiler re-using a register proved equal to the same address. Decompiling the two that turn H into a decision shows neither is a screen-space cull: FUN_8003A144 uses H as the GTE near-plane distance and FUN_8001DE78 derives a GTE light-intensity offset from H/2.",
+        "global": "0x800578D0",
+        "global_note": "one writer, in the camera setup; and one reader site in that same writer's function is the compiler's re-used register form",
+        "writer": {
+          "address": "0x80017820",
+          "word": "0xAC2278D0",
+          "in_function": "FUN_80017790",
+          "note": "sw $v0,0x78D0($at) after lui $at,0x8005 - the ONLY store to the global in the image"
+        },
+        "resend_call_site": {
+          "address": "0x80026770",
+          "word": "0x0C010BEB",
+          "in_function": "FUN_80026650",
+          "note": "jal 0x80042FAC (set_geom_screen) fed by lw $a0,0x78D0($a0) at 0x80026764: a per-frame CONSUMER that re-sends the global into CR[26], not a producer"
+        },
+        "per_camera_values": {
+          "note": "the per-camera-mode H chosen in FUN_80017790, one 'mode -> H' pair each",
+          "0x25": 500,
+          "0x1E": 960,
+          "0x38": 800,
+          "0x3C": 460,
+          "0x5A": 288
+        },
+        "readers": [
+          "0x8001782C",
+          "0x80018224",
+          "0x800189EC",
+          "0x80018A98",
+          "0x80018B40",
+          "0x80018C64",
+          "0x80018FEC",
+          "0x8001957C",
+          "0x80019978",
+          "0x80019A60",
+          "0x80019D88",
+          "0x80019F40",
+          "0x8001A07C",
+          "0x8001A280",
+          "0x8001A404",
+          "0x8001DF6C",
+          "0x8001DFFC",
+          "0x8001E048",
+          "0x8001E850",
+          "0x80026764"
+        ],
+        "reader_count_note": "Ghidra's reference database reports 21 references; 19 are listed here and 0x8001782C is the re-used-register read inside the single writer function. A word scan of the immediate 0x78D0 finds 17 of the 21 and names which four it cannot see.",
+        "near_plane_consumer": {
+          "in_function": "FUN_8003A144",
+          "entry": "0x8003A144",
+          "end": "0x8003A76C",
+          "body_sha256": "d8b81f604977cc967682763d57786e74661c0c5ff04cb4781b34638ef1cbd64a",
+          "h_argument_slot": 5,
+          "h_argument_load": "0x8003A18C",
+          "h_argument_word": "0x8FA20014",
+          "reject_if_not": "0x8003A240 slt $at,$v0,$s2 / 0x8003A244 beq $at,$zero,0x8003A71C",
+          "reject_if_farther": "0x8003A248 ori $at,$zero,0x2EE0 / 0x8003A24C slt $at,$at,$s2 / 0x8003A250 bne $at,$zero,0x8003A71C",
+          "far_limit": 12000,
+          "note": "$s2 is the object's projected Z from the rtps at 0x8003A220 (cop2 0x49E012). So the band is H < Z <= 11999: H is the GTE near-plane distance, NOT a screen-space half-width."
+        },
+        "submitter_consumer": {
+          "in_function": "FUN_8001DE78",
+          "entry": "0x8001DE78",
+          "end": "0x8001E3D4",
+          "body_sha256": "567e1ecd1be6ad7403bb97ccd2b37ce5a7e7dd6c4e1b40929fd167bc84c198e1",
+          "base_register_load": [
+            "0x8001DF64 lui $s5,0x8005",
+            "0x8001DF68 addiu $s5,$s5,0x78D0"
+          ],
+          "reused_register_reads": [
+            "0x8001DF6C lw $v0,0x0($s5)",
+            "0x8001DFFC lw $v0,0x0($s5)"
+          ],
+          "half_distance_site": [
+            "0x8001DFFC lw $v0,0x0($s5)",
+            "0x8001E008 srl $v1,$v0,0x1F",
+            "0x8001E00C addu $v0,$v0,$v1",
+            "0x8001E010 sra $v0,$v0,0x1",
+            "0x8001E004 addiu $t0,$t0,0x800",
+            "0x8001E014 subu $t0,$t0,$v0"
+          ],
+          "consumed_by": "FUN_8003A76C",
+          "consumed_by_entry": "0x8003A76C",
+          "consumed_by_end": "0x8003A94C",
+          "consumed_by_body_sha256": "bba82b4454d19f7a32e754826b91c6403d0bfc4c99ca91e64c9a8bce29976032",
+          "note": "The derived value (object+0x138)+0x800-H/2 is the 5th argument of FUN_8003A76C, which uses it as `param_5*4 + (IR0.r+IR0.g+IR0.b >> 5)*-4`: a GTE LIGHT-INTENSITY offset, not a screen extent."
+        }
+      },
+      "_call_sites": {
+        "gte_init": "0x80016558",
+        "set_geom_offset": "0x8001783C 0x80017F00",
+        "set_geom_screen": "0x80017830 0x80026770"
+      }
+    },
+    "block_pool": {
+      "_measured_by": "read from the authenticated executable",
+      "_note": "Crash 1's size-class block pool. The product's guest PC when it stops is 0x800159A8, and that word is `lw $v0,0x4($v1)` - the second class-field read of the cell lookup at 0x80015978. The pool is a table of 8-byte cells: `+0x00` is the payload the allocate path stores (0x80013020 `sw a1,0(s3)`) and `+0x04` is the class the cell serves, which is the only field this module's callers compare. There are exactly six `jal 0x80015978` sites in the image and 818 distinct `jal` targets in 72,192 words, so a function-entry census saturates and cannot rank the six by likelihood; which of them ran is a RUNTIME question, answered by crash1_block_pool.cpp.",
+      "_what_is_not_claimed": "The unit of the caller's request word is NOT established. The lookup compares each cell's +0x04 against the request word WHOLE - `beq $2,$4` at 0x8001599C and `bne $2,$4` at 0x800159B0 both name $a0, and the srl at 0x80015978 only selects the bucket - and the six callers do not pass a uniform byte count: 0x80015034 and 0x80015118 pass a tagged handle read out of a struct at `lw a0,0(s0)`. So the recovered code names the field for what it is compared against and no more.",
+      "find_cell": {
+        "entry": "0x80015978",
+        "end": "0x800159C4",
+        "body_sha256": "a516c7a6824db3ab530fab73848261d8d68340bca14d2156f77227c07a63eece",
+        "class_shift": "0x0D",
+        "bucket_index_mask": "0x03FC",
+        "cell_stride": "0x8",
+        "class_field_offset": "0x4",
+        "payload_field_offset": "0x0",
+        "bucket_table_pointer": "0x8005C530",
+        "class_shift_site": {
+          "address": "0x80015978",
+          "word": "0x00041342",
+          "meaning": "srl v0,a0,13"
+        },
+        "bucket_mask_site": {
+          "address": "0x80015984",
+          "word": "0x304203FC",
+          "meaning": "andi v0,v0,0x03FC"
+        },
+        "bucket_load_site": {
+          "address": "0x80015980",
+          "word": "0x8C63C530",
+          "meaning": "lw v1,-0x3AD0(v1) with v1=lui 0x8006"
+        },
+        "stride_site": {
+          "address": "0x800159A4",
+          "word": "0x24630008",
+          "meaning": "addiu v1,v1,8"
+        },
+        "note": "The index is a BYTE offset into a 256-entry pointer table, so the mask 0x3FC is 4-byte stride x 255. The loop is `if (cell[1]==key) return cell; for (cell+=2; cell[1]!=key; cell+=2) {} return cell;` - the two `addiu v1,v1,8` at 0x800159A4 and 0x800159B4 with the `addiu v1,v1,-8` at 0x800159B8 are the compiler's way of keeping the returned cell on the match, and the bne at 0x800159B0 targets 0x800159A8, the loop head, NOT the first read."
+      },
+      "find_cell_bounded": {
+        "entry": "0x800159C4",
+        "end": "0x80015A3C",
+        "body_sha256": "ca2db9017ebb225a211210799e791bf5c5e56e98c3fa5bef759d8d3dfe626921",
+        "pool_base_pointer": "0x8005C534",
+        "cell_count_block_pointer": "0x8005C540",
+        "cell_count_offset": "0x404",
+        "exhausted_value": "0xFFFFFFF6",
+        "exhausted_value_signed": -10,
+        "call_site_count": 0,
+        "note": "The same lookup with an explicit end: it reads the pool's LOW end from 0x8005C534 and the live cell count from `*(0x8005C540)+0x404`, and after each stride step rejects when `((cell-poolBase)>>3) >= count` at 0x80015A14, returning -10 (`addiu v0,zero,-10` at 0x80015A18) instead of walking off. The check is applied to the cell AFTER the step at 0x80015A04, and the pre-loop read of the bucket's first cell at 0x800159E0 is itself unbounded - which is the same first cell the live 0x80015978 reads at 0x80015994. 0x8005C534 is the pool's LOW end, not its high one: the guest SUBTRACTS it from the cell, so a value greater than the cell is a negative distance and the signed `sra`/`slt` pair is what lets an in-array cell through. Calling it the pool's end is the mistake this manifest's own numbers exposed. It has ZERO `jal` call sites in the image, so it does not run; it is the engine's own statement of what the walk's bound is, and the native owner uses that bound rather than inventing one."
+      },
+      "fault_site": {
+        "address": "0x800159A8",
+        "word": "0x8C620004",
+        "meaning": "lw v0,0x4($v1) - the class read on the SECOND cell, so the first cell's class did not match the request",
+        "reached_from": "0x800159A4, the stride step; the loop head is 0x800159A8 itself (bne at 0x800159B0, word 0x1444FFFD, displacement -3)"
+      },
+      "call_sites": [
+        {
+          "address": "0x8001313C",
+          "word": "0x0C00565E",
+          "caller": "0x80012F10",
+          "distance_from_core_loop": 3
+        },
+        {
+          "address": "0x80015058",
+          "word": "0x0C00565E",
+          "caller": "0x80015034",
+          "distance_from_core_loop": 3
+        },
+        {
+          "address": "0x8001515C",
+          "word": "0x0C00565E",
+          "caller": "0x80015118",
+          "distance_from_core_loop": 2
+        },
+        {
+          "address": "0x80015484",
+          "word": "0x0C00565E",
+          "caller": "0x80015458",
+          "distance_from_core_loop": 2
+        },
+        {
+          "address": "0x80015800",
+          "word": "0x0C00565E",
+          "caller": "0x8001579C",
+          "distance_from_core_loop": 3
+        },
+        {
+          "address": "0x800176F8",
+          "word": "0x0C00565E",
+          "caller": "0x8001767C",
+          "distance_from_core_loop": 3
+        }
+      ],
+      "call_site_count": 6,
+      "pool_globals": {
+        "_note": "Every one of these is read with a `lui $reg,0x8006` + `lw` pair, so a literal-immediate scan cannot see them, and none of them has a `sw` with that displacement anywhere in the image - the pool is filled through a computed pointer, not by a direct store to the global.",
+        "bucket_table": {
+          "address": "0x8005C530",
+          "load_sites": 8
+        },
+        "pool_base": {
+          "address": "0x8005C534",
+          "load_sites": 3
+        },
+        "cell_count_block": {
+          "address": "0x8005C540",
+          "load_sites": 11
+        },
+        "heap_top": {
+          "address": "0x8005C550",
+          "load_sites": 5
+        },
+        "side_index_table": {
+          "address": "0x8005CFBC",
+          "load_sites": 28
+        }
+      }
+    },
+    "pool_node": {
+      "_measured_by": "read from the authenticated executable",
+      "_note": "The pool's OWN ALLOCATE PATH, recovered from the image. It matters because it is where the CLASS WORD is defined: the word is loaded at 0x80012FBC, shifted at 0x80012FC8 to pick a bucket, and the SAME unshifted word is compared against a cell's class field at 0x80012FFC and stored into the cell at 0x80013140. The lookup at 0x80015978 was recovered against the SHIFTED form, could never match anything this function wrote, and its walk ran off the end of main RAM on every lookup. Corrected in titles/crash1/core/crash1_block_pool.{h,cpp}; this block is the allocate side of the same evidence and is gated by its own probe.",
+      "entry": "0x80012F10",
+      "end": "0x8001331C",
+      "body_sha256": "217a4cd96984370fbc016c9b17b6fd394c50fe415ce79ee150adab84c0330dce",
+      "word_count": 259,
+      "lookup_entry": "0x80015978",
+      "globals": {
+        "node_table": "0x8005C554",
+        "node_cursor": "0x8005CFAC",
+        "bucket_table": "0x8005C530",
+        "handle_table": "0x800580A0",
+        "escape_class_table": "0x8005728C",
+        "type_callback_table": "0x800514EC"
+      },
+      "strides": {
+        "node_stride": 44,
+        "callback_stride": 28
+      },
+      "states": {
+        "state_built": "0x1E",
+        "state_done": "0x14",
+        "state_reset": "0x1"
+      },
+      "sites": {
+        "call_to_lookup": "0x8001313C",
+        "call_to_lookup_delay_slot": "0x80013140",
+        "measure_dead_end": "0x80013094",
+        "escape_class_init": "0x80013110"
+      },
+      "constants": {
+        "kEntry": "0x80012F10",
+        "kEnd": "0x8001331C",
+        "kLookupCall": "0x80015978",
+        "kCallToLookup": "0x8001313C",
+        "kCallToLookupDelaySlot": "0x80013140",
+        "kEscapeClassInit": "0x80040484",
+        "kLiveCallerCall": "0x8001515C",
+        "kNodeTable": "0x8005C554",
+        "kNodeCursor": "0x8005CFAC",
+        "kBucketTable": "0x8005C530",
+        "kHandleTable": "0x800580A0",
+        "kTypeCallbackTable": "0x800514EC",
+        "kEscapeClassTable": "0x8005728C",
+        "kNodeStride": 44,
+        "kCallbackStride": 28,
+        "kBucketIndexShift": 13,
+        "kBucketIndexMask": "0x03FC",
+        "kCellStride": 8,
+        "kClassWordOffset": "0x14",
+        "kRequestOffset": "0x18",
+        "kNodeElementArray": "0x10",
+        "kNodeLimit": "0x08",
+        "kNodeKind": "0x02",
+        "kNodePayload": "0x00",
+        "kNodeLiveCount": "0x0A",
+        "kNodeState": "0x04",
+        "kNodeContext": "0x24",
+        "kElementKind": "0x08",
+        "kElementType": "0x10",
+        "kDispatchKind": "0x80012F70",
+        "kKindZero": "0x80012FB4",
+        "kKindOne": "0x80013094",
+        "kKindTwo": "0x800130C0",
+        "kKindThreeOrFour": "0x8001317C",
+        "kKindOther": "0x800132E8",
+        "kStateBuilt": "0x1E",
+        "kStateDone": "0x14",
+        "kStateReset": "0x1",
+        "kMeasureDeadEndCall": "0x8001439C"
+      }
+    },
+    "native_frame": {
+      "core_loop": {
+        "entry": "0x80011FC4",
+        "end": "0x80012560",
+        "body_sha256": "d0057f2df7147e47117adf30a7340c57aa81dbff8bd72f908974502ecc668d63"
+      },
+      "iteration": {
+        "entry": "0x80012030",
+        "end": "0x80012510",
+        "body_sha256": "a5d08a312ae2a19570abba8450bd7c91d8e35368da6016b9e9d5643dfb5b03a8"
+      },
+      "transition": {
+        "entry": "0x80012510",
+        "end": "0x80012560",
+        "body_sha256": "2404b4ae04d34a06e1f93df89bd09fa92a74911333da53969c759a16bcf8ad7f"
+      },
+      "done": {
+        "address": "0x80056428",
+        "load_entry": "0x80012510"
+      },
+      "scene": {
+        "id_address": "0x80056710",
+        "request_address": "0x80056714",
+        "load_entry": "0x80015B58"
+      },
+      "bios_pad_read": {
+        "entry": "0x8003E460",
+        "end": "0x8003E490",
+        "body_sha256": "2ccf10535b73ed4fe1908d0b6e568768f73a34f440cc235bce7b743729e6973c",
+        "address": "0x80057054",
+        "load_entry": "0x8003E470"
+      },
+      "gpu_update": {
+        "entry": "0x80016E5C",
+        "end": "0x800172E8",
+        "body_sha256": "eee93c0a31827c34da153caea6ca19691ae4ad5f17730577da4389a1f711ed9b"
+      },
+      "first_vsync": "0x800170F4",
+      "after_first_vsync": "0x800170FC",
+      "second_vsync": "0x80017124",
+      "after_vsync": "0x8001712C",
+      "ticks_elapsed_address": "0x80034520",
+      "display_context_address": "0x80058404",
+      "root_counter_increment": "0x80034504",
+      "set_root_counter": "0x8003E298",
+      "start_root_counter": "0x8003E370",
+      "stop_root_counter": "0x8003E3A4"
+    }
+  },
+  "region_markers": [
+    "Sony Computer Entertainment Inc. for North America area",
+    "BASCUS-94900"
+  ]
+}

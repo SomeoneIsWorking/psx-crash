@@ -1,0 +1,19 @@
+{
+  "evidence": "https://psx-spx.consoledev.net/kernelbios/#bios-patches",
+  "get_c0_table": {
+    "table": "B",
+    "function": "0x00000056"
+  },
+  "exception_handler": {
+    "c0_function": "0x00000006",
+    "table_slot": 6,
+    "retail_address": "0x00000C80"
+  },
+  "crash1_patch": {
+    "entry": "0x8004319C",
+    "source_begin": "0x80043204",
+    "source_end_exclusive": "0x8004323C",
+    "word_count": 14,
+    "flush_cache_function": "0x00000044"
+  }
+}
