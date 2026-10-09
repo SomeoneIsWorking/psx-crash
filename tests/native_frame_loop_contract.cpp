@@ -119,12 +119,11 @@ int main() {
   checkContract<crash1::Crash1Runtime>(
       "Crash 1 contract", 0x8003E4F0u, 0x8003E638u, crash::NativeFrameLoopState::FiniteBootSeamOnly);
   checkContract<crash2::Crash2Runtime>(
-      "Crash 2 contract", 0x8004A484u, 0x8004A5CCu, crash::NativeFrameLoopState::Missing);
+      "Crash 2 contract", 0x8004A484u, 0x8004A5CCu, crash::NativeFrameLoopState::FiniteBootSeamOnly);
   checkContract<crash3::Crash3Runtime>(
       "Crash 3 contract", 0x8004B2A8u, 0x8004B3F0u, crash::NativeFrameLoopState::Missing);
 
   checkVSyncExit<crash1::Crash1Runtime>("Crash 1 guest VSync typed exit");
-  checkRefusingFrameDeath<crash2::Crash2Runtime>("Crash 2 unproven frame aborts");
   checkVSyncExit<crash2::Crash2Runtime>("Crash 2 guest VSync typed exit");
   checkRefusingFrameDeath<crash3::Crash3Runtime>("Crash 3 unproven frame aborts");
   checkVSyncExit<crash3::Crash3Runtime>("Crash 3 guest VSync typed exit");

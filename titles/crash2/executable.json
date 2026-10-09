@@ -190,6 +190,115 @@
         ],
         "reason": "No cfc2 reads CR[24]/CR[25] anywhere in the image, and every one of the four SetGeomOffset call sites computes its centre from a guest global or a constant, never from the register a widening would move - so `retail + margin` at the leaf cannot compound. H is held because it is this title's GTE near plane AND a HUD rectangle scalar, both measured above."
       }
+    },
+    "native_boot": {
+      "c_main": {
+        "entry": "0x800117BC",
+        "end": "0x80011800",
+        "body_sha256": "06108173448e0f749c6db28acd094472352ab8b401b2a2c80229b780c668b9d9"
+      },
+      "static_constructors": {
+        "entry": "0x80049BD4",
+        "end": "0x80049C44",
+        "body_sha256": "3d513dfb807b0d0c7334054768b288c1e18bd460b8576fd6823cea7a2df3d747"
+      },
+      "use_cd_address": "0x8005F1A4",
+      "init": {
+        "entry": "0x80015614",
+        "end": "0x800157A0",
+        "body_sha256": "bf6f44fac35374528dc6d18a6fe2397663f1b3deb0786eec05ffd70469d22f89"
+      },
+      "cd_initialize": {
+        "entry": "0x800482BC",
+        "end": "0x800484A8",
+        "body_sha256": "59013841e2008e6e6471190fd2610bb4ffad09953e9ccb134a351b3ffcb81589"
+      },
+      "cd_control": {
+        "entry": "0x80046B50",
+        "end": "0x80046C88",
+        "body_sha256": "c1efc95947e2b57c486b30412408cd54e162001a552f493fd0917c4fe55149d4"
+      },
+      "cd_control_f": {
+        "entry": "0x80046C88",
+        "end": "0x80046DB4",
+        "body_sha256": "14eaeee2fa1c7f510a2ffb7b8a369d652ec1dcc671d2cc32dfd73595bf7cc8bb"
+      },
+      "cd_sync_wrapper": {
+        "entry": "0x80046AE0",
+        "end": "0x80046B00",
+        "body_sha256": "d3481c83585d1bf4fb602131baaeb1f71f6f4a6fac4bde322c55d03cc7cabec6"
+      },
+      "cd_sync": {
+        "entry": "0x800476A8",
+        "end": "0x80047928",
+        "body_sha256": "a212fc9eda0dc6e0d34edf35dfd6b2d7cd599a8c795992e3480747d8bd04b9ce"
+      },
+      "cd_read": {
+        "entry": "0x80048F74",
+        "end": "0x80049078",
+        "body_sha256": "f3bc31275ec754048f9a7cb9f7a79158b6b00d635e62aaeb5127fcf25c487442"
+      },
+      "cd_read_sync": {
+        "entry": "0x80049078",
+        "end": "0x80049144",
+        "body_sha256": "f8959c9948f79664ebed99cc86b6c865356e02daf0ded4648d1fdbce41067928"
+      },
+      "callback_initialize": {
+        "entry": "0x80036164",
+        "end": "0x80036304",
+        "body_sha256": "8c97c707fa076394a2fd21b14fc141ea4ee5238e93e9c0fe5cc23e76de28c29f"
+      },
+      "gpu_watchdog_start": {
+        "entry": "0x8004E970",
+        "end": "0x8004E9A4",
+        "body_sha256": "8310d3c486ff0f32c7aaa5defeea288f8dfdcaa39bfad974ef4658c7ef89bb5e"
+      },
+      "gpu_watchdog_check": {
+        "entry": "0x8004E9A4",
+        "end": "0x8004EB10",
+        "body_sha256": "dacb737bb20ed15a7ff1647d4fa72f95b9ab3881e7f5132152eda77fd374eaa9"
+      }
+    },
+    "native_frame": {
+      "core_loop": {
+        "entry": "0x80011800",
+        "end": "0x80011E24",
+        "body_sha256": "a07e1f8663579f4dc4874dc6a63ba9528df58a4434c2f481bd6b754bf8b0bba6"
+      },
+      "initial_scene": "0x0000003C",
+      "iteration": {
+        "entry": "0x80011848",
+        "end": "0x80011DC4",
+        "body_sha256": "94d8f34778f06a4e74d43e05e0ebb970d2e72cd0eb8ccf63a4b9256a1c23a862"
+      },
+      "transition": {
+        "entry": "0x80011E90",
+        "end": "0x80011E98",
+        "body_sha256": "6d64edf91449c1b17746c1ef18afa2eb25c70bdf1322ab3df5a2630993b7e2f1",
+        "return_address": "0x80011DC4"
+      },
+      "done": {
+        "address": "0x8005F1D0",
+        "load_entry": "0x80011DC4"
+      },
+      "scene": {
+        "id_address": "0x8005F3EC",
+        "request_address": "0x8005F3F0",
+        "load_entry": "0x80014C68"
+      },
+      "gpu_update": {
+        "entry": "0x8001645C",
+        "end": "0x80016A60",
+        "body_sha256": "58a27ce7580e49db107896ab138ccd5f1329fbb7c9a5119eeacf5d33b48941f7"
+      },
+      "first_vsync": "0x80016838",
+      "after_first_vsync": "0x80016840",
+      "second_vsync": "0x80016868",
+      "after_vsync": "0x80016870",
+      "root_counter_increment": "0x8003BE88",
+      "set_root_counter": "0x80049DCC",
+      "start_root_counter": "0x80049EA0",
+      "stop_root_counter": "0x80049ED4"
     }
   },
   "region_markers": [

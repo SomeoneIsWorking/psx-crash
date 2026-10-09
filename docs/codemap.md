@@ -34,8 +34,8 @@ per-`Core` Lightrec executor with this repository's native owners → `crash1::C
 | `game/boot/` | `crash` | The refusal invariant for a title with no measured native boot: `BoundaryRuntime`. |
 | `game/frame/` | `crash` | The host/guest frame contract, its platform HLE plan, and the refusing frame driver for a title whose frontier is not a frame loop. |
 | `game/render/widescreen/` | `crash` | The trilogy's ONE guest-projection widening rule, the measured per-title facts it needs, the Core-to-owner lookup and the install of the three projection leaves. |
-| `titles/crash1/boot/` | `crash1::cd_boot`, `crash1::callback_boot`, `crash1::gpu_watchdog` | The three native boot services that replace retail VSync-driven waits. Process boot and executable admission are psxport's (`psx::host::TitleSession`, `selectExecutableFile`). |
-| `titles/crash1/disc/` | `crash1::disc_index_io` | The measured stock-libcd leaves bound to the framework's synchronous command and data owners. |
+| `game/boot/` | `crash::libcd_init`, `crash::callback_boot`, `crash::gpu_watchdog` | The three native boot services shared by Crash 1 and 2, parameterised by `TitleFacts` (measured per-title addresses from `executable.json`). |
+| `game/disc/` | `crash::stock_libcd` | The measured stock-libcd leaves bound to the framework's synchronous command and data owners. |
 | `titles/crash1/entry/` | `crash1` | The title's `GameRuntime`: image facts, HLE plan, override registration, boot dispatch, and the owners it holds. |
 | `titles/crash1/frame/` | `crash1` | The frame turn: enter CoreLoop, service the root counter, publish the BIOS pad word, deliver each measured display field, commit the frame. |
 | `titles/crash1/input/` | `crash1::bios_pad_input` | Crash 1's BIOS `PadRead` word: the address and Crash's byte order, nothing else. |
@@ -51,6 +51,9 @@ per-`Core` Lightrec executor with this repository's native owners → `crash1::C
 | Class / function | Responsibility |
 |---|---|
 | `crash::BoundaryRuntime` (`game/boot/`) | The refusal invariant shared by titles whose measured frontier is not yet a native boot: widescreen-only capabilities and a fatal boot request. |
+| `crash::TitleFacts`, `crash::CrashRuntime` (`game/entry/`) | The per-title facts struct and the shared `GameRuntime`: registers libcd_init, stock_libcd, callback_boot, gpu_watchdog, projection sites, title overrides and the frame driver; publishes runtime-loaded code through `publishStockReadLanding` over `codeModuleArena`; handles the `warp` control command. |
+| `crash::CrashFrameDriver`, `FrameCut`, `FrameProgram` (`game/frame/`) | The shared frame turn: typed VSync exits at the transition return, resume at `iteration.begin`, input publication hook, scene cuts. |
+| `crash::SceneWarp` (`game/frame/scene_warp.*`) | The `warp <id>` debug option: arms a scene id and writes the title's scene request word at a frame boundary when no request is pending; refused before the loop runs or past scene 0x3C. |
 | `crash::GuestFunctionRange`, `NativeFrameLoopState`, `NativeFrameLoopContract` (`game/frame/`) | The title-owned facts at the host/guest frame boundary and what they honestly permit. |
 | `crash::makeNativeFramePlatformPlan`, `initializeNativeFrameLoopContract`, `abortUnprovenFrameStep` (`game/frame/`) | The one mapping from a frame contract to a platform HLE plan, the seam a direct product route calls before guest execution, and the refusal beyond the frontier. |
 | `crash::RefusingFrameDriver<TitleDriver>` (`game/frame/`) | A host frame request is fatal, using the title's own measured contract. |
@@ -61,12 +64,8 @@ per-`Core` Lightrec executor with this repository's native owners → `crash1::C
 
 | Class / function | Responsibility |
 |---|---|
-| `crash1::Crash1Catalog` (`entry/crash1_catalog.*`) | Crash 1's `psx::host::TitleCatalog`: the one `TitleIdentity` (size, SHA-256, PS-X EXE header words, serial) taken from `titles/crash1/executable.json` at configure time, and the process's one `Crash1Runtime`. Crash 2 and 3 join when their runtimes boot (issues 0017, 0018). |
+| `crash::CrashCatalog` (`product/crash_catalog.*`) | The product `TitleCatalog`: Crash 1 and Crash 2 identities from `executable.json` and one runtime per title. `product/main.cpp` composes it into target `crash1_port`. |
 | `Crash1Runtime::discEnvVar`, `registerOverrides`, `bootInit`, `reportRun` | What the old `ProductBoot` did, reached through `GameRuntime` hooks: the disc key, the native owners before the first guest call, the init prefix, the projection run-end line. |
-| `crash1::cd_boot::registerOverride`, `initializeDriver` (`boot/crash1_cd_boot.*`) | Preserve the measured libcd software state at initialization without entering its VSync-driven controller wait. |
-| `crash1::callback_boot::registerOverride`, `initializeDriver` (`boot/crash1_callback_boot.*`) | The eight BIOS events, the pad service start, and the handle closes — with no guest display wait. |
-| `crash1::gpu_watchdog::registerOverrides`, `start`, `check` (`boot/crash1_gpu_watchdog.*`) | GPU queue timeout bookkeeping against the host-owned display counter. |
-| `crash1::disc_index_io::registerOverrides`, `applyControl`, `applyControlF`, `applySync`, `applyRead`, `applyReadSync` (`disc/crash1_disc_index_io.*`) | The measured `CdControl`/`CdControlF`/`CdSync`/`CdRead`/`CdReadSync` leaves bound to the framework's synchronous owners. |
 | `crash1::Crash1Runtime` (`entry/crash1_runtime.*`) | The title's `GameRuntime`: image facts, platform plan, override registration, boot dispatch, the widescreen policy, and the owners it holds. |
 | `crash1::Crash1FrameProgram`, `Crash1FrameDriver` (`frame/crash1_frame_driver.*`) | One host frame: pad publication, the guest turn to the measured boundary, one display field per wait, and the presentation commit. |
 | `crash1::Crash1FrameCut` (`frame/crash1_frame_cut.*`) | Whether the sealed frame starts a new scene, from the guest scene id `0x80056710` and request `0x80056714`; `Crash1Runtime::sealedFrameIsCut` answers the presenter from it. |
@@ -80,8 +79,9 @@ per-`Core` Lightrec executor with this repository's native owners → `crash1::C
 
 | Class / function | Responsibility |
 |---|---|
-| `crash2::Crash2Runtime`, `crash3::Crash3Runtime` (`entry/`) | Each title's measured image facts, platform plan and widescreen policy. They extend `crash::BoundaryRuntime`, so a boot request is a refusal until the title has native boot services and a measured frame boundary. |
-| `crash2::Crash2FrameDriver`, `crash3::Crash3FrameDriver` (`frame/`) | Each title's measured VSync contract and, through `crash::RefusingFrameDriver`, the single honest answer to an attempted frame step. |
+| `crash2::Crash2Runtime` (`entry/`) | Crash 2's `crash::CrashRuntime`: `crash2::facts()` (libcd, callback, GPU watchdog, pad buffers, code-module arena) and an empty title override set. |
+| `crash3::Crash3Runtime` (`entry/`) | Measured image facts, platform plan and widescreen policy over `crash::BoundaryRuntime`; a boot request is a refusal until Crash 3 has a frame boundary (issue 0028). |
+| `crash3::Crash3FrameDriver` (`frame/`) | Crash 3's measured VSync contract and, through `crash::RefusingFrameDriver`, the single honest answer to an attempted frame step. |
 | `crash2::Crash2Widescreen`, `crash3::Crash3Widescreen` (`render/widescreen/`) | Each title's measured projection facts over `crash::GuestProjectionPublication`. Crash 3 is the only title with a pass-through site. |
 
 ## Who owns it
@@ -126,8 +126,8 @@ turn resumes only from a typed exit.
 | Hop | Owner |
 |---|---|
 | disc selection | psxport's disc owner, from `Crash1Runtime::discEnvVar` |
-| library state | `crash1::cd_boot::initializeDriver` |
-| the measured stock-libcd leaves | `crash1::disc_index_io::registerOverrides` → psxport's synchronous command and data owners |
+| library state | `crash::libcd_init` |
+| the measured stock-libcd leaves | `crash::stock_libcd` -> psxport's synchronous command and data owners |
 | guest CD requests | psxport's `CdcState` / `XaState`, owned by `Game` |
 
 ### Audio

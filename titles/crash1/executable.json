@@ -53,11 +53,6 @@
         "end": "0x8004519C",
         "body_sha256": "324b9740be681b9a59bf593f716ff83190c4a66a41200655f9861893ae4f4492"
       },
-      "disc_index": {
-        "entry": "0x8002F8C4",
-        "end": "0x8002FD30",
-        "body_sha256": "a6c2f1f6da4eb367c0302ebdab8d2ac09f7660d4266e74db02b9a1b95b1d8c99"
-      },
       "cd_control": {
         "entry": "0x80043520",
         "end": "0x80043668",
@@ -429,7 +424,8 @@
       "transition": {
         "entry": "0x80012510",
         "end": "0x80012560",
-        "body_sha256": "2404b4ae04d34a06e1f93df89bd09fa92a74911333da53969c759a16bcf8ad7f"
+        "body_sha256": "2404b4ae04d34a06e1f93df89bd09fa92a74911333da53969c759a16bcf8ad7f",
+        "return_address": "0x80012510"
       },
       "done": {
         "address": "0x80056428",
@@ -456,12 +452,11 @@
       "after_first_vsync": "0x800170FC",
       "second_vsync": "0x80017124",
       "after_vsync": "0x8001712C",
-      "ticks_elapsed_address": "0x80034520",
-      "display_context_address": "0x80058404",
       "root_counter_increment": "0x80034504",
       "set_root_counter": "0x8003E298",
       "start_root_counter": "0x8003E370",
-      "stop_root_counter": "0x8003E3A4"
+      "stop_root_counter": "0x8003E3A4",
+      "initial_scene": "0x00000019"
     }
   },
   "region_markers": [

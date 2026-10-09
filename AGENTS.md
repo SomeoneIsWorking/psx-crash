@@ -31,8 +31,8 @@ camera does not yet publish a centre (issue 0023), and representative gameplay i
 `titles/crash1/input/crash1_bios_pad_input.*` owns only the authenticated combined word and Crash's
 byte order, published before retail `PadUpdate`.
 
-The product starts through psxport's `psx::host::ProductHost` over `crash1::Crash1Catalog`
-(`titles/crash1/entry/crash1_catalog.*`): zero arguments open the title picker, `pick crash1` boots
+The product starts through psxport's `psx::host::ProductHost` over `crash::CrashCatalog`
+(`product/crash_catalog.*`, Crash 1 and 2): zero arguments open the title picker, `pick crash1` or `pick crash2` boots
 it, and `session return` comes back. Boot is the host's generic `TitleSession` sequence; Crash 1's
 own steps live in `Crash1Runtime` hooks (`discEnvVar`, `registerOverrides`, `bootInit`, `reportRun`).
 

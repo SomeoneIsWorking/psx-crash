@@ -250,7 +250,7 @@ Statuses: ✅ `re-verified` · 🟡 `re-partial` · 🔬 `in-progress` · ⬜ `t
 - notes: This is the fidelity gate for the replacement product. No compatibility mode exists.
 
 ### CRASH2-JIT-01 — migrate Crash 2 after Crash 1 is complete
-- status: todo
+- status: partial (boots to the title and warp-room hub on the shared Crash owners; no gameplay scene id found, issue 0027)
 - deps: CRASH1-JIT-02, CRASH2-02, CRASH2-03, CRASH2-VSYNC
 - evidence:
 - where: `titles/crash2/` plus psxport executor
@@ -258,7 +258,7 @@ Statuses: ✅ `re-verified` · 🟡 `re-partial` · 🔬 `in-progress` · ⬜ `t
 - notes: Do not inherit Crash 1 addresses, seeds, or behavior.
 
 ### CRASH3-JIT-01 — migrate Crash 3 after Crash 2 is complete
-- status: todo
+- status: todo (mapped: CoreLoop 0x8001166C, scene request 0x80060AC0, loop-top 0x800116D8, GpuUpdate FUN_80016634 with VSync calls near 0x80016AA8; stub calls at 0x80011868 and 0x80011D90 only; libcd bodies match Crash 2; issue 0028)
 - deps: CRASH2-JIT-01, CRASH3-02, CRASH3-03, CRASH3-VSYNC
 - evidence:
 - where: `titles/crash3/` plus psxport executor
