@@ -82,6 +82,7 @@ constexpr crash::gpu_watchdog::Program kGpuWatchdog{
     .critical = 0x8004A7F4u,
 };
 
+// The scene table is FUN_80014C68 and FUN_800123F0's row source: sector, byte size, end sector per id.
 constexpr crash::FrameProgram kFrame{
     .coreLoop = {CRASH_CORE_LOOP_ENTRY, CRASH_CORE_LOOP_END},
     .initialScene = CRASH_INITIAL_SCENE,
@@ -96,6 +97,7 @@ constexpr crash::FrameProgram kFrame{
     .doneAddress = CRASH_DONE_ADDRESS,
     .sceneIdAddress = CRASH_SCENE_ID_ADDRESS,
     .sceneRequestAddress = CRASH_SCENE_REQUEST_ADDRESS,
+    .sceneTable = {0x80069034u, 0x3Du, 12u, 0x1FFFFu},
     .rootCounterIncrement = CRASH_ROOT_COUNTER_INCREMENT,
     .setRootCounter = CRASH_SET_ROOT_COUNTER,
     .startRootCounter = CRASH_START_ROOT_COUNTER,

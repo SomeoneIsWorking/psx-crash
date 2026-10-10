@@ -31,7 +31,7 @@ public:
   static void installOverrides(Game &game, const FrameProgram &program);
 
   // Arms a `warp <scene>` request; the next frame raises it through the guest's own scene request.
-  std::string armWarp(const char *line);
+  std::string armWarp(Core &core, const char *line);
 
   // Two measured sources: the guest's `jal` to the libetc VSync leaf in GpuUpdate, and the loop
   // transition override (which stamps the VSync leaf entry). Anything else is refused.

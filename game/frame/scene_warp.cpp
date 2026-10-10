@@ -7,7 +7,17 @@
 
 namespace crash {
 
-std::string SceneWarp::arm(const char *line, bool loopRunning) {
+bool SceneWarp::hasScene(Core &core, const SceneTable &table, std::uint32_t scene) {
+  if (table.address == 0u) {
+    return true;
+  }
+  if (scene >= table.rows) {
+    return false;
+  }
+  return (core.mem_r32(table.address + scene * table.rowBytes + 4u) & table.sizeMask) != 0u;
+}
+
+std::string SceneWarp::arm(const char *line, bool loopRunning, Core &core, const FrameProgram &program) {
   unsigned scene = 0;
   if (std::sscanf(line, "%*s %x", &scene) != 1) {
     return "usage: warp <scene-hex>";
@@ -17,6 +27,9 @@ std::string SceneWarp::arm(const char *line, bool loopRunning) {
   }
   if (!loopRunning) {
     return "refused: a warp is legal only once the game loop is running";
+  }
+  if (!hasScene(core, program.sceneTable, scene)) {
+    return lucent::format("refused: scene 0x{:X} has no row in the scene table", scene);
   }
   armed_ = scene;
   return lucent::format("ok: warp armed for scene 0x{:X}", scene);

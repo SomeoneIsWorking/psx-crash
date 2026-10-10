@@ -6,6 +6,15 @@
 
 namespace crash {
 
+// A title's scene table in guest RAM: `rows` rows of `rowBytes`, indexed by scene id; word 1 of a row masked by
+// `sizeMask` is the scene header's byte size, zero for an id the title never loads.
+struct SceneTable {
+  std::uint32_t address;
+  std::uint32_t rows;
+  std::uint32_t rowBytes;
+  std::uint32_t sizeMask;
+};
+
 // One title's measured frame loop: where a host frame starts and ends, and the display waits between.
 struct FrameProgram {
   GuestFunctionRange coreLoop;
@@ -24,6 +33,8 @@ struct FrameProgram {
   std::uint32_t doneAddress;
   std::uint32_t sceneIdAddress;
   std::uint32_t sceneRequestAddress;
+  // Zero address when the title has no measured table.
+  SceneTable sceneTable;
   std::uint32_t rootCounterIncrement;
   std::uint32_t setRootCounter;
   std::uint32_t startRootCounter;

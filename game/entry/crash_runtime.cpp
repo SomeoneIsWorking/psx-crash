@@ -103,8 +103,9 @@ bool CrashRuntime::controlCommand(Core &core, const char *cmd, const char *line,
     return false;
   }
   auto *driver = dynamic_cast<CrashFrameDriver *>(core.game->frameDriver.get());
-  std::fprintf(
-      out, "%s\n", driver == nullptr ? "refused: no Crash frame driver is running" : driver->armWarp(line).c_str());
+  std::fprintf(out,
+               "%s\n",
+               driver == nullptr ? "refused: no Crash frame driver is running" : driver->armWarp(core, line).c_str());
   return true;
 }
 

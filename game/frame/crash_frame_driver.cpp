@@ -58,8 +58,8 @@ void CrashFrameDriver::installOverrides(Game &game, const FrameProgram &program)
 
 void CrashFrameDriver::publishInput(Core &) {}
 
-std::string CrashFrameDriver::armWarp(const char *line) {
-  return warp_.arm(line, enteredCoreLoop_);
+std::string CrashFrameDriver::armWarp(Core &core, const char *line) {
+  return warp_.arm(line, enteredCoreLoop_, core, program_);
 }
 
 void CrashFrameDriver::callOriginal(Core &core, std::uint32_t address) {

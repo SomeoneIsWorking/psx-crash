@@ -23,8 +23,9 @@ int main() {
     crash::SceneWarp warp;
     int bad = 0;
 
-    if (!contains(warp.arm("warp", true), "usage") || !contains(warp.arm("warp 3D", true), "refused") ||
-        !contains(warp.arm("warp 15", false), "refused")) {
+    if (!contains(warp.arm("warp", true, core, program), "usage") ||
+        !contains(warp.arm("warp 3D", true, core, program), "refused") ||
+        !contains(warp.arm("warp 15", false, core, program), "refused")) {
       bad += crash_test::fail(title, "a malformed, out-of-range or early warp must be refused");
     }
     core.mem_w32(program.sceneRequestAddress, crash::SceneWarp::kNoRequest);
@@ -32,7 +33,21 @@ int main() {
       bad += crash_test::fail(title, "an unarmed warp must apply nothing");
     }
 
-    if (!contains(warp.arm("warp 15", true), "ok")) {
+    const crash::SceneTable &table = program.sceneTable;
+    if (table.address != 0u) {
+      core.mem_w32(table.address + 0x15u * table.rowBytes + 4u, 0x1754u);
+      core.mem_w32(table.address + 0x14u * table.rowBytes + 4u, 0u);
+      core.mem_w32(table.address + 0x2Au * table.rowBytes + 4u, 0u);
+      if (!contains(warp.arm("warp 14", true, core, program), "no row") ||
+          !contains(warp.arm("warp 2A", true, core, program), "no row")) {
+        bad += crash_test::fail(title, "a scene with an empty table row must be refused");
+      }
+      core.mem_w32(table.address + 0x16u * table.rowBytes + 4u, 0x2000000u);
+      if (!contains(warp.arm("warp 16", true, core, program), "no row")) {
+        bad += crash_test::fail(title, "a row whose size field masks to zero must be refused");
+      }
+    }
+    if (!contains(warp.arm("warp 15", true, core, program), "ok")) {
       bad += crash_test::fail(title, "a valid warp must arm");
     }
     core.mem_w32(program.sceneRequestAddress, 0x2u);

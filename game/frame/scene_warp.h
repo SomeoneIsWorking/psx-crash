@@ -19,12 +19,14 @@ public:
   // The scene request word's "none pending" value.
   static constexpr std::uint32_t kNoRequest = 0xFFFFFFFFu;
 
-  // Parses one command line; the returned text answers the client.
-  std::string arm(const char *line, bool loopRunning);
+  // Parses one command line; the returned text answers the client. A scene whose table row is empty is refused.
+  std::string arm(const char *line, bool loopRunning, Core &core, const FrameProgram &program);
   // Raises the armed request when the guest has none pending; returns the scene applied.
   std::optional<std::uint32_t> apply(Core &core, const FrameProgram &program);
 
 private:
+  static bool hasScene(Core &core, const SceneTable &table, std::uint32_t scene);
+
   std::optional<std::uint32_t> armed_;
 };
 
