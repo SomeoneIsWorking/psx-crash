@@ -250,11 +250,11 @@ Statuses: ✅ `re-verified` · 🟡 `re-partial` · 🔬 `in-progress` · ⬜ `t
 - notes: This is the fidelity gate for the replacement product. No compatibility mode exists.
 
 ### CRASH2-JIT-01 — migrate Crash 2 after Crash 1 is complete
-- status: partial (boots to the title on the shared Crash owners; levels load and run through `warp`; the player's warp-room portal path is blocked by the scene-2 intro and a Start fault, issue 0029)
+- status: partial (boots to the title on the shared Crash owners; levels load and run through `warp`; the warp-room hub, its portal and the pause menu work headless after `warp 2`; New Game's scene 0x1C is not yet played through, issue 0029)
 - deps: CRASH1-JIT-02, CRASH2-02, CRASH2-03, CRASH2-VSYNC
 - evidence: Ghidra over `SCUS_941.54`. Scene request word `0x8005F3F0` (`-1` none, `-2` reload the saved scene at `0x80060988`), loaded id `0x8005F3EC`. CoreLoop `FUN_80011800` unloads through `FUN_8001521C` and loads through `FUN_80014C68`, which reads the 12-byte row at `0x80069034 + id * 12` (header sector, byte size, end sector) and has `FUN_800123F0` read the header with `CdRead`; empty rows (ids 0, 1, 4, 5, 0xB, 0x14, 0x2A to 0x3A) hang the load. Script op class 0xC sub 9 in `FUN_80037698` (0x80037DC8) writes `operand >> 8` to the request word, which a portal script can use (not observed live); death writes 0x3B (`0x80011A4C`). Live: warping 0x10, 0x15, 0x1B and 0x25 loads levels Crash runs in.
 - where: `titles/crash2/` plus psxport executor
-- gap: The portal's own request is decoded but not observed live: the new-game intro in scene 2 never ends and Start faults in `FUN_80019800` (issue 0029). Representative gameplay is not passed.
+- gap: The hub portal's request is now observed live (forced Up from the hub spawn loads scene 0x1E), and the pause menu opens in the hub and in a level; the pause text formatter at `0x8001BAB0` calls BIOS A0:0x10 `atoi`. New Game requests scene 0x1C, which is not yet played through to the hub. Representative gameplay is not passed.
 - notes: Do not inherit Crash 1 addresses, seeds, or behavior.
 
 ### CRASH3-JIT-01 — migrate Crash 3 after Crash 2 is complete

@@ -134,7 +134,7 @@ turn resumes only from a typed exit.
 
 | Hop | Owner |
 |---|---|
-| per display field | `crash1::Crash1FrameDriver::deliverDisplayField` → psxport `SpuAudio::frame` |
+| per display field | `crash1::Crash1FrameDriver::deliverDisplayField` → psxport `SpuAudio::frame` (advances the SPU even with no output consumer; Crash 2's hub dialogue waits on voice end, so a headless run needs it) |
 | device binds | `psx::host::TitleSession::boot` and `dc_boot_init` (the framework's measured order and per-instance binds) |
 | streaming | psxport's `XaState`, fed by the framework's CDC |
 
