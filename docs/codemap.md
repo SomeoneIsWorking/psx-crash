@@ -90,7 +90,7 @@ per-`Core` Lightrec executor with this repository's native owners → `crash1::C
 
 | Hop | Owner |
 |---|---|
-| product spine | `main` → `psx::host::ProductHost` → `TitleSession::boot`/`step` (`dc_boot_init`, `FrameLoopShell::step`) |
+| product spine | `main` → `psx::host::ProductHost` → `TitleSession::boot`/`step` (`GameRuntime::bootInit`, `FrameLoopShell::step`) |
 | one host frame | `crash1::Crash1FrameDriver::stepFrame` (`Game::frameDriver`) |
 | guest work | `psx::cpu::dispatchGuestUntilExit` through `Crash1FrameDriver::runGuestToBoundary` |
 | boundary | the guest's own `jal` to the libetc VSync leaf, or the `CoreLoop` transition override `finishFrameIteration`, which raises a typed `FrameBoundary` exit |
@@ -135,7 +135,7 @@ turn resumes only from a typed exit.
 | Hop | Owner |
 |---|---|
 | per display field | `crash1::Crash1FrameDriver::deliverDisplayField` → psxport `SpuAudio::frame` (advances the SPU even with no output consumer; Crash 2's hub dialogue waits on voice end, so a headless run needs it) |
-| device binds | `psx::host::TitleSession::boot` and `dc_boot_init` (the framework's measured order and per-instance binds) |
+| device binds | `psx::host::TitleSession::boot` through `psx::Machine::bindDevices` (the framework's measured order and per-instance binds) |
 | streaming | psxport's `XaState`, fed by the framework's CDC |
 
 ### Debug and control channel
