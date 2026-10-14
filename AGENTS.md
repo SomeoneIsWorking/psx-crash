@@ -34,7 +34,7 @@ byte order, published before retail `PadUpdate`.
 The product starts through psxport's `psx::host::ProductHost` over `crash::CrashCatalog`
 (`product/crash_catalog.*`, Crash 1 and 2): zero arguments open the title picker, `pick crash1` or `pick crash2` boots
 it, and `session return` comes back. Boot is the host's generic `TitleSession` sequence; Crash 1's
-own steps live in `Crash1Runtime` hooks (`discEnvVar`, `registerOverrides`, `bootInit`, `reportRun`).
+own steps live in `Crash1Runtime` hooks (`registerOverrides`, `bootInit`, `reportRun`); its disc key is in its `TitleIdentity`.
 
 Do not begin Crash 2 or Crash 3 execution migration until Crash 1 reaches representative gameplay
 through Lightrec with its native owners active. Their verified identities, addresses, VSync bodies,

@@ -43,8 +43,8 @@ int main(int argc, char **argv) {
         json.find(size) == std::string::npos) {
       return fail("identity disagrees with executable.json") ? 0 : 1;
     }
-    if (std::string(catalog.runtime(index).discEnvVar()) != discKeys[index]) {
-      return fail("runtime does not name its title's disc key") ? 0 : 1;
+    if (std::string(identity.discEnvVar) != discKeys[index] || identity.discExecutablePath != identity.serial) {
+      return fail("identity does not name its title's disc key and boot executable") ? 0 : 1;
     }
   }
   std::printf("CrashCatalog: identities match executable.json\n");

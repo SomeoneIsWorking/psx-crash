@@ -127,10 +127,11 @@ constexpr psx::host::TitleIdentity kIdentity{
     .textSize = CRASH_EXE_TEXT_SIZE,
     .stackAddress = CRASH_EXE_STACK_ADDRESS,
     .stackOffset = CRASH_EXE_STACK_OFFSET,
+    .discEnvVar = "PSXPORT_CRASH2_DISC",
+    .discExecutablePath = CRASH_EXE_NAME,
 };
 
 const crash::TitleFacts kFacts{
-    .discEnvVar = "PSXPORT_CRASH2_DISC",
     .image = kImage,
     .staticConstructors = CRASH_STATIC_CONSTRUCTORS_ENTRY,
     .useCdAddress = CRASH_USE_CD_ADDRESS,

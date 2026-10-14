@@ -109,10 +109,6 @@ bool CrashRuntime::controlCommand(Core &core, const char *cmd, const char *line,
   return true;
 }
 
-const char *CrashRuntime::discEnvVar() const {
-  return facts_.discEnvVar;
-}
-
 void CrashRuntime::reportRun(Core &) const {
   lucent::info(logDomain_,
                "guest projection run-end: centre_publications={} pass_throughs={} init_published={} "

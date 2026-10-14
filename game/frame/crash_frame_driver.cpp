@@ -5,6 +5,7 @@
 #include "execution_control.h"
 #include "field_rate.h"
 #include "game.h"
+#include "logic_frame.h"
 #include "native_dispatch.h"
 #include "title_facts.h"
 
@@ -191,10 +192,8 @@ void CrashFrameDriver::stepFrame(Core &core, std::uint32_t frame) {
   lastHostFrame_ = frame;
 
   serviceRootCounter(core, game_.timing.emulatedCpuTicks());
-  game_.timing.logicFrame = completedFrames_;
   game_.timing.frameTick();
-  core.rsub.otAttr.beginLogicFrame(completedFrames_);
-  game_.pad.serviceFrame();
+  psx::frame::LogicFrame::begin(game_, completedFrames_);
   publishInput(core);
   warp_.apply(core, program_);
   deliveredFields_ = 0;

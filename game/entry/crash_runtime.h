@@ -29,7 +29,6 @@ public:
   const GuestWidescreenProjection *guestWidescreenProjection() const override;
   void stockCdReadLanded(Core &core, const psx::cd::StockReadLanding &landing) override;
   bool controlCommand(Core &core, const char *cmd, const char *line, FILE *out) override;
-  const char *discEnvVar() const override;
   void reportRun(Core &core) const override;
 
   const TitleFacts &facts() const {

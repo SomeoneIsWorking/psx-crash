@@ -18,7 +18,6 @@ namespace crash {
 // Everything one title's native boot and frame loop need from its executable, measured in
 // `titles/<title>/executable.json` and the decompilation each title's facts file cites.
 struct TitleFacts {
-  const char *discEnvVar;
   GuestProgramImage image;
   // The retail C main's three steps before the main loop: static constructors, the CD flag, Init.
   std::uint32_t staticConstructors;

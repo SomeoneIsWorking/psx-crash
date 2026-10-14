@@ -65,7 +65,7 @@ per-`Core` Lightrec executor with this repository's native owners → `crash1::C
 | Class / function | Responsibility |
 |---|---|
 | `crash::CrashCatalog` (`product/crash_catalog.*`) | The product `TitleCatalog`: Crash 1 and Crash 2 identities from `executable.json`, one runtime per title, provisioned under `scratch/bin`. Entry is the framework main: `psxport_add_product` runs `crash::createCatalog()` as target `crash1_port`. |
-| `Crash1Runtime::discEnvVar`, `registerOverrides`, `bootInit`, `reportRun` | What the old `ProductBoot` did, reached through `GameRuntime` hooks: the disc key, the native owners before the first guest call, the init prefix, the projection run-end line. |
+| `Crash1Runtime::registerOverrides`, `bootInit`, `reportRun` | What the old `ProductBoot` did, reached through `GameRuntime` hooks: the native owners before the first guest call, the init prefix, the projection run-end line. |
 | `crash1::Crash1Runtime` (`entry/crash1_runtime.*`) | The title's `GameRuntime`: image facts, platform plan, override registration, boot dispatch, the widescreen policy, and the owners it holds. |
 | `crash1::Crash1FrameProgram`, `Crash1FrameDriver` (`frame/crash1_frame_driver.*`) | One host frame: pad publication, the guest turn to the measured boundary, one display field per wait, and the presentation commit. |
 | `crash1::Crash1FrameCut` (`frame/crash1_frame_cut.*`) | Whether the sealed frame starts a new scene, from the guest scene id `0x80056710` and request `0x80056714`; `Crash1Runtime::sealedFrameIsCut` answers the presenter from it. |
@@ -107,7 +107,7 @@ turn resumes only from a typed exit.
 | Hop | Owner |
 |---|---|
 | host devices and keys | psxport `psx::input::HostInput` (`host_input.h`) — the ONE host input owner |
-| the pad the guest sees | psxport `Pad::pollHostInput` / `Pad::serviceFrame` (`Game::pad`) |
+| the pad the guest sees | psxport `Pad::pollHostInput` / `Pad::serviceFrame` (`Game::pad`), serviced by psxport `LogicFrame::begin` at the top of `CrashFrameDriver::stepFrame` |
 | this title's word | `crash1::bios_pad_input::publishPrimary`, into `0x80057054`, before retail `PadUpdate` |
 | the guest reads | its own BIOS `PadRead` result; the title owns the address and the byte order only |
 | debug control channel | psxport's loopback `dbg_server` (`PSXPORT_DEBUG_SERVER=1`, default 127.0.0.1:5959), driven by the framework's `dbgclient`; it reads host state through `HostInput` and does not publish the guest word |
@@ -125,7 +125,7 @@ turn resumes only from a typed exit.
 
 | Hop | Owner |
 |---|---|
-| disc selection | psxport's disc owner, from `Crash1Runtime::discEnvVar` |
+| disc selection | psxport's disc owner, from the title's `TitleIdentity::discEnvVar` (`titles/<t>/entry/<t>_facts.cpp`) |
 | library state | `crash::libcd_init` |
 | the measured stock-libcd leaves | `crash::stock_libcd` -> psxport's synchronous command and data owners |
 | guest CD requests | psxport's `CdcState` / `XaState`, owned by `Game` |
