@@ -5,6 +5,8 @@
 #include "title_catalog.h"
 
 #include <array>
+#include <filesystem>
+#include <memory>
 #include <span>
 
 namespace crash {
@@ -16,6 +18,7 @@ public:
   CrashCatalog();
 
   std::string_view productName() const override;
+  std::filesystem::path provisioningRoot() const override;
   std::span<const psx::host::TitleIdentity> titles() const override;
   GameRuntime &runtime(std::size_t index) const override;
 
@@ -25,5 +28,8 @@ private:
   mutable crash1::Crash1Runtime crash1_;
   mutable crash2::Crash2Runtime crash2_;
 };
+
+// The product's catalog, run by the framework main (psxport_add_product).
+std::unique_ptr<psx::host::TitleCatalog> createCatalog();
 
 } // namespace crash

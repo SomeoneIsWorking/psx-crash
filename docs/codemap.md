@@ -5,8 +5,8 @@ Ownership and placement map for the Crash trilogy port. Capability state belongs
 `docs/re-frontier.md`, and atomic work in `docs/issues/`. A title's measured binary facts live in
 `titles/<title>/executable.json` and the owning header.
 
-The product path is `run.sh` → `titles/crash1/main.cpp` → `psx::host::ProductHost` over `crash1::Crash1Catalog` (zero
-arguments opens the in-window title picker; `pick crash1` boots Crash 1) → psxport's
+The product path is `run.sh` → the framework main (`psxport_add_product`) → `psx::host::ProductHost` over
+`crash::CrashCatalog` (zero arguments open the in-window title picker; `pick crash1` boots Crash 1) → psxport's
 per-`Core` Lightrec executor with this repository's native owners → `crash1::Crash1FrameDriver`.
 
 ## Placement rules
@@ -42,7 +42,7 @@ per-`Core` Lightrec executor with this repository's native owners → `crash1::C
 | `titles/crash1/render/` | `crash1` | The engine's size-class block pool: the cell lookup owner installed as an override. |
 | `titles/crash1/render/widescreen/` | `crash1` | This title's projection facts over the shared rule, and the horizontal-bound guard beside it. |
 | `titles/crash2/`, `titles/crash3/` | `crash2`, `crash3` | The same `entry/`, `frame/`, `render/widescreen/` shape for Crash 2 and Crash 3. |
-| `titles/crash1/main.cpp` | — | Argument handling and composition only. |
+| `product/` | `crash` | `CrashCatalog` and `createCatalog`; entry is the framework main, which owns argument handling. |
 | `tests/` | — | Focused tests that drive the production seams; they never restate a rule an owner implements. |
 | `tools/` | — | Provisioning, launcher and the verifier. No C++ owner lives here. |
 
@@ -64,7 +64,7 @@ per-`Core` Lightrec executor with this repository's native owners → `crash1::C
 
 | Class / function | Responsibility |
 |---|---|
-| `crash::CrashCatalog` (`product/crash_catalog.*`) | The product `TitleCatalog`: Crash 1 and Crash 2 identities from `executable.json` and one runtime per title. `product/main.cpp` composes it into target `crash1_port`. |
+| `crash::CrashCatalog` (`product/crash_catalog.*`) | The product `TitleCatalog`: Crash 1 and Crash 2 identities from `executable.json`, one runtime per title, provisioned under `scratch/bin`. Entry is the framework main: `psxport_add_product` runs `crash::createCatalog()` as target `crash1_port`. |
 | `Crash1Runtime::discEnvVar`, `registerOverrides`, `bootInit`, `reportRun` | What the old `ProductBoot` did, reached through `GameRuntime` hooks: the disc key, the native owners before the first guest call, the init prefix, the projection run-end line. |
 | `crash1::Crash1Runtime` (`entry/crash1_runtime.*`) | The title's `GameRuntime`: image facts, platform plan, override registration, boot dispatch, the widescreen policy, and the owners it holds. |
 | `crash1::Crash1FrameProgram`, `Crash1FrameDriver` (`frame/crash1_frame_driver.*`) | One host frame: pad publication, the guest turn to the measured boundary, one display field per wait, and the presentation commit. |

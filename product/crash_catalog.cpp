@@ -14,6 +14,10 @@ std::string_view CrashCatalog::productName() const {
   return "Crash Bandicoot";
 }
 
+std::filesystem::path CrashCatalog::provisioningRoot() const {
+  return "scratch/bin";
+}
+
 std::span<const psx::host::TitleIdentity> CrashCatalog::titles() const {
   return identities_;
 }
@@ -28,6 +32,10 @@ GameRuntime &CrashCatalog::runtime(std::size_t index) const {
     lucent::error("crash-catalog", "no runtime for catalog index {}", index);
     std::abort();
   }
+}
+
+std::unique_ptr<psx::host::TitleCatalog> createCatalog() {
+  return std::make_unique<CrashCatalog>();
 }
 
 } // namespace crash

@@ -336,13 +336,8 @@ if(BUILD_TESTING)
   )
   set_tests_properties(crash_launcher_tests PROPERTIES ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1")
 endif()
-add_executable(
-  crash1_port
-  "${CMAKE_CURRENT_SOURCE_DIR}/product/main.cpp"
-)
+psxport_add_product(crash1_port CATALOG crash::createCatalog HEADER crash_catalog.h LIBRARIES crash_catalog)
 crash_game_include_dirs(crash1_port)
-target_compile_features(crash1_port PRIVATE cxx_std_20)
-target_link_libraries(crash1_port PRIVATE crash_catalog)
 set_target_properties(crash1_port PROPERTIES ENABLE_EXPORTS ON)
 if(BUILD_TESTING)
   add_test(NAME crash1_product_help COMMAND $<TARGET_FILE:crash1_port> --help)

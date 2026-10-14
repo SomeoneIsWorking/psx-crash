@@ -31,8 +31,8 @@ a widened picture, or interpolation.
 
 The target `run.sh` path provisions the user's disc, validates its exact title identity, builds the
 native/Lightrec product, and launches it without offline guest-code emission. The product is
-psxport's multi-title host (`psx::host::ProductHost` over `Crash1Catalog`): zero arguments open the
-in-window title picker, which lists Crash 1 only until Crash 2 and 3 boot; one executable argument
+psxport's multi-title host (`psx::host::ProductHost` over `crash::CrashCatalog`, through the framework
+main): zero arguments open the in-window title picker over Crash 1 and 2; one executable argument
 runs that title directly. There is no full-game
 interpreter or player-selectable interpreter mode. Lightrec may use only its bounded, measured
 per-block fallback for explicit backend reasons; the independent interpreter remains a separately
