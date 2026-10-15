@@ -21,7 +21,7 @@ void registerOverride(Core &core, const Program &program) {
 
 void initializeDriver(Core &core, const Program &program) {
   // libcd software-state init; its hardware leg waits on VSync(-1)-timed CdSync.
-  // Only the guest-visible library state is reproduced; Game owns the native CdcState.
+  // Only the guest-visible library state is reproduced; Game owns the native psx::cd::CdController.
   core.mem_w32(program.lastSyncCallback, 0u);
   core.mem_w32(program.lastReadyCallback, 0u);
   core.mem_w32(program.lastStatus, 0u);

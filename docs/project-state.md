@@ -22,7 +22,7 @@ Factual capability coverage. Epic intent lives in `docs/project-goals.md`, owner
 | S014 | Apple Silicon macOS host qualification | missing | psxport refuses AArch64; executable memory, ABI, packaging and gameplay unqualified |
 | S015 | Android arm64-v8a host qualification | missing | no package, shared Android-port integration, touch layer or AArch64 gameplay run |
 | S016 | Loading removal for all three titles | missing | no load operation enumerated or classified yet |
-| S017 | The trilogy on psxport's Record path at 4:3 | partial | `crash::Runtime::renderCapabilities` ships `RenderPath::Record` for all three titles with no producers; Crash 1 and 2 interpolate, Crash 3 does not yet. Headless 1x 4:3 recordcheck, 0 mismatched: Crash 1 3,007 presents to the N. Sanity Beach map; Crash 2 3,012 through `warp 0x15`; Crash 3 3,003 through the title menu and `warp 5`, and 2,508 at 16:9 through `warp 3`. Scene cuts come from the guest scene words (`crash::FrameCut`). Gap: Crash 1 gameplay (issue 0013) |
+| S017 | The trilogy on psxport's Record path at 4:3 | partial | All three titles present on `RenderPath::Record` with no producers; Crash 1 and 2 interpolate, Crash 3 does not yet. Headless 1x 4:3 recordcheck, 0 mismatched: Crash 1 3,007 presents to the N. Sanity Beach map; Crash 2 3,012 through `warp 0x15`; Crash 3 3,003 through the title menu and `warp 5`, and 2,508 at 16:9 through `warp 3`. Scene cuts come from the guest scene words (`crash::FrameCut`). Gap: Crash 1 gameplay (issue 0013) |
 
 ## Comparison baseline
 

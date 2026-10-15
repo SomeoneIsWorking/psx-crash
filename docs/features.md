@@ -36,12 +36,6 @@ title's own rows name `titles/<title>/`.
 | 1 | psxport F-CD.1 | `game/runtime/runtime.cpp:Runtime` — stock `CdControl`, `CdControlF`, `CdSync`, `CdRead`, `CdReadSync` at each title's entries |
 | 2 | psxport F-CD.3 | `game/runtime/runtime.cpp:Runtime::stockCdReadLanded` — Crash 2 and 3 load level code into their heap arena |
 
-## F-RENDER
-
-| hop | joins | owner |
-|---|---|---|
-| 1 | psxport F-RENDER.1 | `game/runtime/runtime.cpp:Runtime::renderCapabilities` — Record, no producers, guest VRAM is not the picture |
-
 ## F-WIDE
 
 | hop | joins | owner |

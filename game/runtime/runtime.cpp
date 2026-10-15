@@ -27,7 +27,8 @@ const TitleFacts &titleFacts(const Core &core) {
 }
 
 Runtime::Runtime(const TitleFacts &facts)
-    : facts_(facts), libcd_(facts.stockLibcd, {}, 0), vsync_(facts.vsync.begin, facts.vsyncQueryCounter) {
+    : facts_(facts), libcd_(facts.stockLibcd, {}, 0),
+      vsync_({.entry = facts.vsync.begin, .queryCounter = facts.vsyncQueryCounter}) {
   if (facts.padBuffers) {
     pad_.emplace(*facts.padBuffers);
   }
@@ -82,15 +83,6 @@ bool Runtime::sealedFrameIsCut(Core &core) const {
 
 const GuestWidescreenProjection *Runtime::guestWidescreenProjection() const {
   return &aspectPolicy_;
-}
-
-RenderCapabilities Runtime::renderCapabilities() const {
-  // The picture is the guest's GP0 output replayed from the frame record.
-  return RenderCapabilities{.defaultPath = RenderPath::Record, .nativeRenderPath = false};
-}
-
-bool Runtime::guestVramIsPicture(const Game &) const {
-  return false;
 }
 
 bool Runtime::titleCommand(Core &core, const psx::game::TitleCommandLine &input, std::FILE *reply) {

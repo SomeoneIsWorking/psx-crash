@@ -26,8 +26,6 @@ public:
   void stockCdReadLanded(Core &core, const psx::cd::StockReadLanding &landing) override;
   bool sealedFrameIsCut(Core &core) const override;
   const GuestWidescreenProjection *guestWidescreenProjection() const override;
-  RenderCapabilities renderCapabilities() const override;
-  bool guestVramIsPicture(const Game &game) const override;
   // `warp <scene-hex>`.
   bool titleCommand(Core &core, const psx::game::TitleCommandLine &input, std::FILE *reply) override;
 

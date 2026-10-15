@@ -114,7 +114,7 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(stderr, "")
         self.assertIn("launching Crash Bandicoot 1 through Lightrec", stdout)
-        self.assertIn([LOCKED_PYTHON, "tools/psxport_fetch.py", "--auto"], commands)
+        self.assertNotIn(run.FRAMEWORK_FETCH, commands)
         provision = next(command for command in commands if "tools/provision_title.py" in command)
         self.assertEqual(provision[-1], "Crash Bandicoot.chd")
         self.assertIn(LOCKED_PYTHON, provision)
@@ -169,6 +169,12 @@ class LauncherTests(unittest.TestCase):
             "PSXPORT_NOWINDOW",
         ):
             self.assertNotIn(agent_key, launch_environment)
+
+    def test_a_fresh_clone_fetches_the_framework_from_psxport(self) -> None:
+        (self.root / "external/psxport/cmake/psxport.cmake").unlink()
+        host = FakeHost()
+        self.invoke(host, "Crash Bandicoot.chd")
+        self.assertIn(run.FRAMEWORK_FETCH, self.commands(host))
 
     def test_prepare_only_never_launches(self) -> None:
         host = FakeHost()

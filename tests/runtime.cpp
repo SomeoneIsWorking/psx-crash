@@ -66,8 +66,7 @@ int verifyRegisteredOverrides(const char *title, Game &game, const crash::TitleF
     bad += crash_test::fail(title, "the transition override did not produce a typed frame boundary");
   }
 
-  const RenderCapabilities render = game.runtime.renderCapabilities();
-  if (render.defaultPath != RenderPath::Record || render.nativeRenderPath || game.runtime.guestVramIsPicture(game)) {
+  if (core.rsub.mode.path() != RenderPath::Record) {
     bad += crash_test::fail(title, "a Crash title presents its recorded GP0 stream");
   }
   return bad;

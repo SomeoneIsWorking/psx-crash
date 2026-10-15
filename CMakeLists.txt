@@ -6,12 +6,12 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 include(CTest)
 
 # PSXPORT_DIR: the framework, a symlink to the workspace's live checkout or a clone of its main
-# (tools/psxport_fetch.py --auto); defaults to external/psxport.
+# (psxport tools/psxport_fetch.py); defaults to external/psxport.
 set(PSXPORT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/psxport" CACHE PATH
     "psxport framework source directory (default: external/psxport)")
 if(NOT EXISTS "${PSXPORT_DIR}/cmake/psxport.cmake")
   message(FATAL_ERROR "PSXPORT_DIR=${PSXPORT_DIR} has no cmake/psxport.cmake — run "
-                      "`python3 tools/psxport_fetch.py --auto`, or point PSXPORT_DIR at a psxport checkout.")
+                      "./run.sh once to fetch it, or point PSXPORT_DIR at a psxport checkout.")
 endif()
 option(PSXPORT_BUILD_SMOKE "Build the framework agnosticism smoke" ON)
 add_subdirectory("${PSXPORT_DIR}" psxport_build)
