@@ -1,5 +1,7 @@
 #pragma once
 
+#include "frame/frame_program.h"
+
 #include <cstdint>
 #include <optional>
 
@@ -10,7 +12,7 @@ namespace crash {
 // Whether a sealed frame starts a new scene, from the guest's own scene words.
 class FrameCut {
 public:
-  FrameCut(std::uint32_t sceneIdAddress, std::uint32_t sceneRequestAddress);
+  explicit FrameCut(const FrameProgram &program);
 
   // Called once per logic frame, after its iteration and before the record is sealed.
   void observe(Core &core);

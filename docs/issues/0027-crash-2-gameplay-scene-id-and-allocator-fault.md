@@ -15,7 +15,7 @@ Cause: `SceneWarp::arm` (`game/frame/scene_warp.cpp`) accepted every id up to 0x
 allocates a zero-byte block through `FUN_8001148C` and reads zero sectors into it; the guest never requests those
 ids. The live symptom is a watchdog hang (observed for 4, 0x14 and 0x2A); the exact loop inside the loader was not
 traced. Fixed at the owner: `arm` refuses an id whose row masks to
-size 0, using `FrameProgram::sceneTable`; `tests/crash_scene_warp.cpp` covers it.
+size 0, using `FrameProgram::sceneTable`; `tests/scene_warp.cpp` covers it.
 
 The earlier reading that ids 0xC to 0x28 load "warp-room variants" was wrong. Every populated id from 0xA to
 0x27 starts Crash on a pad in front of a round door and runs out into a level; `warp 0x15`, `0x10`, `0x25` and

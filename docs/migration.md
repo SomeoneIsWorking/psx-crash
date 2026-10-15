@@ -36,14 +36,14 @@ representative gameplay parity and telemetry on web alongside desktop hosts.
    active-low mask; Crash's input adapter publishes the authenticated combined word at `0x80057054`
    before retail `PadUpdate`. DONE: the product reaches the menu and a real level, and a held button
    moves that word, the captured frame, and the present counter.
-5. Continue Crash 1 to a representative interactive gameplay scenario; the open step is the level
-   camera's centre publication (issue 0023). Compare timing, interrupts,
+5. Continue Crash 1 to a representative interactive gameplay scenario; the open step is the level-load
+   display wait at 0x80017328 (issue 0013). Compare timing, interrupts,
    CPU/memory and relevant device state against the independent oracle; exercise native overrides,
    original calls, and executable-memory invalidation with positive and controlled-negative cases;
    qualify the declared released hosts.
-6. Finish Crash 1 before migrating Crash 2, then Crash 3. Each title repeats the same gameplay gate
-   using its own authenticated image and addresses. Shared Crash behavior moves into
-   `game/` only after direct cross-title evidence.
+6. Crash 2 and Crash 3 run on the shared `crash::Runtime` with their own facts and reach levels through
+   `warp`. Each title repeats the same gameplay gate using its own authenticated image and addresses.
+   Shared Crash behavior moves into `game/` only after direct cross-title evidence.
 
 ## Preserved evidence
 
@@ -54,6 +54,6 @@ translation. Menu/PadRead reach proves integration; representative gameplay prov
 ## Enhancement ordering
 
 After faithful representative gameplay, implement native producers from pre-GTE camera, transform,
-material, primitive, and ordering state. Widescreen changes the owned projection/viewport; temporal
+material, primitive, and ordering state. Widescreen widens the Record canvas and the guest's own culls; temporal
 presentation interpolates authoritative previous/current simulation transforms. Neither enhancement
 may become an execution fallback or weaken the faithful baseline.

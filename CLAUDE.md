@@ -13,14 +13,13 @@ execution machinery; that machinery has been deleted.
 
 Crash 1's product runs the real disc: it boots, submits its own GP0 traffic, presents frames, and
 consumes host input through the authenticated BIOS `PadRead` word at `0x80057054`, which
-`crash1_bios_pad_input.*` publishes before retail `PadUpdate` (psxport polls the host pad and
+`titles/crash1/input/bios_pad_input.*` publishes before retail `PadUpdate` (psxport polls the host pad and
 finalizes the active-low mask). The level's camera does not yet publish a centre, and representative
 interactive gameplay remains the fidelity gate.
 
 Crash 2 (`SCUS_941.54`) and Crash 3 (`SCUS_942.44`) retain their title-specific executable,
 crt0/syscall, game-main, and VSync facts. Crash 3 selection follows `SYSTEM.CNF`, never the unrelated
-`DRAGON/SPYRO.EXE` on its disc. Finish Crash 1's representative-gameplay gate before starting either
-title's execution migration.
+`DRAGON/SPYRO.EXE` on its disc. All three run on `crash::Runtime` with a `final` subclass per title.
 
 Keep title behavior local until direct cross-title evidence proves a shared `game/` owner. Native
 graphics begin at game-state camera and submitter boundaries before GTE projection. Never reconstruct

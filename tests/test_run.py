@@ -142,7 +142,7 @@ class LauncherTests(unittest.TestCase):
             command for command in commands if command[:2] == ["cmake", "--build"]
         ]
         self.assertIn("discdump", build_commands[0])
-        self.assertIn("crash1_port", build_commands[-1])
+        self.assertIn("crash_port", build_commands[-1])
 
     def test_default_player_exec_strips_agent_policy_from_ambient_environment(self) -> None:
         host = FakeHost()
@@ -259,7 +259,7 @@ class LauncherTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("provisioning failed", stderr)
         self.assertFalse(any("tools/crash1_recomp.py" in command for command in commands))
-        self.assertFalse(any("crash1_port" in command for command in commands))
+        self.assertFalse(any("crash_port" in command for command in commands))
 
     def test_shell_and_lock_are_the_stable_entry_contract(self) -> None:
         self.assertEqual(

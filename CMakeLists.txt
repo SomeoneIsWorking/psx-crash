@@ -19,32 +19,9 @@ if(PSXPORT_BUILD_SMOKE)
   add_custom_target(crash_scaffold DEPENDS psxport_smoke)
 endif()
 
-# First-party directories by concept; a target includes only the concepts it links.
-set(CRASH_GAME_DIRS
-    boot
-    disc
-    entry
-    frame
-    render/widescreen
-)
-set(CRASH_TITLE_DIRS
-    entry
-    frame
-    input
-    render
-    render/widescreen
-)
-
-function(crash_game_include_dirs target)
-  foreach(dir IN LISTS CRASH_GAME_DIRS)
-    target_include_directories(${target} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/game/${dir}")
-  endforeach()
-endfunction()
-
-function(crash_title_include_dirs target title)
-  foreach(dir IN LISTS CRASH_TITLE_DIRS)
-    target_include_directories(${target} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/titles/${title}/${dir}")
-  endforeach()
+# Includes name the owning directory: "runtime/runtime.h" under game/, "crash1/entry/runtime.h" under titles/.
+function(crash_include_roots target)
+  target_include_directories(${target} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/game" "${CMAKE_CURRENT_SOURCE_DIR}/titles")
 endfunction()
 
 function(configure_title_vsync target title)
@@ -99,8 +76,6 @@ function(configure_title_native_facts target title)
           "CRASH_CD_CONTROL_END;runtime;native_boot;cd_control;end"
           "CRASH_CD_CONTROL_F_ENTRY;runtime;native_boot;cd_control_f;entry"
           "CRASH_CD_CONTROL_F_END;runtime;native_boot;cd_control_f;end"
-          "CRASH_CD_SYNC_WRAPPER_ENTRY;runtime;native_boot;cd_sync_wrapper;entry"
-          "CRASH_CD_SYNC_WRAPPER_END;runtime;native_boot;cd_sync_wrapper;end"
           "CRASH_CD_SYNC_ENTRY;runtime;native_boot;cd_sync;entry"
           "CRASH_CD_SYNC_END;runtime;native_boot;cd_sync;end"
           "CRASH_CD_READ_ENTRY;runtime;native_boot;cd_read;entry"
@@ -109,10 +84,6 @@ function(configure_title_native_facts target title)
           "CRASH_CD_READ_SYNC_END;runtime;native_boot;cd_read_sync;end"
           "CRASH_CALLBACK_INITIALIZE_ENTRY;runtime;native_boot;callback_initialize;entry"
           "CRASH_CALLBACK_INITIALIZE_END;runtime;native_boot;callback_initialize;end"
-          "CRASH_GPU_WATCHDOG_START_ENTRY;runtime;native_boot;gpu_watchdog_start;entry"
-          "CRASH_GPU_WATCHDOG_START_END;runtime;native_boot;gpu_watchdog_start;end"
-          "CRASH_GPU_WATCHDOG_CHECK_ENTRY;runtime;native_boot;gpu_watchdog_check;entry"
-          "CRASH_GPU_WATCHDOG_CHECK_END;runtime;native_boot;gpu_watchdog_check;end"
           "CRASH_CORE_LOOP_ENTRY;runtime;native_frame;core_loop;entry"
           "CRASH_CORE_LOOP_END;runtime;native_frame;core_loop;end"
           "CRASH_INITIAL_SCENE;runtime;native_frame;initial_scene"
@@ -138,59 +109,67 @@ function(configure_title_native_facts target title)
     string(JSON value GET "${native_manifest}" ${fact})
     target_compile_definitions(${target} PRIVATE "${definition}=${value}u")
   endforeach()
+  # A title whose watchdog check differs from the shared owner's records no watchdog.
+  string(JSON watchdog ERROR_VARIABLE no_watchdog GET "${native_manifest}" runtime native_boot gpu_watchdog_start)
+  if(NOT no_watchdog)
+    foreach(fact
+            "CRASH_GPU_WATCHDOG_START_ENTRY;gpu_watchdog_start;entry"
+            "CRASH_GPU_WATCHDOG_START_END;gpu_watchdog_start;end"
+            "CRASH_GPU_WATCHDOG_CHECK_ENTRY;gpu_watchdog_check;entry"
+            "CRASH_GPU_WATCHDOG_CHECK_END;gpu_watchdog_check;end")
+      list(POP_FRONT fact definition)
+      string(JSON value GET "${native_manifest}" runtime native_boot ${fact})
+      target_compile_definitions(${target} PRIVATE "${definition}=${value}u")
+    endforeach()
+  endif()
 endfunction()
 
-# The title-independent owners: boot services, the frame turn, the projection rule, the refusing runtime.
+# The title-independent owners: runtime, session, boot services and the frame turn.
 add_library(
   crash_game STATIC
-  "${CMAKE_CURRENT_SOURCE_DIR}/game/boot/boundary_runtime.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/boot/callback_boot.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/boot/gpu_watchdog.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/boot/libcd_init.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/game/disc/stock_libcd.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/game/entry/crash_runtime.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/crash_frame_driver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/frame_cut.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/frame_driver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/scene_warp.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/native_frame_loop_contract.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/game/render/widescreen/guest_projection_publication.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/runtime/runtime.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/runtime/session.cpp"
 )
-crash_game_include_dirs(crash_game)
+crash_include_roots(crash_game)
 target_compile_features(crash_game PUBLIC cxx_std_20)
 target_link_libraries(crash_game PUBLIC psxport)
 
-add_library(
-  crash1_runtime STATIC
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/entry/crash1_facts.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/entry/crash1_runtime.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/frame/crash1_frame_driver.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/input/crash1_bios_pad_input.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/render/crash1_block_pool.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/render/widescreen/crash1_horizontal_bound.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/render/widescreen/crash1_widescreen.cpp"
+# One runtime library per title: its facts, its runtime and any title-only owners.
+function(add_crash_title title)
+  add_library(${title}_runtime STATIC
+              "${CMAKE_CURRENT_SOURCE_DIR}/titles/${title}/entry/facts.cpp"
+              "${CMAKE_CURRENT_SOURCE_DIR}/titles/${title}/entry/runtime.cpp"
+              ${ARGN})
+  target_compile_features(${title}_runtime PUBLIC cxx_std_20)
+  target_link_libraries(${title}_runtime PUBLIC crash_game)
+  configure_title_vsync(${title}_runtime ${title})
+  configure_title_identity(${title}_runtime ${title})
+  configure_title_native_facts(${title}_runtime ${title})
+endfunction()
+
+add_crash_title(
+  crash1
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/entry/session.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/frame/frame_driver.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/input/bios_pad_input.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/render/block_pool.cpp"
 )
-crash_title_include_dirs(crash1_runtime crash1)
-target_compile_features(crash1_runtime PUBLIC cxx_std_20)
-target_link_libraries(crash1_runtime PUBLIC crash_game)
-configure_title_vsync(crash1_runtime crash1)
-configure_title_identity(crash1_runtime crash1)
-configure_title_native_facts(crash1_runtime crash1)
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/executable.json" crash1_manifest_json)
 string(JSON crash1_bios_pad_word GET "${crash1_manifest_json}" runtime native_frame bios_pad_read address)
 target_compile_definitions(crash1_runtime PRIVATE "CRASH1_BIOS_PAD_READ_WORD_ADDRESS=${crash1_bios_pad_word}u")
+add_crash_title(crash2)
+add_crash_title(crash3)
 
-add_library(
-  crash2_runtime STATIC
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/entry/crash2_facts.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/entry/crash2_runtime.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/widescreen/crash2_widescreen.cpp"
-)
-crash_title_include_dirs(crash2_runtime crash2)
-target_compile_features(crash2_runtime PUBLIC cxx_std_20)
-target_link_libraries(crash2_runtime PUBLIC crash_game)
-configure_title_vsync(crash2_runtime crash2)
-configure_title_identity(crash2_runtime crash2)
-configure_title_native_facts(crash2_runtime crash2)
+add_library(crash_catalog STATIC "${CMAKE_CURRENT_SOURCE_DIR}/product/catalog.cpp")
+target_include_directories(crash_catalog PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/product")
+target_compile_features(crash_catalog PUBLIC cxx_std_20)
+target_link_libraries(crash_catalog PUBLIC crash1_runtime crash2_runtime crash3_runtime)
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/bios_contract.json" crash1_bios_contract_json)
 string(JSON crash1_get_c0_table_function
@@ -201,123 +180,38 @@ string(JSON crash1_c0_exception_handler_address
        GET "${crash1_bios_contract_json}" exception_handler retail_address)
 
 if(BUILD_TESTING)
-  # Shared owners, run over every title that ships the Crash runtime.
-  foreach(shared_test
-          crash_runtime crash_code_module crash_scene_warp crash_libcd_init crash_callback_boot crash_gpu_watchdog crash_frame_cut crash_frame_turn)
-    add_executable(${shared_test}_test "${CMAKE_CURRENT_SOURCE_DIR}/tests/${shared_test}.cpp")
-    target_include_directories(${shared_test}_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tests")
-    target_compile_features(${shared_test}_test PRIVATE cxx_std_20)
-    target_link_libraries(${shared_test}_test PRIVATE crash1_runtime crash2_runtime)
-    add_test(NAME ${shared_test} COMMAND ${shared_test}_test)
+  # Shared owners, run over every Crash title.
+  foreach(shared_test runtime code_module scene_warp libcd_init callback_boot gpu_watchdog frame_cut frame_turn)
+    add_executable(crash_${shared_test}_test "${CMAKE_CURRENT_SOURCE_DIR}/tests/${shared_test}.cpp")
+    target_include_directories(crash_${shared_test}_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+    target_compile_features(crash_${shared_test}_test PRIVATE cxx_std_20)
+    target_link_libraries(crash_${shared_test}_test PRIVATE crash1_runtime crash2_runtime crash3_runtime)
+    add_test(NAME crash_${shared_test} COMMAND crash_${shared_test}_test)
   endforeach()
 
-  add_executable(crash_stock_libcd_test "${CMAKE_CURRENT_SOURCE_DIR}/tests/crash_stock_libcd.cpp")
-  target_include_directories(crash_stock_libcd_test PRIVATE "${PSXPORT_DIR}/tests")
-  target_compile_features(crash_stock_libcd_test PRIVATE cxx_std_20)
-  target_link_libraries(crash_stock_libcd_test PRIVATE crash_game)
-  add_test(NAME crash_stock_libcd COMMAND crash_stock_libcd_test)
-
-  add_executable(crash_catalog_test "${CMAKE_CURRENT_SOURCE_DIR}/tests/crash_catalog.cpp")
-  target_include_directories(crash_catalog_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/product")
+  add_executable(crash_catalog_test "${CMAKE_CURRENT_SOURCE_DIR}/tests/catalog.cpp")
   target_compile_features(crash_catalog_test PRIVATE cxx_std_20)
   target_link_libraries(crash_catalog_test PRIVATE crash_catalog)
   add_test(NAME crash_catalog COMMAND crash_catalog_test
            "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/executable.json"
-           "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/executable.json")
+           "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/executable.json"
+           "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash3/executable.json")
 
-  add_executable(crash1_bios_pad_input_test
-                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/crash1_bios_pad_input.cpp")
-  target_compile_features(crash1_bios_pad_input_test PRIVATE cxx_std_20)
-  target_link_libraries(crash1_bios_pad_input_test PRIVATE crash1_runtime)
-  add_test(NAME crash1_bios_pad_input COMMAND crash1_bios_pad_input_test)
-
-  add_executable(crash1_widescreen_test
-                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/crash1_widescreen.cpp")
-  target_compile_features(crash1_widescreen_test PRIVATE cxx_std_20)
-  target_link_libraries(crash1_widescreen_test PRIVATE crash1_runtime)
-  add_test(NAME crash1_widescreen COMMAND crash1_widescreen_test
-           "${CMAKE_CURRENT_SOURCE_DIR}/scratch/executable-loader")
-
-  add_executable(crash1_horizontal_bound_test
-                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/crash1_horizontal_bound.cpp")
-  target_compile_features(crash1_horizontal_bound_test PRIVATE cxx_std_20)
-  target_link_libraries(crash1_horizontal_bound_test PRIVATE crash1_runtime)
-  add_test(NAME crash1_horizontal_bound COMMAND crash1_horizontal_bound_test)
-
-  # Block-pool owner: the recovered walk against a fixture, and the install/lookup through the real runtime.
-  add_executable(crash1_block_pool_test
-                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/crash1_block_pool.cpp")
-  target_compile_features(crash1_block_pool_test PRIVATE cxx_std_20)
-  target_link_libraries(crash1_block_pool_test PRIVATE crash1_runtime)
-  add_test(NAME crash1_block_pool COMMAND crash1_block_pool_test)
-  
-
-  add_executable(crash1_c0_exception_contract_probe
-                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/crash1_c0_exception_contract.cpp")
+  # Crash 1's own owners: the BIOS pad word, the block pool and the C0 table its exception handler needs.
+  foreach(title_test bios_pad_input block_pool c0_exception_contract)
+    add_executable(crash1_${title_test}_test "${CMAKE_CURRENT_SOURCE_DIR}/tests/${title_test}.cpp")
+    target_include_directories(crash1_${title_test}_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+    target_compile_features(crash1_${title_test}_test PRIVATE cxx_std_20)
+    target_link_libraries(crash1_${title_test}_test PRIVATE crash1_runtime crash2_runtime crash3_runtime)
+    add_test(NAME crash1_${title_test} COMMAND crash1_${title_test}_test)
+  endforeach()
   target_compile_definitions(
-    crash1_c0_exception_contract_probe
+    crash1_c0_exception_contract_test
     PRIVATE
       "CRASH1_GET_C0_TABLE_FUNCTION=${crash1_get_c0_table_function}u"
       "CRASH1_C0_EXCEPTION_HANDLER_SLOT=${crash1_c0_exception_handler_slot}u"
       "CRASH1_C0_EXCEPTION_HANDLER_ADDRESS=${crash1_c0_exception_handler_address}u"
   )
-  target_compile_features(crash1_c0_exception_contract_probe PRIVATE cxx_std_20)
-  target_link_libraries(crash1_c0_exception_contract_probe PRIVATE crash1_runtime)
-  add_test(NAME crash1_c0_exception_contract COMMAND crash1_c0_exception_contract_probe)
-
-
-  add_executable(crash2_widescreen_test "${CMAKE_CURRENT_SOURCE_DIR}/tests/crash2_widescreen.cpp")
-  target_compile_features(crash2_widescreen_test PRIVATE cxx_std_20)
-  target_link_libraries(crash2_widescreen_test PRIVATE crash2_runtime)
-  add_test(NAME crash2_widescreen COMMAND crash2_widescreen_test)
-
-  endif()
-
-function(add_crt0_boundary_title title)
-  set(title_cache "${CMAKE_CURRENT_SOURCE_DIR}/scratch/bin/${title}")
-
-  add_library(
-    ${title}_runtime STATIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/titles/${title}/entry/${title}_runtime.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/titles/${title}/frame/${title}_frame_driver.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/titles/${title}/render/widescreen/${title}_widescreen.cpp"
-  )
-  crash_title_include_dirs(${title}_runtime ${title})
-  target_compile_features(${title}_runtime PUBLIC cxx_std_20)
-  target_link_libraries(${title}_runtime PUBLIC crash_game)
-  configure_title_vsync(${title}_runtime ${title})
-  set_target_properties(${title}_runtime PROPERTIES CRASH_TITLE_CACHE "${title_cache}")
-
-  if(BUILD_TESTING)
-    add_executable(${title}_runtime_test "${CMAKE_CURRENT_SOURCE_DIR}/tests/${title}_runtime.cpp")
-    target_include_directories(${title}_runtime_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tests")
-    target_compile_features(${title}_runtime_test PRIVATE cxx_std_20)
-    target_link_libraries(${title}_runtime_test PRIVATE ${title}_runtime)
-    add_test(NAME ${title}_runtime_inheritance COMMAND ${title}_runtime_test)
-
-    # Guest-widescreen owner: 4:3 identity, widening, call-site policy, install proof with no HLE plan. Needs no disc.
-    add_executable(${title}_widescreen_test
-                   "${CMAKE_CURRENT_SOURCE_DIR}/tests/${title}_widescreen.cpp")
-    target_compile_features(${title}_widescreen_test PRIVATE cxx_std_20)
-    target_link_libraries(${title}_widescreen_test PRIVATE ${title}_runtime)
-    add_test(NAME ${title}_widescreen COMMAND ${title}_widescreen_test)
-  endif()
-endfunction()
-
-add_crt0_boundary_title(crash3)
-
-add_library(crash_catalog STATIC "${CMAKE_CURRENT_SOURCE_DIR}/product/crash_catalog.cpp")
-target_include_directories(crash_catalog PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/product")
-target_compile_features(crash_catalog PUBLIC cxx_std_20)
-target_link_libraries(crash_catalog PUBLIC crash1_runtime crash2_runtime)
-
-if(BUILD_TESTING)
-  add_executable(crash_native_frame_contract_test
-                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/native_frame_loop_contract.cpp")
-  target_compile_features(crash_native_frame_contract_test PRIVATE cxx_std_20)
-  target_link_libraries(crash_native_frame_contract_test
-                        PRIVATE crash1_runtime crash2_runtime crash3_runtime)
-  add_test(NAME crash_native_frame_contract COMMAND crash_native_frame_contract_test)
 
   add_test(
     NAME crash_cpp_policy
@@ -336,20 +230,19 @@ if(BUILD_TESTING)
   )
   set_tests_properties(crash_launcher_tests PROPERTIES ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1")
 endif()
-psxport_add_product(crash1_port CATALOG crash::createCatalog HEADER crash_catalog.h LIBRARIES crash_catalog)
-crash_game_include_dirs(crash1_port)
-set_target_properties(crash1_port PROPERTIES ENABLE_EXPORTS ON)
+psxport_add_product(crash_port CATALOG crash::createCatalog HEADER catalog.h LIBRARIES crash_catalog)
+set_target_properties(crash_port PROPERTIES ENABLE_EXPORTS ON)
 if(BUILD_TESTING)
-  add_test(NAME crash1_product_help COMMAND $<TARGET_FILE:crash1_port> --help)
-  set_tests_properties(crash1_product_help PROPERTIES PASS_REGULAR_EXPRESSION "Usage:")
-  add_test(NAME crash1_product_help_short COMMAND $<TARGET_FILE:crash1_port> -h)
-  set_tests_properties(crash1_product_help_short PROPERTIES PASS_REGULAR_EXPRESSION "Usage:")
+  add_test(NAME crash_product_help COMMAND $<TARGET_FILE:crash_port> --help)
+  set_tests_properties(crash_product_help PROPERTIES PASS_REGULAR_EXPRESSION "Usage:")
+  add_test(NAME crash_product_help_short COMMAND $<TARGET_FILE:crash_port> -h)
+  set_tests_properties(crash_product_help_short PROPERTIES PASS_REGULAR_EXPRESSION "Usage:")
   add_test(
-    NAME crash1_execution_boundary
+    NAME crash_execution_boundary
     COMMAND
       "${Python3_EXECUTABLE}" "${PSXPORT_DIR}/tools/check_execution_boundary.py"
       --root "${CMAKE_CURRENT_SOURCE_DIR}"
       --cmake "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt"
-      --binary "$<TARGET_FILE:crash1_port>"
+      --binary "$<TARGET_FILE:crash_port>"
   )
 endif()

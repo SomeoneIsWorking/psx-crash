@@ -21,18 +21,18 @@ not begin execution migration until Crash 1 passes representative gameplay.
   ground `GfxUpdateMatrices` at `0x80017A14` and `GoolObjectTransform` at `0x8001DE78` as pre-GTE
   ownership candidates.
 - Host input reaches Crash's BIOS auto-pad word at `0x80057054`, published by
-  `crash1_bios_pad_input.*` before retail `PadUpdate`. The level's camera still publishes no centre
-  (issue 0023).
+  `titles/crash1/input/bios_pad_input.*` before retail `PadUpdate`.
+- Crash 2 and Crash 3 boot on the same shared runtime and reach levels through the `warp` debug command.
 
-Reaching a rendered level is not representative gameplay, and none of this proves a native renderer,
-a widened picture, or interpolation.
+Reaching a rendered level is not representative gameplay, and none of this proves a native renderer
+or interpolation. At 16:9 the Record canvas widens, but the guest's own culls do not yet (issue 0030).
 
 ## Product and migration contract
 
 The target `run.sh` path provisions the user's disc, validates its exact title identity, builds the
 native/Lightrec product, and launches it without offline guest-code emission. The product is
-psxport's multi-title host (`psx::host::ProductHost` over `crash::CrashCatalog`, through the framework
-main): zero arguments open the in-window title picker over Crash 1 and 2; one executable argument
+psxport's multi-title host (`psx::host::ProductHost` over `crash::Catalog`, through the framework
+main): zero arguments open the in-window title picker over Crash 1, 2 and 3; one executable argument
 runs that title directly. There is no full-game
 interpreter or player-selectable interpreter mode. Lightrec may use only its bounded, measured
 per-block fallback for explicit backend reasons; the independent interpreter remains a separately

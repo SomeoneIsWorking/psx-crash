@@ -1,12 +1,12 @@
 ---
 id: 17
 title: "Crash 2's projection is GTE OFX with zero control-register readers, so the widening is Crash 1's — but its H is the near plane AND a HUD rectangle scalar"
-status: open
+status: closed
 symptom: The widescreen owner exists and is gated, but Crash 2 still refuses to boot, so no wide frame is ever presented
 state_items: S006
 tags: crash2,projection,widescreen,re-census,near-plane
 created: 2026-09-27
-updated: 2026-09-27
+updated: 2026-10-15
 ---
 
 Every claim below is read from the authenticated `SCUS_941.54` (327,680 bytes, sha256 `6e5b2449…`,
@@ -109,3 +109,9 @@ hookup is the second half of a seam the boot work has to open. Nothing here show
 screen. The `H/2` light terms and the two translation-vector copies were read from the decompilation
 and their instruction words verified; the other four readers of the bound were **not** decompiled, and
 the eleven-site census is the honest denominator for what is known about them.
+
+## Closed 2026-10-15
+
+The OFX widening owner (`GuestProjectionPublication`) is deleted. On Record the canvas carries the margins
+and the retail centre stays, so moving OFX translated the picture instead of widening it. The census above
+stays as the record of Crash 2's projection; culling widening is issue 0030.

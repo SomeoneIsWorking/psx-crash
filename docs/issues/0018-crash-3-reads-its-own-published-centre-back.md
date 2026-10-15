@@ -1,12 +1,12 @@
 ---
 id: 18
 title: "Crash 3 reads its own published centre back out of CR[24], so a retail+margin widening is not idempotent there and the owner needs a per-call-site policy"
-status: open
+status: closed
 symptom: The owner and its per-call-site policy are built and gated, but Crash 3 refuses to boot, so the frame-ordering consequence of the read-back is unmeasured
 state_items: S006
 tags: crash3,projection,widescreen,re-census,near-plane,read-back,idempotence
 created: 2026-09-27
-updated: 2026-09-27
+updated: 2026-10-15
 ---
 
 ## What Crash 3's projection is, with the instruction words
@@ -132,3 +132,9 @@ Also not established: the two `H/2` light sites and the near-plane and HUD bodie
 decompilation with their instruction words verified, but the **other** bound readers were not
 decompiled, and the 4-site census is the honest denominator. The draw-area and translation-vector
 bodies are the same shape as the siblings' but were not separately decompiled for this title.
+
+## Closed 2026-10-15
+
+The OFX widening owner and its per-call-site policy are deleted: Record keeps the retail centre, so nothing
+publishes a moved centre for the read-back to see. Crash 3 now boots (issue 0028); culling widening is
+issue 0030.

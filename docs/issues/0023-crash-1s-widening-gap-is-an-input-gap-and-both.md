@@ -76,3 +76,9 @@ issue.
 
 The HUD and the background fills are 2D overlays in screen coordinates, so the workspace rule "edge
 HUD elements move to the widened edges" still applies to them separately.
+
+## Closed 2026-10-15
+
+The OFX widening owner (`GuestProjectionPublication`, `Crash1Widescreen`, `Crash1HorizontalBound`) is
+deleted. On Record the canvas carries the margins and the retail centre stays, so moving OFX translated the
+picture. The measurements above stay as the record; culling widening is issue 0030.

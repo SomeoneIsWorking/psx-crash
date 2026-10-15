@@ -1,6 +1,6 @@
 #pragma once
 
-#include "frame_program.h"
+#include "frame/frame_program.h"
 
 #include <cstdint>
 #include <optional>

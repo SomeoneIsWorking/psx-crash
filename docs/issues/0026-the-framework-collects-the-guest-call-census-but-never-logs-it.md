@@ -31,5 +31,5 @@ core->guestCallCensus().log("native boot");
 ## What this repository did instead
 
 Nothing. `external/psxport` is not edited from this repository; Crash 1's own run-end reporting is
-`Crash1Runtime::reportRun`, which logs only the projection counters; the Lightrec counters are the
-framework's `run complete` line.
+the framework's default `reportRun` (the projection counters went with the deleted OFX owner); the
+Lightrec counters are the framework's `run complete` line.

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "native_frame_loop_contract.h"
+#include "runtime/guest_function_range.h"
 
 #include <cstdint>
+#include <optional>
 
 namespace crash {
 
@@ -15,14 +16,24 @@ struct SceneTable {
   std::uint32_t sizeMask;
 };
 
+// GpuUpdate's frame limiter: it skips both display waits once the VBlank counter its VSync callback bumps
+// is `skipAfterFields` past the stamp in the displayed frame record (`*displayedFrame + stampOffset`).
+struct FrameLimiter {
+  std::uint32_t vblankCounter;
+  std::uint32_t displayedFrame;
+  std::uint32_t stampOffset;
+  std::uint32_t skipAfterFields;
+};
+
 // One title's measured frame loop: where a host frame starts and ends, and the display waits between.
 struct FrameProgram {
   GuestFunctionRange coreLoop;
   // CoreLoop's argument on its first entry: the scene it starts in.
   std::uint32_t initialScene;
-  // The loop body: each host frame after the first resumes at its entry.
+  // Each host frame after the first resumes at `iteration.begin`.
   GuestFunctionRange iteration;
-  // The override that ends a host frame, reached by the guest returning to `transitionReturn`.
+  // The override that ends a host frame, reached by the guest returning to `transitionReturn`: an empty
+  // stub call (Crash 2) or the GpuUpdate return inside CoreLoop (Crash 1 and 3).
   GuestFunctionRange transition;
   std::uint32_t transitionReturn;
   GuestFunctionRange gpuUpdate;
@@ -30,6 +41,8 @@ struct FrameProgram {
   std::uint32_t afterFirstVSync;
   std::uint32_t secondVSync;
   std::uint32_t afterVSync;
+  // Empty when GpuUpdate always reaches at least one display wait.
+  std::optional<FrameLimiter> limiter;
   std::uint32_t doneAddress;
   std::uint32_t sceneIdAddress;
   std::uint32_t sceneRequestAddress;

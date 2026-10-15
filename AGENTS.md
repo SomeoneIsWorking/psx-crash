@@ -28,17 +28,16 @@ Crash Bandicoot (`SCUS_949.00`) is the active title. Its product runs a disc-bac
 frames, and takes input through the authenticated BIOS `PadRead` word at `0x80057054`; the level's
 camera does not yet publish a centre (issue 0023), and representative gameplay is the gate (issue
 0013). Framework `Pad` owns device polling and the finalized active-low PSX mask;
-`titles/crash1/input/crash1_bios_pad_input.*` owns only the authenticated combined word and Crash's
+`titles/crash1/input/bios_pad_input.*` owns only the authenticated combined word and Crash's
 byte order, published before retail `PadUpdate`.
 
-The product starts through psxport's `psx::host::ProductHost` over `crash::CrashCatalog`
-(`product/crash_catalog.*`, Crash 1 and 2): zero arguments open the title picker, `pick crash1` or `pick crash2` boots
-it, and `session return` comes back. Boot is the host's generic `TitleSession` sequence; Crash 1's
-own steps live in `Crash1Runtime` hooks (`registerOverrides`, `bootInit`, `reportRun`); its disc key is in its `TitleIdentity`.
+The product starts through psxport's `psx::host::ProductHost` over `crash::Catalog`
+(`product/catalog.*`, Crash 1, 2 and 3): zero arguments open the title picker, `pick crashN` boots
+it, and `session return` comes back. Boot is the host's generic `TitleSession` sequence; Each title's
+steps live in `crash::Runtime` (`game/runtime/runtime.*`) and its `crashN::Runtime final` subclass; its disc key is in its `TitleIdentity`.
 
-Do not begin Crash 2 or Crash 3 execution migration until Crash 1 reaches representative gameplay
-through Lightrec with its native owners active. Their verified identities, addresses, VSync bodies,
-and independent CPU boundaries remain valid evidence, not permission to reuse Crash 1 behavior.
+Each title's verified identities, addresses, VSync bodies and CPU boundaries are its own evidence,
+not permission to reuse another title's behavior.
 
 All picture work remains RE-driven. Native producers consume pre-GTE game state. Widescreen changes
 owned camera/projection state deterministically; interpolation consumes authoritative

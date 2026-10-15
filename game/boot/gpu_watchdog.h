@@ -1,10 +1,9 @@
 #pragma once
 
-#include "native_frame_loop_contract.h"
+#include "boot/leaf_call.h"
+#include "runtime/guest_function_range.h"
 
 #include <cstdint>
-
-class Core;
 
 namespace crash::gpu_watchdog {
 
@@ -30,12 +29,10 @@ struct Program {
   std::uint32_t critical;
 };
 
-using MainDispatch = void (*)(Core *, std::uint32_t);
-
 void registerOverrides(Core &core, const Program &program);
 
 // GPU queue timeout bookkeeping on the host display counter.
 void start(Core &core, const Program &program);
-void check(Core &core, const Program &program, MainDispatch dispatch);
+void check(Core &core, const Program &program, LeafDispatch dispatch);
 
 } // namespace crash::gpu_watchdog

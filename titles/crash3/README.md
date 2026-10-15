@@ -9,6 +9,5 @@ Recorded execution and the independent CPU agree 34/34 at the first eight calls 
 resume `0x80048C40`, and the following B0 dispatch agree. Structural target `0x800112B8` is not an
 A(39h) thunk; that modeled return is refused.
 
-These facts are inputs to the later native/Lightrec product, not instructions to extend the static
-route. Crash 3 migration begins only after Crash 2's gameplay gate and uses its own authenticated
-image and addresses. See `../../docs/migration.md`.
+The product runs this executable on the shared `crash::Runtime` with the addresses in
+`entry/facts.cpp` and `executable.json`; it reuses no other title's address. See `../../docs/migration.md`.

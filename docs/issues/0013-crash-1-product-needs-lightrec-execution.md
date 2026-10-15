@@ -6,7 +6,7 @@ symptom: The disc-backed product runs 400 frames and presents a picture, but the
 state_items: S011
 tags: crash1,dynarec,lightrec,migration,product
 created: 2026-09-04
-updated: 2026-09-29
+updated: 2026-10-15
 ---
 
 ## Root cause
@@ -31,4 +31,11 @@ not return.
 
 Image admission is closed: psxport's `selectExecutableFile` checks size, PS-X EXE header words and
 SHA-256 against `Crash1Catalog`'s identity (from `executable.json`) before `TitleSession::boot` maps
-the file; `tests/crash1_catalog.cpp` pins the catalog to the manifest.
+the file; `tests/catalog.cpp` pins the catalog to the manifest.
+
+## 2026-10-15: the level-load display wait
+
+`warp 3` from the title menu aborts at the same place as the cross press: a VSync(0) returning to
+0x80017328. That call is in the buffer-swap helper FUN_800172E8, reached from 0x80032478 rather than from
+GpuUpdate, so it is a display wait outside the two measured GpuUpdate sites and the frame driver refuses
+it. Next: decompile the 0x80032478 caller and decide whether that wait ends a host frame.

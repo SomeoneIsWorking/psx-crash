@@ -30,7 +30,7 @@ def main() -> int:
             root=ROOT,
             build=BUILD,
             psxport=PSXPORT,
-            product=BUILD / "crash1_port",
+            product=BUILD / "crash_port",
             cmake_module=ROOT / "CMakeLists.txt",
             test_regex=r"^crash",
             cmake_definitions=("-DBUILD_TESTING=ON", "-DPSXPORT_BUILD_SMOKE=OFF"),

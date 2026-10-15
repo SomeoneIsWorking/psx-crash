@@ -1,9 +1,9 @@
-#include "gpu_watchdog.h"
+#include "boot/gpu_watchdog.h"
 
 #include "core.h"
 #include "game.h"
 #include "native_dispatch.h"
-#include "title_facts.h"
+#include "runtime/runtime.h"
 
 #include <cstdlib>
 #include <lucent/log.h>
@@ -20,20 +20,25 @@ constexpr std::uint32_t kSecondLogReturn = 0xCCu;
 constexpr std::uint32_t kEnterCriticalReturn = 0xD4u;
 constexpr std::uint32_t kExitCriticalReturn = 0x150u;
 
+// The overrides are registered only for a title that has the watchdog.
+const Program &titleProgram(Core &core) {
+  const std::optional<Program> &program = titleFacts(core).gpuWatchdog;
+  if (!program) {
+    lucent::error("crash-gpu-watchdog", "the GPU watchdog override ran for a title without one");
+    std::abort();
+  }
+  return *program;
+}
+
 void startOverride(Core *core) {
-  start(*core, titleFacts(*core).gpuWatchdog);
+  start(*core, titleProgram(*core));
 }
 
 void checkOverride(Core *core) {
-  check(*core, titleFacts(*core).gpuWatchdog, [](Core *target, std::uint32_t address) {
+  check(*core, titleProgram(*core), [](Core *target, std::uint32_t address) {
     psx::cpu::dispatchGuestToReturn(
         *target, address, psx::cpu::ExecutionBudget::currentTurn(*target), "GPU watchdog leaf");
   });
-}
-
-void dispatchAt(Core &core, MainDispatch dispatch, std::uint32_t address, std::uint32_t continuation) {
-  core.r[31] = continuation;
-  dispatch(&core, address);
 }
 
 } // namespace
@@ -59,7 +64,7 @@ void start(Core &core, const Program &program) {
   core.r[2] = 0u;
 }
 
-void check(Core &core, const Program &program, MainDispatch dispatch) {
+void check(Core &core, const Program &program, LeafDispatch dispatch) {
   const std::uint32_t pollCount = core.mem_r32(program.pollCount);
   core.mem_w32(program.pollCount, pollCount + 1u);
   const bool displayExpired =
@@ -85,16 +90,16 @@ void check(Core &core, const Program &program, MainDispatch dispatch) {
   core.r[6] = core.mem_r32(core.mem_r32(program.gp0Pointer));
   core.r[7] = core.mem_r32(core.mem_r32(program.gp1Pointer));
   core.mem_w32(core.r[29] + 16u, core.mem_r32(core.mem_r32(program.statusPointer)));
-  dispatchAt(core, dispatch, program.log, entry + kFirstLogReturn);
+  callLeaf(core, dispatch, {program.log, entry + kFirstLogReturn});
 
   core.r[4] = program.callbackFormat;
   core.r[5] = core.mem_r32(program.lastCallback);
   core.r[6] = core.mem_r32(program.lastPayload);
   core.r[7] = core.mem_r32(program.lastArgument);
-  dispatchAt(core, dispatch, program.log, entry + kSecondLogReturn);
+  callLeaf(core, dispatch, {program.log, entry + kSecondLogReturn});
 
   core.r[4] = 0u;
-  dispatchAt(core, dispatch, program.critical, entry + kEnterCriticalReturn);
+  callLeaf(core, dispatch, {program.critical, entry + kEnterCriticalReturn});
   core.mem_w32(program.criticalToken, core.r[2]);
   core.mem_w32(program.queueRead, 0u);
   core.mem_w32(program.queueWrite, 0u);
@@ -105,7 +110,7 @@ void check(Core &core, const Program &program, MainDispatch dispatch) {
   core.mem_w32(gpuGp0, 0x02000000u);
   core.mem_w32(gpuGp0, 0x01000000u);
   core.r[4] = core.mem_r32(program.criticalToken);
-  dispatchAt(core, dispatch, program.critical, entry + kExitCriticalReturn);
+  callLeaf(core, dispatch, {program.critical, entry + kExitCriticalReturn});
 
   core.r[2] = 0xFFFFFFFFu;
   core.r[31] = core.mem_r32(core.r[29] + 24u);

@@ -1,8 +1,8 @@
-#include "libcd_init.h"
+#include "boot/libcd_init.h"
 
 #include "core.h"
 #include "native_dispatch.h"
-#include "title_facts.h"
+#include "runtime/runtime.h"
 
 namespace crash::libcd_init {
 namespace {

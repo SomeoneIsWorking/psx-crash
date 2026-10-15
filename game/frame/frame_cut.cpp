@@ -1,4 +1,4 @@
-#include "frame_cut.h"
+#include "frame/frame_cut.h"
 
 #include "core.h"
 
@@ -12,8 +12,8 @@ constexpr std::uint32_t kNoRequest = 0xFFFFFFFFu;
 
 } // namespace
 
-FrameCut::FrameCut(std::uint32_t sceneIdAddress, std::uint32_t sceneRequestAddress)
-    : sceneIdAddress_(sceneIdAddress), sceneRequestAddress_(sceneRequestAddress) {}
+FrameCut::FrameCut(const FrameProgram &program)
+    : sceneIdAddress_(program.sceneIdAddress), sceneRequestAddress_(program.sceneRequestAddress) {}
 
 void FrameCut::reset() {
   scene_.reset();

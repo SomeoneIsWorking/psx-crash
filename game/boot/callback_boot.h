@@ -1,11 +1,10 @@
 #pragma once
 
-#include "native_frame_loop_contract.h"
+#include "boot/leaf_call.h"
+#include "runtime/guest_function_range.h"
 
 #include <array>
 #include <cstdint>
-
-class Core;
 
 namespace crash::callback_boot {
 
@@ -25,12 +24,10 @@ struct Program {
   std::array<std::uint32_t, kEventCount> handleOffsets;
 };
 
-using MainDispatch = void (*)(Core *, std::uint32_t);
-
 // Native owner over the retail callback/event initializer; the Lightrec body stays reachable via callOriginal.
 void registerOverride(Core &core, const Program &program);
 
 // The main-loop entry is injected, so each guest call can name its continuation.
-void initializeDriver(Core &core, const Program &program, MainDispatch dispatch);
+void initializeDriver(Core &core, const Program &program, LeafDispatch dispatch);
 
 } // namespace crash::callback_boot

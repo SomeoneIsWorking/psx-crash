@@ -17,7 +17,7 @@ from typing import TextIO
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = Path("build/player")
 EXECUTABLE = Path("scratch/bin/crash1/SCUS_949.00")
-PRODUCT = BUILD / "crash1_port"
+PRODUCT = BUILD / "crash_port"
 
 
 class LauncherFailure(RuntimeError):
@@ -326,7 +326,7 @@ def run_launcher(
         )
         run_stage(
             machine,
-            ["cmake", "--build", str(BUILD), "--parallel", jobs, "--target", "crash1_port"],
+            ["cmake", "--build", str(BUILD), "--parallel", jobs, "--target", "crash_port"],
             "Crash 1 product build failed",
             root=root,
             environment=environment,

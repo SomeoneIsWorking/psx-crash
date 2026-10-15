@@ -94,3 +94,9 @@ Related: `gpu_vk.cpp:342` widens the host picture to `plan().presentationExtent.
 guest's own GP1 display extent stays 320, so whether the guest rasterizer honours the host canvas
 width is an open framework display/present-policy question. This repository does not edit
 `external/psxport`.
+
+## Closed 2026-10-15
+
+The OFX widening owner (`GuestProjectionPublication`, `Crash1Widescreen`, `Crash1HorizontalBound`) is
+deleted. On Record the canvas carries the margins and the retail centre stays, so moving OFX translated the
+picture. The measurements above stay as the record; culling widening is issue 0030.

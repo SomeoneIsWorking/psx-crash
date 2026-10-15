@@ -20,7 +20,7 @@ own diagnosis first:
 `0x800159A8` is the word `0x8C620004` — `lw $v0,0x4($v1)`, the second class read of the engine's
 size-class cell lookup whose entry is `0x80015978`. The pointer it followed was `0x00800000`, unmapped.
 
-The lookup owner `titles/crash1/render/crash1_block_pool.*` had recovered the class as
+The lookup owner `titles/crash1/render/block_pool.*` had recovered the class as
 `request >> 13`, from the entry's `srl $v0,$a0,13`. **The image compares the request word WHOLE**:
 `beq $2,$4` at `0x8001599C` and `bne $2,$4` at `0x800159B0` test `$a0`, which nothing between the entry
 and them redefines; the bounded sibling at `0x800159E8` does the same, and the allocate path writes and
@@ -38,9 +38,8 @@ a path retail completes. The walk stops only at the edge of main RAM.
 1. **The allocate path's reachability.** `0x80012F10` reads the same bucket table at `0x80012FC4` and
    is the function that FILLS a cell: a 44-byte node table at `0x8005C554`, its cursor at `0x8005CAF`,
    a five-way kind dispatch on the node's `+0x02` halfword, a cell link at `0x80013020`, the `+0x0A`
-   live counter, and a 28-byte-stride per-type callback table at `0x800514EC`. It is a readable, tested
-   model (`titles/crash1/render/crash1_pool_node.{h,cpp}`) and is deliberately **not** installed as an
-   override, because nothing establishes that the guest reaches it: every lookup in the disc-backed
+   live counter, and a 28-byte-stride per-type callback table at `0x800514EC`. It has no native owner and
+   none is installed as an override, because nothing establishes that the guest reaches it: every lookup in the disc-backed
    run came from `ra = 0x80015164` inside `FUN_80015118`, never from `0x80013140`. The next step is a
    reachability measurement, not a transcription.
 2. **A framework defect, named rather than worked around.** `OtAttr::poolRangeMiss` runs only under

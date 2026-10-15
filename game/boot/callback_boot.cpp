@@ -1,8 +1,8 @@
-#include "callback_boot.h"
+#include "boot/callback_boot.h"
 
 #include "core.h"
 #include "native_dispatch.h"
-#include "title_facts.h"
+#include "runtime/runtime.h"
 
 #include <cstdlib>
 #include <lucent/log.h>
@@ -44,18 +44,13 @@ void initializeOverride(Core *core) {
   });
 }
 
-void dispatchAt(Core &core, MainDispatch dispatch, std::uint32_t address, std::uint32_t continuation) {
-  core.r[31] = continuation;
-  dispatch(&core, address);
-}
-
 } // namespace
 
 void registerOverride(Core &core, const Program &program) {
   psx::cpu::installNativeOverride(core, program.initialize.begin, "callback initialization", initializeOverride);
 }
 
-void initializeDriver(Core &core, const Program &program, MainDispatch dispatch) {
+void initializeDriver(Core &core, const Program &program, LeafDispatch dispatch) {
   if (dispatch == nullptr) {
     lucent::error("crash-callback", "callback boot owner received a null main dispatcher");
     std::abort();
@@ -69,25 +64,25 @@ void initializeDriver(Core &core, const Program &program, MainDispatch dispatch)
   core.r[29] -= 24u;
   core.mem_w32(core.r[29] + 16u, incomingReturn);
 
-  dispatchAt(core, dispatch, program.enterCritical, entry + kEnterReturn);
-  for (std::size_t index = 0; index < kEvents.size(); ++index) {
+  callLeaf(core, dispatch, {program.enterCritical, entry + kEnterReturn});
+  for (std::uint32_t index = 0; index < kEvents.size(); ++index) {
     core.r[4] = kEvents[index].descriptor;
     core.r[5] = kEvents[index].mode;
     core.r[6] = 0x2000u;
     core.r[7] = 0u;
-    dispatchAt(core, dispatch, program.openEvent, entry + kFirstOpenReturn + kOpenReturnStride * index);
+    callLeaf(core, dispatch, {program.openEvent, entry + kFirstOpenReturn + kOpenReturnStride * index});
     core.mem_w32(core.r[28] + program.handleOffsets[index], core.r[2]);
   }
-  dispatchAt(core, dispatch, program.exitCritical, entry + kExitReturn);
+  callLeaf(core, dispatch, {program.exitCritical, entry + kExitReturn});
 
   core.r[4] = 1u;
-  dispatchAt(core, dispatch, program.initializePad, entry + kInitializePadReturn);
-  dispatchAt(core, dispatch, program.startPad, entry + kStartPadReturn);
-  dispatchAt(core, dispatch, program.changeClearPad, entry + kChangeClearPadReturn);
+  callLeaf(core, dispatch, {program.initializePad, entry + kInitializePadReturn});
+  callLeaf(core, dispatch, {program.startPad, entry + kStartPadReturn});
+  callLeaf(core, dispatch, {program.changeClearPad, entry + kChangeClearPadReturn});
 
-  for (std::size_t index = 0; index < kEvents.size(); ++index) {
+  for (std::uint32_t index = 0; index < kEvents.size(); ++index) {
     core.r[4] = core.mem_r32(core.r[28] + program.handleOffsets[index]);
-    dispatchAt(core, dispatch, program.closeEvent, entry + kFirstCloseReturn + kCloseReturnStride * index);
+    callLeaf(core, dispatch, {program.closeEvent, entry + kFirstCloseReturn + kCloseReturnStride * index});
   }
 
   core.r[31] = core.mem_r32(core.r[29] + 16u);

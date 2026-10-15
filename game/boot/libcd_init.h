@@ -1,6 +1,6 @@
 #pragma once
 
-#include "native_frame_loop_contract.h"
+#include "runtime/guest_function_range.h"
 
 #include <cstdint>
 
