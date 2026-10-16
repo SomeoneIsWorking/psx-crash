@@ -134,15 +134,21 @@ void FrameDriver::deliverField(Core &core, std::uint64_t boundaryCpuTick) {
   game_.spu_audio.frame();
 }
 
-void FrameDriver::deliverDisplayWait(Core &core) {
-  if (deliveredFields_ >= 2) {
-    lucent::error("crash-frame", "one retail GpuUpdate requested more than its measured two display fields");
+void FrameDriver::deliverDisplayWait(Core &core, Boundary wait) {
+  const bool gpuUpdate = wait == Boundary::GpuUpdateWait;
+  WaitGroup &group = gpuUpdate ? gpuUpdateWaits_ : loadingSwapWaits_;
+  // GpuUpdate waits at most twice; the loader's loading picture swaps both buffers.
+  if (group.fields >= 2) {
+    lucent::error("crash-frame",
+                  "one retail {} requested more than its measured two display fields",
+                  gpuUpdate ? "GpuUpdate" : "loading swap");
     std::abort();
   }
-  if (deliveredFields_ == 0) {
-    waitBaseCpuTick_ = game_.timing.emulatedCpuTicks();
+  if (group.fields == 0) {
+    group.baseCpuTick = game_.timing.emulatedCpuTicks();
   }
-  deliverField(core, waitBaseCpuTick_ + fieldCpuTicks(deliveredFields_ + 1u));
+  ++group.fields;
+  deliverField(core, group.baseCpuTick + fieldCpuTicks(group.fields));
 }
 
 bool FrameDriver::limiterSkippedWaits(Core &core) const {
@@ -228,6 +234,8 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
   publishInput(core);
   warp_.apply(core, program_);
   deliveredFields_ = 0;
+  gpuUpdateWaits_ = {};
+  loadingSwapWaits_ = {};
   frameCompleted_ = false;
 
   psx::cpu::ExecutionResult result;
@@ -239,27 +247,24 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
     result = runGuestToBoundary(core, program_.iteration.begin, execute_);
   }
   while (!frameCompleted_ && result.reason == psx::cpu::ExecutionExitReason::FrameBoundary) {
-    if (!isMeasuredFrameBoundary(result.guestPc,
-                                 core.r[31],
-                                 vsyncEntry_,
-                                 program_.afterFirstVSync,
-                                 program_.afterVSync,
-                                 program_.transitionReturn)) {
+    const Boundary boundary = classifyBoundary(result.guestPc, core.r[31], vsyncEntry_, program_);
+    if (boundary != Boundary::GpuUpdateWait && boundary != Boundary::LoadingSwapWait) {
       lucent::error("crash-frame",
                     "frame {} reached an unexpected boundary at 0x{:08X} with ra=0x{:08X}; the measured "
-                    "display waits are the guest's own VSync calls returning to 0x{:08X}/0x{:08X}, or "
-                    "the transition override returning to 0x{:08X} stamping 0x{:08X}",
+                    "display waits are the guest's own VSync calls returning to 0x{:08X}/0x{:08X} or to the "
+                    "loading swap's 0x{:08X}, or the transition override returning to 0x{:08X} stamping 0x{:08X}",
                     frame,
                     result.guestPc,
                     core.r[31],
                     program_.afterFirstVSync,
                     program_.afterVSync,
+                    program_.loadingSwap ? program_.loadingSwap->afterVSync : 0u,
                     program_.transitionReturn,
                     vsyncEntry_);
       std::abort();
     }
     const std::uint32_t continuation = core.r[31];
-    deliverDisplayWait(core);
+    deliverDisplayWait(core, boundary);
     result = runGuestToBoundary(core, continuation, execute_);
   }
   if (!frameCompleted_ || result.reason != psx::cpu::ExecutionExitReason::FrameBoundary) {

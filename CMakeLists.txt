@@ -122,6 +122,18 @@ function(configure_title_native_facts target title)
       target_compile_definitions(${target} PRIVATE "${definition}=${value}u")
     endforeach()
   endif()
+  # A title whose scene loader swaps buffers outside GpuUpdate records that swap.
+  string(JSON loading_swap ERROR_VARIABLE no_loading_swap GET "${native_manifest}" runtime native_frame loading_swap)
+  if(NOT no_loading_swap)
+    foreach(fact
+            "CRASH_LOADING_SWAP_ENTRY;entry"
+            "CRASH_LOADING_SWAP_END;end"
+            "CRASH_LOADING_SWAP_AFTER_VSYNC;after_vsync")
+      list(POP_FRONT fact definition)
+      string(JSON value GET "${native_manifest}" runtime native_frame loading_swap ${fact})
+      target_compile_definitions(${target} PRIVATE "${definition}=${value}u")
+    endforeach()
+  endif()
 endfunction()
 
 # The title-independent owners: runtime, session, boot services and the frame turn.

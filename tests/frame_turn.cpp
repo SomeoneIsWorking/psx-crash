@@ -29,22 +29,41 @@ bool expect(const char *title, bool condition, const char *message) {
   return condition;
 }
 
-// The display-wait predicate accepts the guest's own VSync calls and the loop transition override, nothing else.
+// The boundary classifier accepts the guest's own VSync calls and the loop transition override, nothing else.
 bool boundaryPredicateHolds(const char *title, const crash::TitleFacts &facts) {
+  using Boundary = crash::FrameDriver::Boundary;
   const crash::FrameProgram &f = facts.frame;
   const std::uint32_t leaf = facts.vsync.begin;
-  const auto measured = [&](std::uint32_t pc, std::uint32_t ra) {
-    return crash::FrameDriver::isMeasuredFrameBoundary(
-        pc, ra, leaf, f.afterFirstVSync, f.afterVSync, f.transitionReturn);
+  const auto kind = [&](std::uint32_t pc, std::uint32_t ra) {
+    return crash::FrameDriver::classifyBoundary(pc, ra, leaf, f);
   };
   bool ok = true;
-  ok = expect(title, measured(f.afterFirstVSync, f.afterFirstVSync), "the first VSync call is a boundary") && ok;
-  ok = expect(title, measured(f.afterVSync, f.afterVSync), "the second VSync call is a boundary") && ok;
-  ok = expect(title, measured(leaf, f.transitionReturn), "the transition override's provenance is a boundary") && ok;
-  ok = expect(title, !measured(f.afterFirstVSync, f.transitionReturn), "provenances do not mix") && ok;
-  ok = expect(title, !measured(leaf, leaf), "the VSync leaf entry is never a resume point") && ok;
-  ok =
-      expect(title, !measured(f.gpuUpdate.begin, f.gpuUpdate.begin), "an arbitrary GpuUpdate address is refused") && ok;
+  ok = expect(title,
+              kind(f.afterFirstVSync, f.afterFirstVSync) == Boundary::GpuUpdateWait,
+              "the first VSync call is a GpuUpdate wait") &&
+       ok;
+  ok = expect(title,
+              kind(f.afterVSync, f.afterVSync) == Boundary::GpuUpdateWait,
+              "the second VSync call is a GpuUpdate wait") &&
+       ok;
+  ok = expect(title,
+              kind(leaf, f.transitionReturn) == Boundary::Transition,
+              "the transition override's provenance is the transition") &&
+       ok;
+  ok = expect(title, kind(f.afterFirstVSync, f.transitionReturn) == Boundary::Unmeasured, "provenances do not mix") &&
+       ok;
+  ok = expect(title, kind(leaf, leaf) == Boundary::Unmeasured, "the VSync leaf entry is never a resume point") && ok;
+  ok = expect(title,
+              kind(f.gpuUpdate.begin, f.gpuUpdate.begin) == Boundary::Unmeasured,
+              "an arbitrary GpuUpdate address is refused") &&
+       ok;
+  if (f.loadingSwap) {
+    const std::uint32_t after = f.loadingSwap->afterVSync;
+    ok =
+        expect(title, kind(after, after) == Boundary::LoadingSwapWait, "the loading swap's VSync call is a wait") && ok;
+    ok = expect(title, kind(after, f.afterVSync) == Boundary::Unmeasured, "a loading swap provenance does not mix") &&
+         ok;
+  }
   return ok;
 }
 
@@ -78,10 +97,12 @@ void writeCountingCallback(Core &core, std::uint32_t address) {
   }
 }
 
-// One host frame of a scripted guest: `waits` VSync calls in GpuUpdate, `ticks` of guest time before them.
+// One host frame of a scripted guest: `loadingWaits` loading-swap VSync calls, then `waits` VSync calls in GpuUpdate,
+// `ticks` of guest time before them.
 struct FrameScript {
   std::uint32_t waits;
   std::uint64_t ticks;
+  std::uint32_t loadingWaits{};
 };
 
 // A FrameDriver whose guest turns follow `script`, bound as the Game's driver with CNT2 set up by the title's
@@ -136,8 +157,17 @@ private:
     if (call == 0u) {
       game_.timing.advanceGuestInstructionTicks(static_cast<std::uint32_t>(script_.ticks));
     }
-    if (call < script_.waits) {
-      const std::uint32_t after = call % 2u == 0u ? program.afterFirstVSync : program.afterVSync;
+    if (call < script_.loadingWaits) {
+      if (!program.loadingSwap) {
+        return {psx::cpu::ExecutionExitReason::Fault, program.gpuUpdate.begin, 0u, "the title has no loading swap"};
+      }
+      const std::uint32_t after = program.loadingSwap->afterVSync;
+      core.r[31] = after;
+      return {psx::cpu::ExecutionExitReason::FrameBoundary, after, 100u, "loading swap VSync"};
+    }
+    if (call < script_.loadingWaits + script_.waits) {
+      const std::uint32_t wait = call - script_.loadingWaits;
+      const std::uint32_t after = wait % 2u == 0u ? program.afterFirstVSync : program.afterVSync;
       core.r[31] = after;
       return {psx::cpu::ExecutionExitReason::FrameBoundary, after, 100u, "VSync"};
     }
@@ -211,11 +241,24 @@ bool waitsBecomeFields(const char *title, Game &game, const crash::TitleFacts &f
                }),
                "a third display wait was accepted");
 
+  if (facts.frame.loadingSwap) {
+    ok &= expect(title,
+                 fieldsAre(frames.run(3u, {2u, field / 4u, 2u}), 4u),
+                 "a scene load's two loading swaps and GpuUpdate's two waits did not commit four fields");
+    ok &= expect(title,
+                 aborts([&] {
+                   frames.run(4u, {2u, field / 4u, 3u});
+                 }),
+                 "a third loading swap wait was accepted");
+  }
+
   Core &core = game.core;
+  // Aborting runs happen in children, so the frame numbers they used are still next.
+  const std::uint32_t next = facts.frame.loadingSwap ? 4u : 3u;
   if (!facts.frame.limiter) {
     ok &= expect(title,
                  aborts([&] {
-                   frames.run(3u, {0u, field / 4u});
+                   frames.run(next, {0u, field / 4u});
                  }),
                  "a frame with no wait was accepted");
     return ok;
@@ -226,15 +269,15 @@ bool waitsBecomeFields(const char *title, Game &game, const crash::TitleFacts &f
   core.mem_w32(limiter.vblankCounter, 40u + limiter.skipAfterFields - 1u);
   ok &= expect(title,
                aborts([&] {
-                 frames.run(3u, {0u, field / 4u});
+                 frames.run(next, {0u, field / 4u});
                }),
                "a frame with no wait was accepted while the limiter still owed one");
   core.mem_w32(limiter.vblankCounter, 40u + limiter.skipAfterFields);
   ok &= expect(title,
-               fieldsAre(frames.run(3u, {0u, field + field / 2u}), 2u),
+               fieldsAre(frames.run(next, {0u, field + field / 2u}), 2u),
                "a limiter skip after 1.5 fields of guest time did not commit the two fields up to its VBlank");
   ok &= expect(title,
-               fieldsAre(frames.run(4u, {0u, field / 4u}), 1u),
+               fieldsAre(frames.run(next + 1u, {0u, field / 4u}), 1u),
                "a short limiter skip did not commit the one field up to its VBlank");
   return ok;
 }

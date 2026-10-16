@@ -38,7 +38,8 @@ struct TitleFacts {
   std::optional<psx::input::StockPadBuffers::Layout> padBuffers;
 };
 
-// Compile-time check each title's facts file asserts: ranges are non-empty and the VSync seams sit inside GpuUpdate.
+// Compile-time check each title's facts file asserts: ranges are non-empty, the VSync seams sit inside GpuUpdate and a
+// loading swap's inside its own body.
 constexpr bool isCoherent(const TitleFacts &facts) {
   const FrameProgram &frame = facts.frame;
   return facts.libcdInit.initialize.valid() && facts.callbackBoot.initialize.valid() &&
@@ -47,7 +48,10 @@ constexpr bool isCoherent(const TitleFacts &facts) {
          frame.transition.valid() && frame.gpuUpdate.valid() && frame.coreLoop.contains(frame.iteration.begin) &&
          frame.gpuUpdate.contains(frame.firstVSync) && frame.gpuUpdate.contains(frame.afterFirstVSync) &&
          frame.gpuUpdate.contains(frame.secondVSync) && frame.gpuUpdate.contains(frame.afterVSync) &&
-         (!frame.limiter || frame.limiter->skipAfterFields != 0);
+         (!frame.limiter || frame.limiter->skipAfterFields != 0) &&
+         (!frame.loadingSwap ||
+          (frame.loadingSwap->body.valid() && frame.loadingSwap->body.contains(frame.loadingSwap->afterVSync) &&
+           !frame.gpuUpdate.contains(frame.loadingSwap->body.begin)));
 }
 
 } // namespace crash

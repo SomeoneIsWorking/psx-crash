@@ -6,7 +6,7 @@ symptom: The disc-backed product runs 400 frames and presents a picture, but the
 state_items: S011
 tags: crash1,dynarec,lightrec,migration,product
 created: 2026-09-04
-updated: 2026-10-15
+updated: 2026-10-16
 ---
 
 ## Root cause
@@ -33,9 +33,15 @@ Image admission is closed: psxport's `selectExecutableFile` checks size, PS-X EX
 SHA-256 against `Crash1Catalog`'s identity (from `executable.json`) before `TitleSession::boot` maps
 the file; `tests/catalog.cpp` pins the catalog to the manifest.
 
-## 2026-10-15: the level-load display wait
+## The level-load display wait (fixed 2026-10-16)
 
-`warp 3` from the title menu aborts at the same place as the cross press: a VSync(0) returning to
-0x80017328. That call is in the buffer-swap helper FUN_800172E8, reached from 0x80032478 rather than from
-GpuUpdate, so it is a display wait outside the two measured GpuUpdate sites and the frame driver refuses
-it. Next: decompile the 0x80032478 caller and decide whether that wait ends a host frame.
+`warp 3` and the cross press on the title menu aborted with `frame 2 reached an unexpected boundary at 0x80017328`.
+Cause: `crash::FrameDriver::stepFrame` refused the VSync(0) in `FUN_800172E8` (swap, VSync, PutDispEnv, PutDrawEnv),
+which the scene loader `FUN_80015B58` reaches through `FUN_800322CC` to upload its loading picture into both
+buffers, two swaps per load inside the CoreLoop iteration. GpuUpdate then holds that picture for two frames through
+`0x8005C54C`. The swap is now `FrameProgram::loadingSwap` (`runtime.native_frame.loading_swap`), a display wait
+counted apart from GpuUpdate's two (`tests/frame_turn.cpp`). Real-window play check after `warp 3`: Crash stands in a
+live level for 75 s.
+
+Still open: independent state/device comparison, override/original-call coverage, executable-memory invalidation,
+and released-host qualification. The deleted static machinery must not return.

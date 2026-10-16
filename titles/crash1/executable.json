@@ -326,6 +326,13 @@
       "after_first_vsync": "0x800170FC",
       "second_vsync": "0x80017124",
       "after_vsync": "0x8001712C",
+      "loading_swap": {
+        "entry": "0x800172E8",
+        "end": "0x80017358",
+        "body_sha256": "c154c469d0ce9da95648fa805fff83c1d8de7642bab609b6674e153b00235a5a",
+        "after_vsync": "0x80017328",
+        "note": "Buffer swap with VSync(0), PutDispEnv, PutDrawEnv; the scene loader's loading picture (FUN_800322CC, from FUN_80015B58) calls it twice per load"
+      },
       "root_counter_increment": "0x80034504",
       "set_root_counter": "0x8003E298",
       "start_root_counter": "0x8003E370",

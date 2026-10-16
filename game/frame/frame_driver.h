@@ -34,18 +34,27 @@ public:
   // Arms a `warp <scene>` request; the next frame raises it through the guest's own scene request.
   std::string armWarp(Core &core, const char *line);
 
-  // Two measured sources: the guest's `jal` to the libetc VSync leaf in GpuUpdate, and the loop
-  // transition override (which stamps the VSync leaf entry). Anything else is refused.
-  [[nodiscard]] static constexpr bool isMeasuredFrameBoundary(std::uint32_t guestPc,
-                                                              std::uint32_t returnAddress,
-                                                              std::uint32_t vsyncLeaf,
-                                                              std::uint32_t afterFirst,
-                                                              std::uint32_t afterSecond,
-                                                              std::uint32_t transitionReturn) noexcept {
-    const bool fromGuestVsync = (guestPc == afterFirst && returnAddress == afterFirst) ||
-                                (guestPc == afterSecond && returnAddress == afterSecond);
-    const bool fromTransitionOverride = guestPc == vsyncLeaf && returnAddress == transitionReturn;
-    return fromGuestVsync || fromTransitionOverride;
+  // What a guest frame boundary is: a VSync call in GpuUpdate or in the loading swap, or the loop transition
+  // override (which stamps the VSync leaf entry). `Unmeasured` is refused.
+  enum class Boundary : std::uint8_t { Unmeasured, GpuUpdateWait, LoadingSwapWait, Transition };
+
+  [[nodiscard]] static constexpr Boundary classifyBoundary(std::uint32_t guestPc,
+                                                           std::uint32_t returnAddress,
+                                                           std::uint32_t vsyncLeaf,
+                                                           const FrameProgram &program) noexcept {
+    const auto returnsTo = [&](std::uint32_t site) {
+      return guestPc == site && returnAddress == site;
+    };
+    if (returnsTo(program.afterFirstVSync) || returnsTo(program.afterVSync)) {
+      return Boundary::GpuUpdateWait;
+    }
+    if (program.loadingSwap && returnsTo(program.loadingSwap->afterVSync)) {
+      return Boundary::LoadingSwapWait;
+    }
+    if (guestPc == vsyncLeaf && returnAddress == program.transitionReturn) {
+      return Boundary::Transition;
+    }
+    return Boundary::Unmeasured;
   }
 
 protected:
@@ -65,7 +74,7 @@ private:
   static FrameDriver &from(Core &core);
 
   void deliverField(Core &core, std::uint64_t boundaryCpuTick);
-  void deliverDisplayWait(Core &core);
+  void deliverDisplayWait(Core &core, Boundary wait);
   [[nodiscard]] bool limiterSkippedWaits(Core &core) const;
   void deliverSkippedWaits(Core &core, std::uint32_t frame);
   void serviceRootCounter(Core &core, std::uint64_t throughCpuTick);
@@ -80,8 +89,15 @@ private:
   std::uint32_t completedFrames_{};
   // The host numbers steps from its own base (the title host starts at 1), so only consecutiveness is checked.
   std::uint32_t lastHostFrame_{};
+  // Display waits one source requested this frame, timed from its first wait.
+  struct WaitGroup {
+    std::uint32_t fields{};
+    std::uint64_t baseCpuTick{};
+  };
+
   std::uint32_t deliveredFields_{};
-  std::uint64_t waitBaseCpuTick_{};
+  WaitGroup gpuUpdateWaits_;
+  WaitGroup loadingSwapWaits_;
   // Emulated time after the last commit: the display boundary the next frame's fields count from.
   std::uint64_t displayBoundaryTick_;
   std::uint64_t nextRootCounterTick_{};

@@ -30,7 +30,7 @@ Product path: `run.sh` → the framework main (`psxport_add_product`, target `cr
 | `crash::gpu_watchdog` | `game/boot/gpu_watchdog.*` | libgpu queue-timeout bookkeeping on the host display counter (Crash 1 and 2; Crash 3's check differs and runs as guest code) |
 | `crash::LeafCall`, `callLeaf` | `game/boot/leaf_call.h` | One guest leaf call from a native boot owner, at a return address inside the retail body |
 | `crash::FrameDriver` | `game/frame/frame_driver.*` | One host frame: CoreLoop iteration to the transition, one display field per guest VSync wait, CNT2 at its `SetRCnt` target, presentation commit |
-| `crash::FrameProgram`, `SceneTable` | `game/frame/frame_program.h` | A title's measured frame loop: CoreLoop, iteration, transition, GpuUpdate VSync sites, scene words, root-counter entries |
+| `crash::FrameProgram`, `SceneTable` | `game/frame/frame_program.h` | A title's measured frame loop: CoreLoop, iteration, transition, GpuUpdate VSync sites, the loading swap, scene words, root-counter entries |
 | `crash::FrameCut` | `game/frame/frame_cut.*` | Whether a sealed frame starts a new scene, from the guest scene id and request words |
 | `crash::SceneWarp` | `game/frame/scene_warp.*` | `warp <scene-hex>`: arms a scene id and writes the request word at a frame boundary; refused before the loop runs, past 0x3C, or on an empty scene-table row |
 | `crash1::Runtime`, `crash1::facts` | `titles/crash1/entry/` | Crash 1's facts, its session (`crash1::Session` with the block pool) and frame driver |
@@ -49,7 +49,7 @@ Product path: `run.sh` → the framework main (`psxport_add_product`, target `cr
 |---|---|
 | product spine | `ProductHost` → `TitleSession`: `admitExecutable` → `Runtime::registerOverrides` → `startProgram` |
 | one host frame | `crash::FrameDriver::stepFrame`: first frame enters CoreLoop with the initial scene, later frames resume at `iteration.begin` |
-| boundary | the guest's VSync call returning to a measured GpuUpdate site, or the transition override at the GpuUpdate return (Crash 1 and 3) or the empty stub after it (Crash 2) |
+| boundary | the guest's VSync call returning to a measured GpuUpdate site or to Crash 1's loading swap (`FrameProgram::loadingSwap`), or the transition override at the GpuUpdate return (Crash 1 and 3) or the empty stub after it (Crash 2) |
 | skipped waits | Crash 3's GpuUpdate limiter (`FrameProgram::limiter`) skips both waits; `deliverSkippedWaits` delivers the fields up to the next VBlank, any other wait-less frame aborts |
 | per display field | `deliverField` → CNT2 service → `SpuAudio::frame` |
 | presentation | psxport `FramePresenter::commit`; Record widens the canvas at 16:9 and keeps the retail centre |

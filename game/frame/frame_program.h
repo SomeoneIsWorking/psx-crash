@@ -25,6 +25,13 @@ struct FrameLimiter {
   std::uint32_t skipAfterFields;
 };
 
+// A buffer swap outside GpuUpdate whose own VSync(0) is a display wait: Crash 1's scene loader shows its loading
+// picture through one, twice per load.
+struct DisplaySwap {
+  GuestFunctionRange body;
+  std::uint32_t afterVSync;
+};
+
 // One title's measured frame loop: where a host frame starts and ends, and the display waits between.
 struct FrameProgram {
   GuestFunctionRange coreLoop;
@@ -43,6 +50,8 @@ struct FrameProgram {
   std::uint32_t afterVSync;
   // Empty when GpuUpdate always reaches at least one display wait.
   std::optional<FrameLimiter> limiter;
+  // Empty when every display wait is inside GpuUpdate.
+  std::optional<DisplaySwap> loadingSwap;
   std::uint32_t doneAddress;
   std::uint32_t sceneIdAddress;
   std::uint32_t sceneRequestAddress;
