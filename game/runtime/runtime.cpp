@@ -89,7 +89,7 @@ bool Runtime::titleCommand(Core &core, const psx::game::TitleCommandLine &input,
   if (std::strcmp(input.command, "warp") != 0) {
     return false;
   }
-  auto *driver = dynamic_cast<FrameDriver *>(core.game->frameDriver.get());
+  auto *driver = core.game->frameDriverIf<FrameDriver>();
   std::fprintf(reply,
                "%s\n",
                driver == nullptr ? "refused: no Crash frame driver is running"
