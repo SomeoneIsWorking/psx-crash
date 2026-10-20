@@ -6,6 +6,7 @@
 #include "field_rate.h"
 #include "game.h"
 #include "logic_frame.h"
+#include "guest_call.h"
 #include "native_dispatch.h"
 
 #include <cstdlib>
@@ -27,7 +28,7 @@ std::uint64_t fieldCpuTicks(std::uint32_t fields) {
 } // namespace
 
 psx::cpu::ExecutionResult FrameDriver::executeHostTurn(Core &core, std::uint32_t address) {
-  return psx::cpu::dispatchGuestUntilExit(core, address, psx::cpu::ExecutionBudget::currentTurn(core));
+  return psx::cpu::dispatchGuestUntilExitNow(core, address);
 }
 
 FrameDriver::FrameDriver(
