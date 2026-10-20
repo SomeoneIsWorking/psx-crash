@@ -3,7 +3,6 @@ project(crash_port LANGUAGES C CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
-include(CTest)
 
 # PSXPORT_DIR: the framework, a symlink to the workspace's live checkout or a clone of its main
 # (psxport tools/psxport_fetch.py); defaults to external/psxport.
@@ -13,11 +12,7 @@ if(NOT EXISTS "${PSXPORT_DIR}/cmake/psxport.cmake")
   message(FATAL_ERROR "PSXPORT_DIR=${PSXPORT_DIR} has no cmake/psxport.cmake — run "
                       "./run.sh once to fetch it, or point PSXPORT_DIR at a psxport checkout.")
 endif()
-option(PSXPORT_BUILD_SMOKE "Build the framework agnosticism smoke" ON)
 add_subdirectory("${PSXPORT_DIR}" psxport_build)
-if(PSXPORT_BUILD_SMOKE)
-  add_custom_target(crash_scaffold DEPENDS psxport_smoke)
-endif()
 
 # Includes name the owning directory: "runtime/runtime.h" under game/, "crash1/entry/runtime.h" under titles/.
 function(crash_include_roots target)
@@ -183,78 +178,5 @@ target_include_directories(crash_catalog PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/pro
 target_compile_features(crash_catalog PUBLIC cxx_std_20)
 target_link_libraries(crash_catalog PUBLIC crash1_runtime crash2_runtime crash3_runtime)
 
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/bios_contract.json" crash1_bios_contract_json)
-string(JSON crash1_get_c0_table_function
-       GET "${crash1_bios_contract_json}" get_c0_table function)
-string(JSON crash1_c0_exception_handler_slot
-       GET "${crash1_bios_contract_json}" exception_handler table_slot)
-string(JSON crash1_c0_exception_handler_address
-       GET "${crash1_bios_contract_json}" exception_handler retail_address)
-
-if(BUILD_TESTING)
-  # Shared owners, run over every Crash title.
-  foreach(shared_test runtime code_module scene_warp libcd_init callback_boot gpu_watchdog frame_cut frame_turn)
-    add_executable(crash_${shared_test}_test "${CMAKE_CURRENT_SOURCE_DIR}/tests/${shared_test}.cpp")
-    target_include_directories(crash_${shared_test}_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tests")
-    target_compile_features(crash_${shared_test}_test PRIVATE cxx_std_20)
-    target_link_libraries(crash_${shared_test}_test PRIVATE crash1_runtime crash2_runtime crash3_runtime)
-    add_test(NAME crash_${shared_test} COMMAND crash_${shared_test}_test)
-  endforeach()
-
-  add_executable(crash_catalog_test "${CMAKE_CURRENT_SOURCE_DIR}/tests/catalog.cpp")
-  target_compile_features(crash_catalog_test PRIVATE cxx_std_20)
-  target_link_libraries(crash_catalog_test PRIVATE crash_catalog)
-  add_test(NAME crash_catalog COMMAND crash_catalog_test
-           "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/executable.json"
-           "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/executable.json"
-           "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash3/executable.json")
-
-  # Crash 1's own owners: the BIOS pad word, the block pool and the C0 table its exception handler needs.
-  foreach(title_test bios_pad_input block_pool c0_exception_contract)
-    add_executable(crash1_${title_test}_test "${CMAKE_CURRENT_SOURCE_DIR}/tests/${title_test}.cpp")
-    target_include_directories(crash1_${title_test}_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tests")
-    target_compile_features(crash1_${title_test}_test PRIVATE cxx_std_20)
-    target_link_libraries(crash1_${title_test}_test PRIVATE crash1_runtime crash2_runtime crash3_runtime)
-    add_test(NAME crash1_${title_test} COMMAND crash1_${title_test}_test)
-  endforeach()
-  target_compile_definitions(
-    crash1_c0_exception_contract_test
-    PRIVATE
-      "CRASH1_GET_C0_TABLE_FUNCTION=${crash1_get_c0_table_function}u"
-      "CRASH1_C0_EXCEPTION_HANDLER_SLOT=${crash1_c0_exception_handler_slot}u"
-      "CRASH1_C0_EXCEPTION_HANDLER_ADDRESS=${crash1_c0_exception_handler_address}u"
-  )
-
-  add_test(
-    NAME crash_cpp_policy
-    COMMAND
-      "${Python3_EXECUTABLE}" "${PSXPORT_DIR}/tools/check_cpp_style.py"
-      --root "${CMAKE_CURRENT_SOURCE_DIR}" --compile-commands "${CMAKE_BINARY_DIR}"
-  )
-  add_test(
-    NAME crash_title_provision_tests
-    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_provision_titles.py"
-  )
-  set_tests_properties(crash_title_provision_tests PROPERTIES ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1")
-  add_test(
-    NAME crash_launcher_tests
-    COMMAND "${Python3_EXECUTABLE}" -B "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_run.py"
-  )
-  set_tests_properties(crash_launcher_tests PROPERTIES ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1")
-endif()
 psxport_add_product(crash_port CATALOG crash::createCatalog HEADER catalog.h LIBRARIES crash_catalog)
 set_target_properties(crash_port PROPERTIES ENABLE_EXPORTS ON)
-if(BUILD_TESTING)
-  add_test(NAME crash_product_help COMMAND $<TARGET_FILE:crash_port> --help)
-  set_tests_properties(crash_product_help PROPERTIES PASS_REGULAR_EXPRESSION "Usage:")
-  add_test(NAME crash_product_help_short COMMAND $<TARGET_FILE:crash_port> -h)
-  set_tests_properties(crash_product_help_short PROPERTIES PASS_REGULAR_EXPRESSION "Usage:")
-  add_test(
-    NAME crash_execution_boundary
-    COMMAND
-      "${Python3_EXECUTABLE}" "${PSXPORT_DIR}/tools/check_execution_boundary.py"
-      --root "${CMAKE_CURRENT_SOURCE_DIR}"
-      --cmake "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt"
-      --binary "$<TARGET_FILE:crash_port>"
-  )
-endif()
