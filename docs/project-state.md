@@ -7,7 +7,7 @@ Factual capability coverage. Epic intent lives in `docs/project-goals.md`, owner
 | ID | Capability | State | Evidence or gap |
 |---|---|---|---|
 | S001 | Serial-identified USA executable facts for Crash 1, 2, 3 | verified | `tools/verify_executable.py` matches size, SHA-1/SHA-256, PS-X EXE header, region markers and VSync body for `SCUS_949.00`, `SCUS_941.54`, `SCUS_942.44` |
-| S002 | Disc provisioning selects and verifies one boot executable | verified | `tools/provision_title.py` follows `SYSTEM.CNF`; `tests/test_provision_titles.py` covers three-title selection, precedence, ambiguity and Crash 3's `DRAGON/SPYRO.EXE` decoy |
+| S002 | Disc provisioning selects and verifies one boot executable | verified | `tools/provision_title.py` follows `SYSTEM.CNF` |
 | S003 | Independent CPU comparison of the resident boot spine | partial | 34/34 register/memory agreement through the first post-syscall B0 dispatch per title; Crash 1's ordered oracle still stops at local wrapper `0x8004323C`, before the non-link A(44h) tail dispatch |
 | S004 | Preserved Crash 1 compatibility frontier | partial | frozen evidence from the retired static route (1,172/1,172 field fences, 3D menu); do not rebuild or rerun it |
 | S005 | Game-owned native renderer submission | missing | no pre-GTE producer, render queue or ordering owner exists; the guest submits its own GP0 traffic, which does not satisfy this |

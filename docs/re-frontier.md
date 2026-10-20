@@ -33,7 +33,7 @@ Statuses: ✅ `re-verified` · 🟡 `re-partial` · 🔬 `in-progress` · ⬜ `t
 - status: re-verified
 - deps: CRASH2-01
 - evidence: The shared serial-aware provisioning path publishes only after SYSTEM.CNF boots SCUS_941.54 and the executable matches 11/11 facts. Its 10-case both-answer suite includes three-way title environment isolation and wrong-title refusal. Against clean pinned psxport bc8c8897, cached real SCUS_941.54 passes the executable fact check, oracle_spike 43/43, and crt0_extract/independent CPU agreement 6/6 at executed jal ordinal 1, step 81,725, target 0x8001144C: gp 0x8005F17C, a0 0x8006F1F4, sp 0x801FFFF8, and heap size 0x0018FE08.
-- where: `tools/provision_title.py`, `tests/test_provision_titles.py`, CMake `crash2_oracle_boot_check`, gitignored `scratch/bin/crash2/SCUS_941.54`
+- where: `tools/provision_title.py`, CMake `crash2_oracle_boot_check`, gitignored `scratch/bin/crash2/SCUS_941.54`
 - gap: This proves only the first real crt0 call boundary. No later Crash 2 execution, BIOS continuation, hardware, native boot, or gameplay is claimed.
 - notes: The 6/6 real-byte cross-check was reproduced at psxport bc8c8897. No disc was configured for a fresh extraction in that run; prior SYSTEM.CNF provisioning evidence remains the disc-selection authority.
 
@@ -65,7 +65,7 @@ Statuses: ✅ `re-verified` · 🟡 `re-partial` · 🔬 `in-progress` · ⬜ `t
 - status: re-verified
 - deps: CRASH3-01
 - evidence: The shared serial-aware provisioner publishes only after SYSTEM.CNF boots SCUS_942.44 and the executable matches 11/11 facts. Its 10-case suite includes three-way environment isolation, wrong-Crash-title refusal, a positive Crash 3 fixture carrying DRAGON/SPYRO.EXE, and refusal when that bundled path is made the boot target. Against clean pinned psxport 57a17a14, crt0_extract and the independent Mednafen CPU oracle agree 6/6 at executed jal ordinal 1, step 71,790, target 0x800112B8: gp 0x80060878, a0 0x8006EA7C, sp 0x801FFFF8, and heap size 0x00190580. The oracle's 39-case fixture passes independently.
-- where: `tools/provision_title.py`, `tests/test_provision_titles.py`, CMake `crash3_oracle_boot_check`, gitignored `scratch/bin/crash3/SCUS_942.44`
+- where: `tools/provision_title.py`, CMake `crash3_oracle_boot_check`, gitignored `scratch/bin/crash3/SCUS_942.44`
 - gap: This proves executable selection and the first real crt0 call boundary. Later boundary evidence is separately tracked by CRASH3-04; this step alone proves no BIOS continuation, hardware, native boot, or gameplay.
 - notes: The first structural call target is not an A(39h) thunk.
 
@@ -111,7 +111,7 @@ Statuses: ✅ `re-verified` · 🟡 `re-partial` · 🔬 `in-progress` · ⬜ `t
 - status: re-partial
 - deps: CRASH1-03
 - evidence: Against clean psxport `54af32cb`, the verified USA executable and deliberately empty title seed additions produce 115 static candidate seeds and 666 emitted candidates with zero configured overlays under emitter version `2026-08-26.14`. Generated execution with the direct Crash 1 runtime installed starts at entry `0x8003E018` and agrees 34/34 with the independent Mednafen CPU at eight calls through first syscall `0x8003E1F8`. At step 62,083 the independent CPU records Cause `0x20` and EPC `0x8003E1FC`; the controlled shipping path executes the exact generated wrapper through `rec_syscall`, retains the same Cause/EPC, returns prior IRQ 1, and disables delivery. Both CPUs pop the Status mode stack once and resume at `0x8003E200`; the next dynamic-dispatch state agrees 34/34 at PC `0xB0`, with `t1=0x56` and `ra=0x800431B8`, identifying BIOS B(56h). The complete gate passes 18/18, including manifest-altered syscall and BIOS facts, short 7/8 trace, out-of-text seed, repeated target, wrong syscall target, wrong selector, and altered-register controls. Ghidra 12.0.4 disassembly of the same verified bytes at `0x8004319C..0x80043248` proves the continuation reads C0 slot `+0x18`, copies fourteen words over `[0x80043204,0x8004323C)`, and tail-dispatches A(44h) with `ra=0x800431E8`. PSX-SPX's retail-BIOS analysis identifies slot 6 as C(06h) ExceptionHandler at `0x00000C80`. Against clean pushed psxport `99a42aa3`, the shipping-HLE consumer CTest passes that slot contract. A real ordered independent trace then applies selector-1 return, B(56h) returning `0x8000F800`, and seed `0x8000F818=0x00000C80`; at its next boundary `v0=0x00000CB8`, proving the fourteen-word destination loop completed. `crash1_boot_frontier.*` composes the product to execute B(56h) through shipping HLE and stop at the A(44h) pre-HLE boundary.
-- where: `titles/crash1/executable.json`, `titles/crash1/bios_contract.json`, `tests/c0_exception_contract.cpp`, CMake target `crash_port`; the static translator, seeds, and recomp boundary tests were deleted by the execution migration
+- where: `titles/crash1/executable.json`, `titles/crash1/bios_contract.json`, CMake target `crash_port`; the static translator, seeds, and recomp boundary tests were deleted by the execution migration
 - gap: Equality is proven from the executable entry through the first post-syscall B(56h) dispatch boundary. Product composition extends to A(44h), but no serialized run has yet proven it reaches that boundary. The ordered real oracle now preserves CPU/RAM through the syscall, B(56h), C0 seed, and fourteen-word copy, but its first-post-model-call policy captures intermediate local wrapper `0x8004323C` with `ra=0x800431E8`. That wrapper tail-dispatches A(44h) via non-link `jr`, and modeled returns cannot currently combine with exact target capture. The A(44h) register file and fourteen destination words therefore lack an independent comparison. Of 666 emitted candidates, eight bodies execute and one further candidate is observed as a call target without executing its body; 657 candidates lack execution provenance. Static table discovery also emits data-like fragments, so neither the 115-seed nor 666-candidate count is a correctness denominator.
 - notes: C0 slot 6 is fixed in the shared framework, not overridden by Crash. The unresolved A(44h) oracle boundary remains valid evidence debt. Do not extend or rerun the static path; reproduce the recorded state through Lightrec and use the independent oracle for new comparison evidence. This is neither a rendered frame nor a playable-game claim.
 
@@ -166,7 +166,7 @@ Statuses: ✅ `re-verified` · 🟡 `re-partial` · 🔬 `in-progress` · ⬜ `t
   Correcting the class rule turned a fault into a complete run: unservable classes 5 -> 0, executed
   blocks 1,689,262 -> 3,461,249, `fallback_blocks` 0 in both arms of the controlled pair.
 - where: `titles/crash1/render/block_pool.*`, `titles/crash1/executable.json` ->
-  `runtime.block_pool`, `tests/block_pool.cpp`, issue 0020
+  `runtime.block_pool`, issue 0020
 - gap: The allocate path at `0x80012F10` is recovered as a readable model but is deliberately NOT
   installed as an override, because nothing establishes that the guest reaches it: every lookup in
   the disc-backed run came from `ra = 0x80015164` (`FUN_80015118`), never from `0x80013140`. The

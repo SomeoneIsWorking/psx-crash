@@ -189,7 +189,6 @@ def configure_command(
         "-G",
         "Ninja",
         "-DCMAKE_BUILD_TYPE=Release",
-        "-DBUILD_TESTING=OFF",
         f"-DPSXPORT_DIR={framework}",
         f"-DPython3_EXECUTABLE={python_executable}",
         *compiler_options,

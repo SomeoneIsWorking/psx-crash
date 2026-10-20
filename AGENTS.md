@@ -44,12 +44,11 @@ owned camera/projection state deterministically; interpolation consumes authorit
 previous/current simulation transforms at presentation time. GTE/OT/GP0 output and framebuffer
 pixels are diagnostics, never native producer input.
 
-## How the tree is verified
+## How the tree is built
 
-`uv run --frozen python tools/verify.py` is the gate: it configures, builds, and runs CTest, the
-framework C++ policy check. Unit tests live in `tests/`, and the launcher
-and provisioning owners have their own tests there. The `probe_crash1_*` tools in `tools/` drive the
-product through the framework's loopback control channel and are maintainer legs, not gates; they
+There are no unit tests or gates. Build with `CC=clang CXX=clang++ uv run --frozen python
+external/psxport/tools/port/consumer_build.py --build build/agent --target crash_port`. The `probe_crash1_*` tools in `tools/` drive the
+product through the framework's loopback control channel and are maintainer legs; they
 need the user's disc and are run by hand.
 
 Never commit game media, extracted executables, generated guest code, `.env`, traces, or

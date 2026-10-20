@@ -40,7 +40,6 @@ Product path: `run.sh` → the framework main (`psxport_add_product`, target `cr
 | `crash2::Runtime`, `crash2::facts` | `titles/crash2/entry/` | Crash 2's facts: libpad buffers, code-module arena, scene table |
 | `crash3::Runtime`, `crash3::facts` | `titles/crash3/entry/` | Crash 3's facts: no GPU watchdog override, libpad via the title's own SIO, code-module arena, scene table |
 | `crash::Catalog`, `createCatalog` | `product/catalog.*` | The product's three identities and runtimes, provisioned under `scratch/bin` |
-| tests | `tests/` | Shared owners over all three titles (`titles.h:forEachTitle`), Crash 1's own owners, the catalog |
 | tools | `tools/` | Provisioning, executable verification, launcher, the verifier |
 
 ## The frame turn

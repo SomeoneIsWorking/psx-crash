@@ -57,13 +57,12 @@ decorates presentation only. These enhancements remain off during faithful oracl
 See `docs/project-state.md` for factual coverage, `docs/project-goals.md` for completion conditions,
 `docs/codemap.md` for ownership, and `docs/re-frontier.md` for the ordered RE dependencies.
 
-## Verification
+## Building
 
-Maintainers select Clang and run the locked verifier explicitly; `run.sh` remains the player
-launcher and never runs tests:
+Maintainers select Clang and build explicitly; `run.sh` remains the player launcher:
 
 ```sh
-CC=clang CXX=clang++ uv run --frozen python tools/verify.py
+CC=clang CXX=clang++ uv run --frozen python external/psxport/tools/port/consumer_build.py --build build/agent --target crash_port
 ```
 
 For explicitly provisioned runtime dependencies, set `PSXPORT_LIGHTREC_DIR` to the maintained
