@@ -25,7 +25,7 @@ public:
   void deliverPad(Core &core, const psx::input::PadDelivery &delivery) override;
   void stockCdReadLanded(Core &core, const psx::cd::StockReadLanding &landing) override;
   bool sealedFrameIsCut(Core &core) const override;
-  const GuestWidescreenProjection *guestWidescreenProjection() const override;
+  const psx::present::GuestWidescreenProjection *guestWidescreenProjection() const override;
   // `warp <scene-hex>`.
   bool titleCommand(Core &core, const psx::game::TitleCommandLine &input, std::FILE *reply) override;
 
@@ -41,7 +41,7 @@ private:
   psx::cd::StockLibcd libcd_;
   psx::hle::StockVSync vsync_;
   std::optional<psx::input::StockPadBuffers> pad_;
-  GuestWidescreenProjection aspectPolicy_;
+  psx::present::GuestWidescreenProjection aspectPolicy_;
 };
 
 // The facts of the title running on `core`; a core with no Crash runtime stops the run.
