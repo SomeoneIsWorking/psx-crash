@@ -7,18 +7,7 @@
 namespace crash3 {
 namespace {
 
-constexpr psx::game::Crt0Image kCrt0{
-    .bss = {0x80060A38u, 0x8006EA78u},
-    .stackTopWordAddress = 0x80060884u,
-    .stackReserveWordAddress = 0x80060880u,
-    .heapBase = 0x8006EA78u,
-    .heapSizeStoreAddress = 0x8005E1ACu,
-    .heapBaseStoreAddress = 0x8005E1A8u,
-    .globalPointer = 0x80060878u,
-    .libcInitEntry = 0x800112B8u,
-    .crt0Entry = 0x800489F8u,
-    .stackBias = {true, -8},
-};
+constexpr psx::game::Crt0Image kCrt0{.entry = 0x800489F8u};
 
 // CD_init 0x80047188 is word-for-word Crash 2's: callbacks, status, last command, sync bytes, no workspace.
 constexpr crash::libcd_init::Program kLibcdInit{
