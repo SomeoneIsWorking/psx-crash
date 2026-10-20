@@ -37,14 +37,6 @@ FrameDriver::FrameDriver(
   frameCut_.reset();
 }
 
-FrameDriver &FrameDriver::from(Core &core) {
-  if (core.game == nullptr || core.game->frameDriver == nullptr) {
-    lucent::error("crash-frame", "frame override has no bound FrameDriver");
-    std::abort();
-  }
-  return static_cast<FrameDriver &>(*core.game->frameDriver);
-}
-
 void FrameDriver::installOverrides(Game &game, const FrameProgram &program) {
   const struct Binding {
     std::uint32_t address;
@@ -63,8 +55,8 @@ void FrameDriver::installOverrides(Game &game, const FrameProgram &program) {
 
 void FrameDriver::publishInput(Core &) {}
 
-std::string FrameDriver::armWarp(Core &core, const char *line) {
-  return warp_.arm(line, enteredCoreLoop_, core, program_);
+std::string FrameDriver::armWarp(Core &core, const psx::debug::CommandArgs &args) {
+  return warp_.arm(args, enteredCoreLoop_, core, program_);
 }
 
 void FrameDriver::callOriginal(Core &core, std::uint32_t address) {
@@ -89,7 +81,7 @@ void FrameDriver::serviceRootCounter(Core &core, std::uint64_t throughCpuTick) {
 }
 
 void FrameDriver::setRootCounterSuper(Core *core) {
-  FrameDriver &driver = from(*core);
+  FrameDriver &driver = core->game->frameDriverAs<FrameDriver>();
   const std::uint32_t spec = core->r[4];
   const std::uint32_t target = core->r[5];
   driver.callOriginal(*core, driver.program_.setRootCounter);
@@ -101,7 +93,7 @@ void FrameDriver::setRootCounterSuper(Core *core) {
 }
 
 void FrameDriver::startRootCounterSuper(Core *core) {
-  FrameDriver &driver = from(*core);
+  FrameDriver &driver = core->game->frameDriverAs<FrameDriver>();
   const std::uint32_t spec = core->r[4];
   driver.callOriginal(*core, driver.program_.startRootCounter);
   if (spec == kRootCounterSpec) {
@@ -115,7 +107,7 @@ void FrameDriver::startRootCounterSuper(Core *core) {
 }
 
 void FrameDriver::stopRootCounterSuper(Core *core) {
-  FrameDriver &driver = from(*core);
+  FrameDriver &driver = core->game->frameDriverAs<FrameDriver>();
   const std::uint32_t spec = core->r[4];
   if (spec == kRootCounterSpec) {
     driver.serviceRootCounter(*core, core->game->timing.emulatedCpuTicks());
@@ -178,7 +170,7 @@ void FrameDriver::deliverSkippedWaits(Core &core, std::uint32_t frame) {
 }
 
 void FrameDriver::finishFrameIteration(Core *core) {
-  FrameDriver &driver = from(*core);
+  FrameDriver &driver = core->game->frameDriverAs<FrameDriver>();
   if (core->r[31] != driver.program_.transitionReturn) {
     lucent::error("crash-frame",
                   "loop transition reached with ra=0x{:08X}; expected the retail return 0x{:08X}",

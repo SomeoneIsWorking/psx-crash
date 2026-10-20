@@ -7,18 +7,7 @@
 namespace crash1 {
 namespace {
 
-constexpr psx::game::Crt0Image kCrt0{
-    .bss = {0x80056598u, 0x80061A78u},
-    .stackTopWordAddress = 0x80056408u,
-    .stackReserveWordAddress = 0x80056404u,
-    .heapBase = 0x80061A78u,
-    .heapSizeStoreAddress = 0x800538F0u,
-    .heapBaseStoreAddress = 0x800538ECu,
-    .globalPointer = 0x800563FCu,
-    .libcInitEntry = 0x80011A18u,
-    .crt0Entry = 0x8003E018u,
-    .stackBias = {true, -8},
-};
+constexpr psx::game::Crt0Image kCrt0{.entry = 0x8003E018u};
 
 // libcd state reset by CD_init 0x80044E8C (decompiled): callbacks, status, last command, 10-word workspace.
 constexpr crash::libcd_init::Program kLibcdInit{

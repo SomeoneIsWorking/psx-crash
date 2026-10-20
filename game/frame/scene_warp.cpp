@@ -2,32 +2,9 @@
 
 #include "core.h"
 
-#include <charconv>
 #include <lucent/log.h>
-#include <string_view>
 
 namespace crash {
-namespace {
-
-// The hex scene id after the command word; an optional 0x prefix is accepted.
-std::optional<std::uint32_t> parseScene(std::string_view line) {
-  const std::size_t start = line.find_first_not_of(' ', line.find(' '));
-  if (start == std::string_view::npos) {
-    return std::nullopt;
-  }
-  std::string_view digits = line.substr(start);
-  if (digits.starts_with("0x") || digits.starts_with("0X")) {
-    digits.remove_prefix(2);
-  }
-  std::uint32_t scene = 0;
-  const auto [end, error] = std::from_chars(digits.data(), digits.data() + digits.size(), scene, 16);
-  if (error != std::errc{} || end == digits.data()) {
-    return std::nullopt;
-  }
-  return scene;
-}
-
-} // namespace
 
 bool SceneWarp::hasScene(Core &core, const SceneTable &table, std::uint32_t scene) {
   if (table.address == 0u) {
@@ -39,9 +16,9 @@ bool SceneWarp::hasScene(Core &core, const SceneTable &table, std::uint32_t scen
   return (core.mem_r32(table.address + scene * table.rowBytes + 4u) & table.sizeMask) != 0u;
 }
 
-std::string SceneWarp::arm(const char *line, bool loopRunning, Core &core, const FrameProgram &program) {
-  const std::optional<std::uint32_t> parsed = parseScene(line);
-  if (!parsed) {
+std::string SceneWarp::arm(const psx::debug::CommandArgs &args, bool loopRunning, Core &core, const FrameProgram &program) {
+  const std::optional<std::uint32_t> parsed = args.hex(1);
+  if (!parsed || args.size() != 2) {
     return "usage: warp <scene-hex>";
   }
   const std::uint32_t scene = *parsed;

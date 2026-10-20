@@ -32,7 +32,7 @@ public:
   static void installOverrides(Game &game, const FrameProgram &program);
 
   // Arms a `warp <scene>` request; the next frame raises it through the guest's own scene request.
-  std::string armWarp(Core &core, const char *line);
+  std::string armWarp(Core &core, const psx::debug::CommandArgs &args);
 
   // What a guest frame boundary is: a VSync call in GpuUpdate or in the loading swap, or the loop transition
   // override (which stamps the VSync leaf entry). `Unmeasured` is refused.
@@ -71,7 +71,6 @@ private:
   static void setRootCounterSuper(Core *core);
   static void startRootCounterSuper(Core *core);
   static void stopRootCounterSuper(Core *core);
-  static FrameDriver &from(Core &core);
 
   void deliverField(Core &core, std::uint64_t boundaryCpuTick);
   void deliverDisplayWait(Core &core, Boundary wait);

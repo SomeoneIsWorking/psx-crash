@@ -1,5 +1,6 @@
 #pragma once
 
+#include "command_args.h"
 #include "frame/frame_program.h"
 
 #include <cstdint>
@@ -19,8 +20,8 @@ public:
   // The scene request word's "none pending" value.
   static constexpr std::uint32_t kNoRequest = 0xFFFFFFFFu;
 
-  // Parses one command line; the returned text answers the client. A scene whose table row is empty is refused.
-  std::string arm(const char *line, bool loopRunning, Core &core, const FrameProgram &program);
+  // The returned text answers the client. A scene whose table row is empty is refused.
+  std::string arm(const psx::debug::CommandArgs &args, bool loopRunning, Core &core, const FrameProgram &program);
   // Raises the armed request when the guest has none pending; returns the scene applied.
   std::optional<std::uint32_t> apply(Core &core, const FrameProgram &program);
 
