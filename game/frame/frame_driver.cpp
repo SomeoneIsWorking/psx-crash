@@ -56,8 +56,8 @@ void FrameDriver::installOverrides(Game &game, const FrameProgram &program) {
 
 void FrameDriver::publishInput(Core &) {}
 
-std::string FrameDriver::armWarp(Core &core, const psx::debug::CommandArgs &args) {
-  return warp_.arm(args, enteredCoreLoop_, core, program_);
+std::string FrameDriver::armWarp(Core &core, std::uint32_t scene) {
+  return warp_.arm(scene, core, program_);
 }
 
 void FrameDriver::callOriginal(Core &core, std::uint32_t address) {

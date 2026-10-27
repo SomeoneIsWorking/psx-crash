@@ -138,6 +138,7 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/game/boot/gpu_watchdog.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/boot/libcd_init.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/frame_cut.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/debug/debug_menu.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/frame_driver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/scene_warp.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/runtime/runtime.cpp"

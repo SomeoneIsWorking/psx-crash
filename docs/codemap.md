@@ -22,7 +22,7 @@ Product path: `run.sh` → the framework main (`psxport_add_product`, target `cr
 
 | Owner | Path | What it owns |
 |---|---|---|
-| `crash::Runtime` | `game/runtime/runtime.*` | The shared `GameRuntime`: crt0 and C main's boot steps, stock `StockVSync`/`StockLibcd`/`StockPadBuffers` at the title's addresses, the boot and frame overrides, code-module landings, Record, `warp` |
+| `crash::Runtime` | `game/runtime/runtime.*` | The shared `GameRuntime`: crt0 and C main's boot steps, stock `StockVSync`/`StockLibcd`/`StockPadBuffers` at the title's addresses, the boot and frame overrides, code-module landings, Record, the debug menu |
 | `crash::TitleFacts`, `isCoherent` | `game/runtime/title_facts.h` | Every address the shared owners need from one executable, and the compile-time check each facts file asserts |
 | `crash::Session`, `session(core)` | `game/runtime/session.*` | Per-Core state outside guest RAM: the `FrameCut` |
 | `crash::libcd_init` | `game/boot/libcd_init.*` | Native libcd initialisation over the title's libcd state words |
@@ -32,6 +32,7 @@ Product path: `run.sh` → the framework main (`psxport_add_product`, target `cr
 | `crash::FrameDriver` | `game/frame/frame_driver.*` | One host frame: CoreLoop iteration to the transition, one display field per guest VSync wait, CNT2 at its `SetRCnt` target, presentation commit |
 | `crash::FrameProgram`, `SceneTable` | `game/frame/frame_program.h` | A title's measured frame loop: CoreLoop, iteration, transition, GpuUpdate VSync sites, the loading swap, scene words, root-counter entries |
 | `crash::FrameCut` | `game/frame/frame_cut.*` | Whether a sealed frame starts a new scene, from the guest scene id and request words |
+| `crash::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): `warp <scene-hex>` over `SceneWarp`, refused until the game loop runs |
 | `crash::SceneWarp` | `game/frame/scene_warp.*` | `warp <scene-hex>`: arms a scene id and writes the request word at a frame boundary; refused before the loop runs, past 0x3C, or on an empty scene-table row |
 | `crash1::Runtime`, `crash1::facts` | `titles/crash1/entry/` | Crash 1's facts, its session (`crash1::Session` with the block pool) and frame driver |
 | `crash1::FrameDriver` | `titles/crash1/frame/frame_driver.*` | The shared turn plus the BIOS `PadRead` word publication |

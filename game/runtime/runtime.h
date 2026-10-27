@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debug/debug_menu.h"
 #include "game_runtime.h"
 #include "guest_widescreen_projection.h"
 #include "runtime/title_facts.h"
@@ -7,14 +8,13 @@
 #include "stock_pad_buffers.h"
 #include "stock_vsync.h"
 
-#include <cstdio>
 #include <memory>
 #include <optional>
 
 namespace crash {
 
 // What every Crash title shares at the framework seam: crt0 and C main's boot steps, the native boot
-// services, the frame turn and the `warp` command. A title supplies its measured facts and derives.
+// services, the frame turn and the debug menu. A title supplies its measured facts and derives.
 // Every title presents on Record; the canvas carries the widescreen margins.
 class Runtime : public psx::game::GameRuntime {
 public:
@@ -26,8 +26,9 @@ public:
   void stockCdReadLanded(Core &core, const psx::cd::StockReadLanding &landing) override;
   bool sealedFrameIsCut(Core &core) const override;
   const psx::present::GuestWidescreenProjection *guestWidescreenProjection() const override;
-  // `warp <scene-hex>`.
-  bool titleCommand(Core &core, const psx::game::TitleCommandLine &input, std::FILE *reply) override;
+  const psx::game::TitleDebugMenu &debugMenu() const override {
+    return debugMenu_;
+  }
 
   const TitleFacts &facts() const {
     return facts_;
@@ -42,6 +43,7 @@ private:
   psx::hle::StockVSync vsync_;
   std::optional<psx::input::StockPadBuffers> pad_;
   psx::present::GuestWidescreenProjection aspectPolicy_;
+  DebugMenu debugMenu_;
 };
 
 // The facts of the title running on `core`; a core with no Crash runtime stops the run.
