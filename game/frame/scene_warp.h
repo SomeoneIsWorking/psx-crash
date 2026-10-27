@@ -1,6 +1,5 @@
 #pragma once
 
-#include "command_args.h"
 #include "frame/frame_program.h"
 
 #include <cstdint>
@@ -11,7 +10,7 @@ class Core;
 
 namespace crash {
 
-// The `warp <scene>` control request: armed between frames, applied at the next frame boundary by raising the
+// The debug menu's `warp <scene>` request: armed between frames, applied at the next frame boundary by raising the
 // guest's own scene request, which CoreLoop consumes through its scene loader.
 class SceneWarp {
 public:
@@ -21,7 +20,7 @@ public:
   static constexpr std::uint32_t kNoRequest = 0xFFFFFFFFu;
 
   // The returned text answers the client. A scene whose table row is empty is refused.
-  std::string arm(const psx::debug::CommandArgs &args, bool loopRunning, Core &core, const FrameProgram &program);
+  std::string arm(std::uint32_t scene, Core &core, const FrameProgram &program);
   // Raises the armed request when the guest has none pending; returns the scene applied.
   std::optional<std::uint32_t> apply(Core &core, const FrameProgram &program);
 

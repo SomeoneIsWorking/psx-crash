@@ -32,7 +32,11 @@ public:
   static void installOverrides(Game &game, const FrameProgram &program);
 
   // Arms a `warp <scene>` request; the next frame raises it through the guest's own scene request.
-  std::string armWarp(Core &core, const psx::debug::CommandArgs &args);
+  std::string armWarp(Core &core, std::uint32_t scene);
+  // A warp is legal once the game loop is running.
+  [[nodiscard]] bool warpAllowed() const {
+    return enteredCoreLoop_;
+  }
 
   // What a guest frame boundary is: a VSync call in GpuUpdate or in the loading swap, or the loop transition
   // override (which stamps the VSync leaf entry). `Unmeasured` is refused.

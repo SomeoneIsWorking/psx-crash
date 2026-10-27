@@ -16,18 +16,7 @@ bool SceneWarp::hasScene(Core &core, const SceneTable &table, std::uint32_t scen
   return (core.mem_r32(table.address + scene * table.rowBytes + 4u) & table.sizeMask) != 0u;
 }
 
-std::string SceneWarp::arm(const psx::debug::CommandArgs &args, bool loopRunning, Core &core, const FrameProgram &program) {
-  const std::optional<std::uint32_t> parsed = args.hex(1);
-  if (!parsed || args.size() != 2) {
-    return "usage: warp <scene-hex>";
-  }
-  const std::uint32_t scene = *parsed;
-  if (scene > kLastScene) {
-    return lucent::format("refused: scene 0x{:X} is past the last scene 0x{:X}", scene, kLastScene);
-  }
-  if (!loopRunning) {
-    return "refused: a warp is legal only once the game loop is running";
-  }
+std::string SceneWarp::arm(std::uint32_t scene, Core &core, const FrameProgram &program) {
   if (!hasScene(core, program.sceneTable, scene)) {
     return lucent::format("refused: scene 0x{:X} has no row in the scene table", scene);
   }
