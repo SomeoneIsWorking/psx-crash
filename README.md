@@ -4,6 +4,19 @@ Native PC ports of the North American Crash Bandicoot trilogy, built on
 [psxport](https://github.com/SomeoneIsWorking/psxport). Each product combines title-owned native
 subsystems with psxport's pinned Lightrec executor for the retail code that remains guest owned.
 
+## Screenshots
+
+Captured from the port at 4:3 with the internal resolution raised. Widescreen still leaves the
+margins partly drawn (issue 0030) and 60 fps does not interpolate yet (issue 0032), so neither is
+shown.
+
+| Crash Bandicoot | Crash Bandicoot 2 | Crash Bandicoot 3 |
+|---|---|---|
+| ![Crash runs a jungle path beside a warthog](docs/media/crash1-jungle.png) | ![Crash faces Tiny on the boss arena's platforms](docs/media/crash2-tiny.png) | ![Coco on the Great Wall at night](docs/media/crash3-great-wall.png) |
+| ![Crash at a rope bridge by a Danger sign](docs/media/crash1-bridge.png) | ![Crash meets the Komodo Bros. in their arena](docs/media/crash2-komodo-bros.png) | ![Crash on his motorbike at a night race start](docs/media/crash3-motorbike.png) |
+| ![Crash fights Papu Papu in his hut](docs/media/crash1-papu-papu.png) | ![Crash rides the jet board down a jungle river (attract demo)](docs/media/crash2-river.png) | ![The N. Gin mech battle on the moon](docs/media/crash3-n-gin.png) |
+| | ![Crash in a warp room](docs/media/crash2-warp-room.png) | |
+
 The repository is one engine lineage with title-specific integration under `titles/crash1/`,
 `titles/crash2/`, and `titles/crash3/`. Crash Bandicoot is the active title; Crash 2 and Crash 3 do
 not begin execution migration until Crash 1 passes representative gameplay.
