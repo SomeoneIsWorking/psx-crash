@@ -8,6 +8,8 @@ Product path: `run.sh` → the framework main (`psxport_add_product`, target `cr
 `psx::host::ProductHost` over `crash::Catalog` (in-window picker; `pick crash1|crash2|crash3`) →
 `TitleSession` → the title's `Runtime` → `crash::FrameDriver::stepFrame` on psxport's Lightrec executor.
 
+Frame loop: not owned. Each step runs the core loop iteration (`native_frame.iteration` in each `executable.json`) to GpuUpdate's VSync waits, one field per wait (issue 0031).
+
 ## Placement rules
 
 - `titles/<title>/` holds what is measured out of one executable, in namespace `crash1`/`crash2`/`crash3`.
