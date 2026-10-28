@@ -6,7 +6,7 @@ symptom: Crash 3 at 16:9 (Dingodile, `warp 3`) draws geometry into the margins, 
 state_items: S006
 tags: crash1,crash2,crash3,widescreen,culling
 created: 2026-10-15
-updated: 2026-10-15
+updated: 2026-10-28
 ---
 
 Reproduce: `crash_port` headless with `aspect=1`, `pick crash3`, `warp 3` at frame 1200, shot at frame 2400.
@@ -16,6 +16,9 @@ what is missing is the guest's own rejection of primitives outside the 4:3 scree
 The edge is whole polygons, which is what both a runtime reject and the zone's precomputed polygon list
 would leave. CrashEdit documents each camera's sort list as the polygons drawn on screen and their order,
 indexed against the zone's world, so the world set may be fixed for the 4:3 view before any runtime test.
+
+Crash 1 shows the same edge: `warp 3` and the Jungle Rollers attract demo at 16:9 leave the clear colour and
+jagged whole-polygon edges in both margins (2026-10-28). The README carries 4:3 stills only until this closes.
 
 Evidence so far:
 - Crash 3 census (`llvm-objdump` over the whole text): no `slti`/`sltiu` against 0x1FF/0x200/0x201 sits in a
