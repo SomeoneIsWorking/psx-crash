@@ -10,3 +10,4 @@ The workspace rule (psxport `docs/workspace/WORKSPACE.md`, "Each title owns its 
 
 ## What blocks it
 GpuUpdate (`native_frame` `gpu_update` range) is guest code whose two VSync calls are the cadence; owning the loop means a native GpuUpdate that swaps and returns, with the driver delivering the iteration's fields. The iteration body hashes in `executable.json` pin the three bodies to port.
+The converted driver counts `Timing::vsyncFields` of the loop's own n at the replaced wait (psxport `docs/presentation.md`, Frame fence and pacing), so an overrunning frame keeps its VBlanks, audio and fields on the guest clock's grid; it is done in that conversion, not as a separate step on the current one-field answer.
