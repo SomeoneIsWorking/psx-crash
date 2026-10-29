@@ -17,9 +17,9 @@ block at 0x8001F724 (ra 0x8001F398). Lightrec's `lightrec_remove_div_by_zero_che
 compiler's `bnez; break 7` guard after the divide and flags it `LIGHTREC_NO_DIV_CHECK`, so a zero divisor reaches the
 x86 divider instead of the guest's BREAK.
 
-Two owners, both open: the shared Lightrec fork must keep a host-safe divide when it removes the guest guard (MIPS
-divide by zero never traps), and the scene warp must find why scene 0x19 starts with a zero divisor (a precondition
-the game's own route to that scene sets).
+Two owners. The shared Lightrec fork must keep a host-safe divide when it removes the guest guard: this issue. The
+scene warp starts scene 0x19 with a zero divisor, which on a console takes the guard's `break 7` into the BIOS
+handler: issue 0034, open.
 
 Fixed 2026-10-29 in the Lightrec fork, `178bf86c` (`lightrec_remove_div_by_zero_check_sequence` no longer flags the
 divide `LIGHTREC_NO_DIV_CHECK`, so the emitted divide keeps its zero branch and gives LO = -1 / HI = dividend; the
@@ -28,5 +28,5 @@ interpreter's DIV also answers `INT_MIN / -1` without the host divider), pinned 
 (`scratch/filed-defects/0033/warp19.png`, frame 3,090). The test program's `divides` verb answers `0 of 7 divides
 wrong` (guarded and bare DIV/DIVU by zero, `INT_MIN / -1`); the old pin died on its first case with SIGFPE.
 
-Still open: why scene 0x19 starts with a zero divisor at 0x8001F724 after the warp, when the game's own route may
-set it first (the warp's precondition, not the CPU).
+This fixes the host crash only. The jet-ski scene shown after the warp follows a guest state a console would not
+reach (its guarded divide would trap), and no console oracle checked it; the zero divisor is issue 0034.
