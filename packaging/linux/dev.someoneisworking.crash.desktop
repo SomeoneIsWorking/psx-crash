@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Crash Bandicoot
+GenericName=Platform game
+Comment=PC-native port of Crash Bandicoot, Crash Bandicoot 2 and Crash Bandicoot: Warped
+Icon=dev.someoneisworking.crash
+Terminal=false
+Categories=Game;ActionGame;
+Keywords=Crash;Bandicoot;PlayStation;Platformer;Port;
+StartupNotify=true
