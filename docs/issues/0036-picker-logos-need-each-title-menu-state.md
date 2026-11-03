@@ -6,7 +6,7 @@ symptom: the selector has no Crash logo; a gate on the title scene id alone read
 state_items: S008
 tags: picker,logo
 created: 2026-11-03
-updated: 2026-11-03
+updated: 2026-11-04
 ---
 
 The picker rebuilds a title's logo from its title screen's own draws (psxport `psx::present::drawnLogo`), at a
@@ -36,6 +36,20 @@ Third pass (`scratch/picker3`):
   wordmark letters are not drawn from the pages named above: they are a 3D model textured from other pages. Not
   landed.
 
-Next: read the title object's GOOL state (the object that spawns the menu) to gate on, and take the wordmark
-model's own texture pages from its draws at that gate. Previously: find each title menu's own state (the menu's selection or its draw routine's mode word) with the decomp
-pipeline and gate on it, then name the textures above in each title's facts.
+Fourth pass (`scratch/picker4`, `ram2` dumps with sheets, `probe2`/`probe3` record histograms):
+
+- The gate is the title object's GOOL state, read by `game/gool/title_logo.cpp` `titleLogoUp` over
+  `game/gool/gool_object.*` (exec EID at entry+4, code item at entry+0x14, code word = (pc - code) / 4):
+  - Crash 1: the player global `0x80060DB0` is GamOC (`0x5452D94D`) subtype 10 in state 7, and every GamOC
+    subtype-11 child (sign and letters) has landed in its hold loop at code word `0x80D`.
+  - Crash 2: TitOC (`0x6E93B94D`) subtype 1 in state 30 under the player `0x8005F38C`, only while the menu shows.
+  - Crash 3: TitOC subtype 6 in state 37 under the player `0x80060A90` (35 before the menu).
+  `showsOwnLogo` answers this gate, so the picker hides its logo over the title's own wordmark.
+- The wordmark letters are untextured Gouraud models: Crash 1 draws 1008 opaque Gouraud triangles that cover the
+  letters and Crash himself, and Crash 2 and 3 draw untextured polygons over the whole screen, background
+  included. Taking texture pages at the gate saved the sign, the backplate or the clock without letters
+  (`logo1/logos.png`), so the facts name no textures and no Crash logo is saved.
+
+Next: attribute draws to the GOOL object that emitted them (the prim-buffer range written around an object's render,
+Crash 1 `0x8001DE78`, kept per `DrawPrimitive::sourceAddress`) and take the sign and letter objects' primitives at
+the gate.

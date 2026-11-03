@@ -5,6 +5,7 @@
 #include "boot/libcd_init.h"
 #include "crt0_boot.h"
 #include "frame/frame_program.h"
+#include "gool/title_logo.h"
 #include "guest_address_range.h"
 #include "runtime/guest_function_range.h"
 #include "stock_libcd.h"
@@ -36,6 +37,8 @@ struct TitleFacts {
   GuestAddressRange codeModuleArena;
   // libpad InitPAD receive buffers; empty when the title reads the pad another way.
   std::optional<psx::input::StockPadBuffers::Layout> padBuffers;
+  // The title screen's logo for the picker.
+  TitleLogoFacts logo;
 };
 
 // Compile-time check each title's facts file asserts: ranges are non-empty, the VSync seams sit inside GpuUpdate and a

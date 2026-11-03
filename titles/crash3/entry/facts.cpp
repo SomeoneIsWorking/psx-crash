@@ -104,6 +104,15 @@ constexpr psx::host::TitleIdentity kIdentity{
 
 // The GPU watchdog check differs from Crash 1 and 2's, so it runs as guest code. libpad PadInitDirect
 // reads the pad through the title's own SIO code, so no receive buffers are published.
+// The title screen: the player's child TitOC subtype 6 enters state 37 when the menu appears under the
+// finished wordmark.
+constexpr crash::TitleLogoFacts kLogo{
+    .layout = crash::kCrash2EngineObjectLayout,
+    .playerObject = 0x80060A90u,
+    .screen = {.executableEid = 0x6E93B94Du, .subtype = 6u, .state = 37u},
+    .pieces = std::nullopt,
+};
+
 constexpr crash::TitleFacts kFacts{
     .crt0 = kCrt0,
     .staticConstructors = CRASH_STATIC_CONSTRUCTORS_ENTRY,
@@ -118,6 +127,7 @@ constexpr crash::TitleFacts kFacts{
     .vsyncQueryCounter = CRASH_TITLE_VSYNC_QUERY_COUNTER,
     .codeModuleArena = {0x0006EA78u, 0x00200000u},
     .padBuffers = std::nullopt,
+    .logo = kLogo,
 };
 
 static_assert(crash::isCoherent(kFacts));

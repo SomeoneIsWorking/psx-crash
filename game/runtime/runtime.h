@@ -26,6 +26,8 @@ public:
   void stockCdReadLanded(Core &core, const psx::cd::StockReadLanding &landing) override;
   bool sealedFrameIsCut(Core &core) const override;
   const psx::present::GuestWidescreenProjection *guestWidescreenProjection() const override;
+  bool showsOwnLogo(Core &core) const override;
+  std::span<const psx::present::LogoTexture> logoTextures() const override;
   const psx::game::TitleDebugMenu &debugMenu() const override {
     return debugMenu_;
   }

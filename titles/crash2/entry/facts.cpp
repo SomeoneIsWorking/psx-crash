@@ -111,6 +111,15 @@ constexpr psx::host::TitleIdentity kIdentity{
     .discExecutablePath = CRASH_EXE_NAME,
 };
 
+// The title screen: under the player (TitOC subtype 0) the title object spawns the menu as TitOC subtype 1,
+// which sits in state 30 once the wordmark has landed.
+constexpr crash::TitleLogoFacts kLogo{
+    .layout = crash::kCrash2EngineObjectLayout,
+    .playerObject = 0x8005F38Cu,
+    .screen = {.executableEid = 0x6E93B94Du, .subtype = 1u, .state = 30u},
+    .pieces = std::nullopt,
+};
+
 constexpr crash::TitleFacts kFacts{
     .crt0 = kCrt0,
     .staticConstructors = CRASH_STATIC_CONSTRUCTORS_ENTRY,
@@ -125,6 +134,7 @@ constexpr crash::TitleFacts kFacts{
     .vsyncQueryCounter = CRASH_TITLE_VSYNC_QUERY_COUNTER,
     .codeModuleArena = {0x0006F1F0u, 0x00200000u},
     .padBuffers = kPadBuffers,
+    .logo = kLogo,
 };
 
 static_assert(crash::isCoherent(kFacts));

@@ -54,6 +54,14 @@ void Runtime::registerOverrides(Game &game) {
   FrameDriver::installOverrides(game, facts_.frame);
 }
 
+bool Runtime::showsOwnLogo(Core &core) const {
+  return titleLogoUp(core, facts_.logo);
+}
+
+std::span<const psx::present::LogoTexture> Runtime::logoTextures() const {
+  return facts_.logo.textures;
+}
+
 std::unique_ptr<psx::game::TitleSessionState> Runtime::createSession(Game &) {
   return std::make_unique<Session>(facts_);
 }
