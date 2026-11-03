@@ -38,18 +38,22 @@ Third pass (`scratch/picker3`):
 
 Fourth pass (`scratch/picker4`, `ram2` dumps with sheets, `probe2`/`probe3` record histograms):
 
-- The gate is the title object's GOOL state, read by `game/gool/title_logo.cpp` `titleLogoUp` over
-  `game/gool/gool_object.*` (exec EID at entry+4, code item at entry+0x14, code word = (pc - code) / 4):
+- The title object's GOOL state marks the finished wordmark. Object fields (from the object base; layout read with
+  the khasinski GOOL reference, offsets cross-checked against the RAM dumps): Crash 1 executable entry `+0x20`,
+  state `+0x2C`, subtype `+0xD4`, pc `+0xE0`, child `+0x6C`, sibling `+0x68`; Crash 2 and 3 `+0x0C`, `+0x1C`,
+  `+0xB4`, `+0xC0`, `+0x4C`, `+0x48`. The executable entry holds its EID at `+4` and its code item at `+0x14`;
+  the code word is (pc - code item) / 4.
   - Crash 1: the player global `0x80060DB0` is GamOC (`0x5452D94D`) subtype 10 in state 7, and every GamOC
     subtype-11 child (sign and letters) has landed in its hold loop at code word `0x80D`.
   - Crash 2: TitOC (`0x6E93B94D`) subtype 1 in state 30 under the player `0x8005F38C`, only while the menu shows.
   - Crash 3: TitOC subtype 6 in state 37 under the player `0x80060A90` (35 before the menu).
-  `showsOwnLogo` answers this gate, so the picker hides its logo over the title's own wordmark.
 - The wordmark letters are untextured Gouraud models: Crash 1 draws 1008 opaque Gouraud triangles that cover the
   letters and Crash himself, and Crash 2 and 3 draw untextured polygons over the whole screen, background
   included. Taking texture pages at the gate saved the sign, the backplate or the clock without letters
-  (`logo1/logos.png`), so the facts name no textures and no Crash logo is saved.
+  (`logo1/logos.png`), so no texture selection gives a Crash logo.
+- A gate built on these states was not landed: with no logo the picker never asks it (`GameRuntime::panelLogo`
+  needs logo textures, `PanelSessions::logo` needs a held logo), so it would be dead code.
 
-Next: attribute draws to the GOOL object that emitted them (the prim-buffer range written around an object's render,
-Crash 1 `0x8001DE78`, kept per `DrawPrimitive::sourceAddress`) and take the sign and letter objects' primitives at
-the gate.
+Next: attribute draws to the GOOL object that emitted them (the prim-buffer range written around an object's
+render, Crash 1 `0x8001DE78`, kept per `DrawPrimitive::sourceAddress`), take the sign and letter objects'
+primitives at the gate above, and land the gate with that logo selection.

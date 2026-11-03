@@ -36,8 +36,6 @@ Frame loop: not owned. Each step runs the core loop iteration (`native_frame.ite
 | `crash::FrameCut` | `game/frame/frame_cut.*` | Whether a sealed frame starts a new scene, from the guest scene id and request words |
 | `crash::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): the warp catalogue (`scene 0xNN`) over `SceneWarp`, refused until the game loop runs |
 | `crash::SceneWarp` | `game/frame/scene_warp.*` | The scene arrival: arms a scene id and writes the request word at a frame boundary; refused before the loop runs, past 0x3C, or on an empty scene-table row |
-| `crash::GoolObject` | `game/gool/gool_object.*` | A live GOOL object read through a title's field layout: executable EID, subtype, state, code word, child and sibling links |
-| `crash::titleLogoUp`, `TitleLogoFacts` | `game/gool/title_logo.*` | The title screen's logo gate: the title object's GOOL state and its pieces' hold loop |
 | `crash1::Runtime`, `crash1::facts` | `titles/crash1/entry/` | Crash 1's facts, its session (`crash1::Session` with the block pool) and frame driver |
 | `crash1::FrameDriver` | `titles/crash1/frame/frame_driver.*` | The shared turn plus the BIOS `PadRead` word publication |
 | `crash1::bios_pad_input` | `titles/crash1/input/bios_pad_input.*` | Crash 1's BIOS pad word `0x80057054` and Crash's byte order |
