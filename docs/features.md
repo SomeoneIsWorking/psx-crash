@@ -54,4 +54,4 @@ title's own rows name `titles/<title>/`.
 
 | hop | joins | owner |
 |---|---|---|
-| 1 | psxport F-DEBUG.1 | `game/debug/debug_menu.cpp:crash::DebugMenu` — `warp <scene-hex>` through `game/frame/scene_warp.cpp:SceneWarp` |
+| 1 | psxport F-DEBUG.1 | `game/debug/debug_menu.cpp:crash::DebugMenu` — `warp <scene>` (catalogue `scene 0x00`..`scene 0x3C`) through `game/frame/scene_warp.cpp:SceneWarp` |

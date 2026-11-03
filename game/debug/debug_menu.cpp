@@ -5,19 +5,28 @@
 #include "frame/scene_warp.h"
 #include "game.h"
 
+#include <lucent/log.h>
+
+#include <vector>
+
 namespace crash {
 
 DebugMenu::DebugMenu() {
-  using psx::game::DebugCall;
-  using psx::game::DebugParam;
-  section("Scene Warp");
-  verb({
-      .name = "warp",
-      .summary = "Load that scene",
-      .params = {DebugParam::hex("scene", 0, SceneWarp::kLastScene)},
-      .run =
-          [](const DebugCall &call) {
-            call.reply = call.core.game->frameDriverAs<FrameDriver>().armWarp(call.core, call.values.u32(0));
+  warp({
+      .levels = {"scene"},
+      .places =
+          [](Core &) {
+            std::vector<psx::game::WarpPlace> scenes;
+            for (std::uint32_t scene = 0; scene <= SceneWarp::kLastScene; ++scene) {
+              scenes.push_back({
+                  .name = lucent::format("scene 0x{:02X}", scene),
+                  .arrive =
+                      [scene](Core &core) {
+                        return core.game->frameDriverAs<FrameDriver>().armWarp(core, scene);
+                      },
+              });
+            }
+            return scenes;
           },
       .refusal =
           [](Core &core) {
