@@ -7,9 +7,6 @@
 namespace crash {
 
 bool SceneWarp::hasScene(Core &core, const SceneTable &table, std::uint32_t scene) {
-  if (table.address == 0u) {
-    return true;
-  }
   if (scene >= table.rows) {
     return false;
   }

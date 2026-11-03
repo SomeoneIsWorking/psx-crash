@@ -32,8 +32,11 @@ public:
 
   static void installOverrides(Game &game, const FrameProgram &program);
 
-  // Arms a `warp <scene>` request; the next frame raises it through the guest's own scene request.
+  // Arms a scene arrival; the next frame raises it through the guest's own scene request.
   std::string armWarp(Core &core, std::uint32_t scene);
+  [[nodiscard]] const FrameProgram &program() const {
+    return program_;
+  }
   // A warp is legal once the game loop is running.
   [[nodiscard]] bool warpAllowed() const {
     return enteredCoreLoop_;

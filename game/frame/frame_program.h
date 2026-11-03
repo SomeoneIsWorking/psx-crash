@@ -66,7 +66,6 @@ struct FrameProgram {
   std::uint32_t doneAddress;
   std::uint32_t sceneIdAddress;
   std::uint32_t sceneRequestAddress;
-  // Zero address when the title has no measured table.
   SceneTable sceneTable;
   std::uint32_t rootCounterIncrement;
   std::uint32_t setRootCounter;

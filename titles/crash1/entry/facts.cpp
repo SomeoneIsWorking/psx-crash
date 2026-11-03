@@ -87,7 +87,7 @@ constexpr crash::FrameProgram kFrame{
     .doneAddress = CRASH_DONE_ADDRESS,
     .sceneIdAddress = CRASH_SCENE_ID_ADDRESS,
     .sceneRequestAddress = CRASH_SCENE_REQUEST_ADDRESS,
-    .sceneTable = {},
+    .sceneTable = {0x8005E03Cu, 0x3Du, 12u, 0x1FFFFu},
     .rootCounterIncrement = CRASH_ROOT_COUNTER_INCREMENT,
     .setRootCounter = CRASH_SET_ROOT_COUNTER,
     .startRootCounter = CRASH_START_ROOT_COUNTER,
