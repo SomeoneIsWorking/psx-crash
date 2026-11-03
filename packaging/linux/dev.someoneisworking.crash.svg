@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Crash Bandicoot port icon</title>
+  <desc id="description">An orange carved tiki mask with pale eyes and a wide toothed grin.</desc>
+  <defs>
+    <linearGradient id="backdrop" x1="64" y1="32" x2="448" y2="480" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7a2f06"/>
+      <stop offset="1" stop-color="#260b02"/>
+    </linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".42"/>
+    </filter>
+  </defs>
+
+  <rect x="20" y="20" width="472" height="472" rx="106" fill="url(#backdrop)"/>
+  <rect x="35" y="35" width="442" height="442" rx="91" fill="none" stroke="#ffb35c" stroke-width="6" opacity=".75"/>
+
+  <g filter="url(#shadow)" stroke-linejoin="round">
+    <path d="M256 104 344 152 366 254 330 360 256 404 182 360 146 254 168 152Z" fill="#c96a1f" stroke="#4a1c03" stroke-width="12"/>
+    <path d="M256 128 326 166 344 252 316 344 256 380 196 344 168 252 186 166Z" fill="none" stroke="#8a3f0c" stroke-width="8" opacity=".85"/>
+    <path d="M176 196c22-16 48-18 64-6" fill="none" stroke="#4a1c03" stroke-width="12" stroke-linecap="round"/>
+    <path d="M336 196c-22-16-48-18-64-6" fill="none" stroke="#4a1c03" stroke-width="12" stroke-linecap="round"/>
+    <ellipse cx="207" cy="248" rx="35" ry="27" fill="#fff6e2" stroke="#4a1c03" stroke-width="9"/>
+    <ellipse cx="305" cy="248" rx="35" ry="27" fill="#fff6e2" stroke="#4a1c03" stroke-width="9"/>
+    <circle cx="214" cy="252" r="11" fill="#241005"/>
+    <circle cx="298" cy="252" r="11" fill="#241005"/>
+    <rect x="192" y="306" width="128" height="44" rx="16" fill="#3c1503" stroke="#4a1c03" stroke-width="9"/>
+    <g fill="#fff6e2">
+      <rect x="204" y="316" width="18" height="24" rx="5"/>
+      <rect x="232" y="316" width="18" height="24" rx="5"/>
+      <rect x="262" y="316" width="18" height="24" rx="5"/>
+      <rect x="290" y="316" width="18" height="24" rx="5"/>
+    </g>
+  </g>
+
+  <g fill="#fff" opacity=".9">
+    <circle cx="91" cy="91" r="7"/>
+    <circle cx="421" cy="101" r="5"/>
+    <circle cx="105" cy="420" r="5"/>
+    <circle cx="421" cy="421" r="7"/>
+  </g>
+</svg>
