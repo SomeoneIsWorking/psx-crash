@@ -15,9 +15,17 @@ DebugMenu::DebugMenu() {
   warp({
       .levels = {"scene"},
       .places =
-          [](Core &) {
+          [](Core &core) {
             std::vector<psx::game::WarpPlace> scenes;
-            for (std::uint32_t scene = 0; scene <= SceneWarp::kLastScene; ++scene) {
+            const auto *driver = core.game->frameDriverIf<FrameDriver>();
+            if (driver == nullptr || !driver->warpAllowed()) {
+              return scenes;
+            }
+            const SceneTable &table = driver->program().sceneTable;
+            for (std::uint32_t scene = 0; scene < table.rows; ++scene) {
+              if (!SceneWarp::hasScene(core, table, scene)) {
+                continue;
+              }
               scenes.push_back({
                   .name = lucent::format("scene 0x{:02X}", scene),
                   .arrive =
