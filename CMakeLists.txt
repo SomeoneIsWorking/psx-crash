@@ -141,6 +141,8 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/game/debug/debug_menu.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/frame_driver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/scene_warp.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/gool/gool_object.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/gool/title_logo.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/runtime/runtime.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/runtime/session.cpp"
 )
