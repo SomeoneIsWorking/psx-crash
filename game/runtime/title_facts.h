@@ -51,7 +51,9 @@ constexpr bool isCoherent(const TitleFacts &facts) {
          (!frame.limiter || frame.limiter->skipAfterFields != 0) &&
          (!frame.loadingSwap ||
           (frame.loadingSwap->body.valid() && frame.loadingSwap->body.contains(frame.loadingSwap->afterVSync) &&
-           !frame.gpuUpdate.contains(frame.loadingSwap->body.begin)));
+           !frame.gpuUpdate.contains(frame.loadingSwap->body.begin))) &&
+         (!frame.loaderPoll || (frame.limiter && frame.loaderPoll->service != 0 &&
+                                frame.loaderPoll->afterService != 0 && frame.loaderPoll->loadingFrames != 0));
 }
 
 } // namespace crash

@@ -1,7 +1,7 @@
 ---
 id: 35
 title: "Crash 3 hangs in guest code on its no-input attract path"
-status: open
+status: fixed
 symptom: left with no input, Crash 3 boots into a level scene and about 3770 presents later stops presenting; the watchdog finds the host inside JIT code
 state_items: S008
 tags: crash3,attract,picker
@@ -34,10 +34,23 @@ at the measured GpuUpdate VSync waits (Crash 3 has no `loadingSwap`); a budget-e
 no VBlank, so this poll spins forever. Owner: `crash::FrameDriver`, with Crash 3's `FrameProgram` in
 `titles/crash3/entry/facts.cpp`.
 
-## Fix (not landed)
+## Fix considered first
 The loading frames are host frames: the frame driver must treat this loader's VBlank-counter poll as a display
 wait (a second measured loading boundary beside Crash 1's `DisplaySwap`, ending the host frame at the poll and
 delivering one field), so `FUN_80016634(1)` draws one loading frame per field until `0x800691FC` reaches -1.
 Each loading frame's GpuUpdate then reaches its own measured waits. Not done in this pass.
 
 Effect on the selector: Crash 3's attract demo is not shown; its panel ends the product when focused long enough.
+
+## Fix (2026-11-03)
+The VBlank callback runs only when the host commits a frame (`Timing::advanceDisplayFields`), so no wait inside
+one host frame can see `0x800608E8` move. `FrameProgram::loaderPoll` (Crash 3: service `0x80012CBC`, return
+`0x80012F08`, loading count `0x800691FC`) puts an override on the page-load service; returning to the poll while
+the loading screen is up, it ends the host frame once that frame has shown a loading picture, or when the poll
+waits for a VBlank (one field). The next host frame resumes at `0x80012F08` (`FrameDriver::stepFrame`), so each
+loading frame is one host frame with GpuUpdate's own waits.
+
+Proof (`crash_port` build/picker3, hidden, unpaced, sink 3840x2160, ires 0, fps60 1):
+`scratch/picker3/c3solo/sheet.png`, no input, 9000 steps, clean exit: the DEMO level, then the title again
+(the old hang was at present 3768). `scratch/picker3/c3play/sheet.png`: start then cross on NEW GAME, the
+intro cutscene and its level loads, then Crash in the Time Twister hub at step 10548, clean exit.

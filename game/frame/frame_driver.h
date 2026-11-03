@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 
 class Game;
 
@@ -38,9 +39,9 @@ public:
     return enteredCoreLoop_;
   }
 
-  // What a guest frame boundary is: a VSync call in GpuUpdate or in the loading swap, or the loop transition
-  // override (which stamps the VSync leaf entry). `Unmeasured` is refused.
-  enum class Boundary : std::uint8_t { Unmeasured, GpuUpdateWait, LoadingSwapWait, Transition };
+  // What a guest frame boundary is: a VSync call in GpuUpdate or in the loading swap, the loader's VBlank-counter
+  // poll, or the loop transition override (which stamps the VSync leaf entry). `Unmeasured` is refused.
+  enum class Boundary : std::uint8_t { Unmeasured, GpuUpdateWait, LoadingSwapWait, LoaderPoll, Transition };
 
   [[nodiscard]] static constexpr Boundary classifyBoundary(std::uint32_t guestPc,
                                                            std::uint32_t returnAddress,
@@ -54,6 +55,9 @@ public:
     }
     if (program.loadingSwap && returnsTo(program.loadingSwap->afterVSync)) {
       return Boundary::LoadingSwapWait;
+    }
+    if (program.loaderPoll && returnsTo(program.loaderPoll->afterService)) {
+      return Boundary::LoaderPoll;
     }
     if (guestPc == vsyncLeaf && returnAddress == program.transitionReturn) {
       return Boundary::Transition;
@@ -75,6 +79,11 @@ private:
   static void setRootCounterSuper(Core *core);
   static void startRootCounterSuper(Core *core);
   static void stopRootCounterSuper(Core *core);
+  static void loaderServiceSuper(Core *core);
+
+  // The loader's poll ends the host frame once this frame has shown a loading picture, or when it waits for the
+  // next VBlank, which the guest only sees after the commit.
+  [[nodiscard]] bool loaderPollEndsFrame(Core &core) const;
 
   void deliverField(Core &core, std::uint64_t boundaryCpuTick);
   void deliverDisplayWait(Core &core, Boundary wait);
@@ -110,6 +119,8 @@ private:
   bool rootCounterConfigured_{};
   bool rootCounterRunning_{};
   bool frameCompleted_{};
+  // Set when a host frame ended inside the loader's poll; the next frame resumes there.
+  std::optional<std::uint32_t> resumePc_;
   SceneWarp warp_;
 };
 

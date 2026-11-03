@@ -81,6 +81,7 @@ constexpr crash::FrameProgram kFrame{
     .afterVSync = CRASH_AFTER_VSYNC,
     .limiter = std::nullopt,
     .loadingSwap = std::nullopt,
+    .loaderPoll = std::nullopt,
     .doneAddress = CRASH_DONE_ADDRESS,
     .sceneIdAddress = CRASH_SCENE_ID_ADDRESS,
     .sceneRequestAddress = CRASH_SCENE_REQUEST_ADDRESS,
