@@ -53,6 +53,14 @@ constexpr crash::FrameLimiter kLimiter{
     .skipAfterFields = 2u,
 };
 
+// The level loader's wait FUN_80012EAC: page-load service FUN_80012CBC(-1) returning to 0x80012F08, then
+// GpuUpdate(1) once gp+0x70 differs from displayed->0x1C; 0x800691FC counts loading frames, -1 when done.
+constexpr crash::LoaderPoll kLoaderPoll{
+    .service = 0x80012CBCu,
+    .afterService = 0x80012F08u,
+    .loadingFrames = 0x800691FCu,
+};
+
 // The scene table at 0x8006C4D8 has Crash 2's row layout.
 constexpr crash::FrameProgram kFrame{
     .coreLoop = {CRASH_CORE_LOOP_ENTRY, CRASH_CORE_LOOP_END},
@@ -67,6 +75,7 @@ constexpr crash::FrameProgram kFrame{
     .afterVSync = CRASH_AFTER_VSYNC,
     .limiter = kLimiter,
     .loadingSwap = std::nullopt,
+    .loaderPoll = kLoaderPoll,
     .doneAddress = CRASH_DONE_ADDRESS,
     .sceneIdAddress = CRASH_SCENE_ID_ADDRESS,
     .sceneRequestAddress = CRASH_SCENE_REQUEST_ADDRESS,

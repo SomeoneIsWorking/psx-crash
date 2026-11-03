@@ -52,6 +52,9 @@ void FrameDriver::installOverrides(Game &game, const FrameProgram &program) {
   for (const Binding &binding : bindings) {
     psx::cpu::installNativeOverride(game.core, binding.address, binding.owner, binding.function);
   }
+  if (program.loaderPoll) {
+    psx::cpu::installNativeOverride(game.core, program.loaderPoll->service, "loader poll", loaderServiceSuper);
+  }
 }
 
 void FrameDriver::publishInput(Core &) {}
@@ -115,6 +118,26 @@ void FrameDriver::stopRootCounterSuper(Core *core) {
     driver.rootCounterRunning_ = false;
   }
   driver.callOriginal(*core, driver.program_.stopRootCounter);
+}
+
+bool FrameDriver::loaderPollEndsFrame(Core &core) const {
+  if (static_cast<std::int32_t>(core.mem_r32(program_.loaderPoll->loadingFrames)) < 0) {
+    return false;
+  }
+  const FrameLimiter &limiter = *program_.limiter;
+  const std::uint32_t stamp = core.mem_r32(core.mem_r32(limiter.displayedFrame) + limiter.stampOffset);
+  return deliveredFields_ != 0 || core.mem_r32(limiter.vblankCounter) == stamp;
+}
+
+void FrameDriver::loaderServiceSuper(Core *core) {
+  FrameDriver &driver = core->game->frameDriverAs<FrameDriver>();
+  const std::uint32_t returnAddress = core->r[31];
+  if (!psx::cpu::callOriginalOrPropagate(*core, driver.program_.loaderPoll->service)) {
+    return;
+  }
+  if (returnAddress == driver.program_.loaderPoll->afterService && driver.loaderPollEndsFrame(*core)) {
+    psx::cpu::requestExecutionExit(*core, psx::cpu::ExecutionExitReason::FrameBoundary);
+  }
 }
 
 void FrameDriver::deliverField(Core &core, std::uint64_t boundaryCpuTick) {
@@ -232,7 +255,9 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
   frameCompleted_ = false;
 
   psx::cpu::ExecutionResult result;
-  if (!enteredCoreLoop_) {
+  if (resumePc_) {
+    result = runGuestToBoundary(core, *std::exchange(resumePc_, std::nullopt), execute_);
+  } else if (!enteredCoreLoop_) {
     core.r[4] = program_.initialScene;
     result = runGuestToBoundary(core, program_.coreLoop.begin, execute_);
     enteredCoreLoop_ = true;
@@ -241,6 +266,14 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
   }
   while (!frameCompleted_ && result.reason == psx::cpu::ExecutionExitReason::FrameBoundary) {
     const Boundary boundary = classifyBoundary(result.guestPc, core.r[31], vsyncEntry_, program_);
+    if (boundary == Boundary::LoaderPoll) {
+      if (deliveredFields_ == 0) {
+        deliverField(core, game_.timing.emulatedCpuTicks() + fieldCpuTicks(1u));
+      }
+      resumePc_ = core.r[31];
+      frameCompleted_ = true;
+      break;
+    }
     if (boundary != Boundary::GpuUpdateWait && boundary != Boundary::LoadingSwapWait) {
       lucent::error("crash-frame",
                     "frame {} reached an unexpected boundary at 0x{:08X} with ra=0x{:08X}; the measured "

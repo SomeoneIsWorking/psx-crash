@@ -32,6 +32,15 @@ struct DisplaySwap {
   std::uint32_t afterVSync;
 };
 
+// A level loader's wait that draws its next loading frame only once the VBlank counter has moved past the displayed
+// frame's stamp (the `limiter` words); between checks it calls `service`, which returns to `afterService`. The
+// loading screen is up while the word at `loadingFrames` is non-negative.
+struct LoaderPoll {
+  std::uint32_t service;
+  std::uint32_t afterService;
+  std::uint32_t loadingFrames;
+};
+
 // One title's measured frame loop: where a host frame starts and ends, and the display waits between.
 struct FrameProgram {
   GuestFunctionRange coreLoop;
@@ -52,6 +61,8 @@ struct FrameProgram {
   std::optional<FrameLimiter> limiter;
   // Empty when every display wait is inside GpuUpdate.
   std::optional<DisplaySwap> loadingSwap;
+  // Empty when no loader polls the VBlank counter; needs `limiter`.
+  std::optional<LoaderPoll> loaderPoll;
   std::uint32_t doneAddress;
   std::uint32_t sceneIdAddress;
   std::uint32_t sceneRequestAddress;
