@@ -110,17 +110,6 @@ constexpr psx::host::TitleIdentity kIdentity{
     .discExecutablePath = CRASH_EXE_NAME,
 };
 
-// The title screen: the player object is Crash on the menu (GamOC subtype 10, state 7), which spawns the
-// sign and letters as GamOC subtype 11; each plays its arrival and then holds its last frame at code
-// word 0x80D.
-constexpr std::uint32_t kGamOC = 0x5452D94Du;
-constexpr crash::TitleLogoFacts kLogo{
-    .layout = {.executable = 0x20u, .state = 0x2Cu, .subtype = 0xD4u, .pc = 0xE0u, .child = 0x6Cu, .sibling = 0x68u},
-    .playerObject = 0x80060DB0u,
-    .screen = {.executableEid = kGamOC, .subtype = 10u, .state = 7u},
-    .pieces = crash::GoolHold{.executableEid = kGamOC, .subtype = 11u, .codeWord = 0x80Du},
-};
-
 constexpr crash::TitleFacts kFacts{
     .crt0 = kCrt0,
     .staticConstructors = CRASH_STATIC_CONSTRUCTORS_ENTRY,
@@ -135,7 +124,6 @@ constexpr crash::TitleFacts kFacts{
     .vsyncQueryCounter = CRASH_TITLE_VSYNC_QUERY_COUNTER,
     .codeModuleArena = {},
     .padBuffers = std::nullopt,
-    .logo = kLogo,
 };
 
 static_assert(crash::isCoherent(kFacts));
