@@ -85,3 +85,5 @@ The player launcher and verifier use the same shared dependency validation and C
 Hosted CI exercises the real asset-free native/Lightrec boundary on Linux x86-64. Windows x86-64,
 Apple Silicon macOS, and Android arm64-v8a remain explicit missing host qualifications rather than
 platform-named policy checks; see the host qualification details in `docs/project-state.md`.
+
+Built with AI assistance (Claude and other LLMs).
