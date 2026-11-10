@@ -1,28 +1,18 @@
-# Crash trilogy port agent instructions
+# Crash trilogy port
 
-This repository targets one native PC product per title, with title-owned native subsystems and
-psxport's pinned Lightrec integration executing every remaining retail instruction at runtime.
-Read `docs/migration.md`, `docs/project-state.md`, `docs/codemap.md`, and `docs/re-frontier.md`
-before implementation; the frontier records what has and has not been reverse-engineered. The
-workspace rules in `../AGENTS.md` and framework-consumer rules in `external/psxport/AGENTS.md` also
-apply at the shared runtime boundary.
+One native PC product per title: title-owned native subsystems plus psxport's pinned Lightrec
+integration executing every remaining retail instruction. Product architecture and the ordered
+migration are in `docs/migration.md`. Workspace: `../AGENTS.md`; framework contract:
+`external/psxport/AGENTS.md`. Execution policy: the `dynarec-port` and `dynarec-overrides` skills.
 
-## Execution contract
+## Execution
 
-- The gameplay products consume the user's identity-verified executable directly through the
-  per-`Core` psxport-Lightrec executor. They never emit, compile, link, or select generated guest
-  source.
-- No full-game interpreter or player-selectable interpreter mode may exist. Lightrec remains the
-  mandatory gameplay backend; its internal, bounded block fallback is allowed only for explicit
-  backend reasons and must remain measured rather than becoming a second execution engine.
-- Native overrides are keyed by complete runtime image identity and guest address. Their original
-  calls re-enter retail code through the executor; do not retain generated `super` bodies.
+- The products consume the user's identity-verified executable through the per-`Core`
+  psxport-Lightrec executor.
 - Frame suspension, host work, interrupts, exceptions, and title exit use explicit bounded executor
   exits. C++ unwinding through JIT frames is forbidden.
-- The static translator, generated corpus, dispatch adapters, seed inputs, and static-only tests are
-  deleted. Do not reintroduce them.
 
-## Current title discipline
+## Titles
 
 Crash Bandicoot (`SCUS_949.00`) is the active title. Its product runs a disc-backed level, presents
 frames, and takes input through the authenticated BIOS `PadRead` word at `0x80057054`; the level's
@@ -31,25 +21,29 @@ camera does not yet publish a centre (issue 0023), and representative gameplay i
 `titles/crash1/input/bios_pad_input.*` owns only the authenticated combined word and Crash's
 byte order, published before retail `PadUpdate`.
 
+Crash 2 (`SCUS_941.54`) and Crash 3 (`SCUS_942.44`) retain their title-specific executable,
+crt0/syscall, game-main, and VSync facts. Crash 3 selection follows `SYSTEM.CNF`, never the unrelated
+`DRAGON/SPYRO.EXE` on its disc.
+
 The product starts through psxport's `psx::host::ProductHost` over `crash::Catalog`
 (`product/catalog.*`, Crash 1, 2 and 3): zero arguments open the title picker, `pick crashN` boots
-it, and `session return` comes back. Boot is the host's generic `TitleSession` sequence; Each title's
-steps live in `crash::Runtime` (`game/runtime/runtime.*`) and its `crashN::Runtime final` subclass; its disc key is in its `TitleIdentity`.
+it, and `session return` comes back. Boot is the host's generic `TitleSession` sequence; each title's
+steps live in `crash::Runtime` (`game/runtime/runtime.*`) and its `crashN::Runtime final` subclass;
+its disc key is in its `TitleIdentity`.
 
 Each title's verified identities, addresses, VSync bodies and CPU boundaries are its own evidence,
-not permission to reuse another title's behavior.
+not permission to reuse another title's behavior. Keep title behavior local until direct cross-title
+evidence proves a shared `game/` owner.
 
-All picture work remains RE-driven. Native producers consume pre-GTE game state. Widescreen changes
-owned camera/projection state deterministically; interpolation consumes authoritative
-previous/current simulation transforms at presentation time. GTE/OT/GP0 output and framebuffer
-pixels are diagnostics, never native producer input.
+## Picture
 
-## How the tree is built
+Native producers consume pre-GTE game state. Interpolation consumes authoritative previous/current
+simulation transforms at presentation time. GTE/OT/GP0 output and framebuffer pixels are
+diagnostics, never native producer input.
 
-There are no unit tests or gates. Build with `CC=clang CXX=clang++ uv run --frozen python
-external/psxport/tools/port/consumer_build.py --build build/agent --target crash_port`. The `probe_crash1_*` tools in `tools/` drive the
-product through the framework's loopback control channel and are maintainer legs; they
-need the user's disc and are run by hand.
+## Commands
 
-Never commit game media, extracted executables, generated guest code, `.env`, traces, or
-machine-specific paths. Runtime diagnostics use `scratch/`; compiler output uses top-level `build/`.
+There are no unit tests. Build with `CC=clang CXX=clang++ uv run --frozen python
+external/psxport/tools/port/consumer_build.py --build build/agent --target crash_port`. The
+`probe_crash1_*` tools in `tools/` drive the product through the framework's loopback control
+channel; they need the user's disc and are run by hand.
