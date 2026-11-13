@@ -1,0 +1,6 @@
+[submodule "external/crash-bandicoot-decomp"]
+	path = external/crash-bandicoot-decomp
+	url = https://github.com/khasinski/crash-bandicoot-decomp.git
+[submodule "external/crash2-decomp"]
+	path = external/crash2-decomp
+	url = https://github.com/Gabriel-TwoBits/crash2-decomp.git
