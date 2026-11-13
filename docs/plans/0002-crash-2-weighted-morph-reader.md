@@ -43,7 +43,7 @@ every call, and its registers, running bytes and cache words matched the native 
 Cost: `s15_run` with fps60 off, `PSXPORT_DEBUG=perf,perfframe`, two runs a build. The readers add about 470 host
 dispatches a logic frame (8,474 to 148,722 over 300). With and without `MorphReader` the guest clock and Crash's
 position match frame for frame through frame 63; there game-logic falls from 77.230 to 76.567 Minsn a frame (-0.86%) and
-the frame from 89.925 to 89.27 (-0.73%), against a run-to-run spread of 0.006 Minsn. From frame 64 the runs part: a
-build whose overrides at the reader entries only call the retail readers parts at the same frame with the same
-positions as the native one, so the override boundary itself, not the readers' results, moves the game (not yet
-traced). Against that build, over all 300 frames, the native readers take 3.17 Minsn a frame less (game-logic -3.80%).
+the frame from 89.925 to 89.27 (-0.73%), against a run-to-run spread of 0.006 Minsn. The runs parted from frame 64
+until psxport d4de29d4 (issue 0039: the device clock charged Lightrec cycles, so the override boundary moved CNT2);
+since then RAM, scratchpad and the guest clock match frame for frame over 600 frames. Against a build whose overrides
+only call the retail readers, over all 300 frames, the native readers take 3.17 Minsn a frame less (game-logic -3.80%).
