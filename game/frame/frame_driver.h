@@ -34,6 +34,8 @@ public:
 
   // Arms a scene arrival; the next frame raises it through the guest's own scene request.
   std::string armWarp(Core &core, std::uint32_t scene);
+  // Arms a re-entry of the current scene at spawn point `spawn`.
+  std::string armSpawn(Core &core, std::uint32_t spawn);
   [[nodiscard]] const FrameProgram &program() const {
     return program_;
   }

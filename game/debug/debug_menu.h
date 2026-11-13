@@ -1,4 +1,4 @@
-// debug_menu.h — the Crash titles' debug menu: the scene warp through the guest's own scene request.
+// debug_menu.h — the Crash titles' debug menu: the scene and spawn-point warps through the guest's own scene request.
 #pragma once
 
 #include "title_debug_menu.h"

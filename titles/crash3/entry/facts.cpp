@@ -80,6 +80,7 @@ constexpr crash::FrameProgram kFrame{
     .sceneIdAddress = CRASH_SCENE_ID_ADDRESS,
     .sceneRequestAddress = CRASH_SCENE_REQUEST_ADDRESS,
     .sceneTable = {0x8006C4D8u, 0x3Du, 12u, 0x1FFFFu},
+    .spawns = std::nullopt,
     .rootCounterIncrement = CRASH_ROOT_COUNTER_INCREMENT,
     .setRootCounter = CRASH_SET_ROOT_COUNTER,
     .startRootCounter = CRASH_START_ROOT_COUNTER,

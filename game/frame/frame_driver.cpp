@@ -64,6 +64,10 @@ std::string FrameDriver::armWarp(Core &core, std::uint32_t scene) {
   return warp_.arm(scene, core, program_);
 }
 
+std::string FrameDriver::armSpawn(Core &core, std::uint32_t spawn) {
+  return warp_.armSpawn(spawn, core, program_);
+}
+
 void FrameDriver::callOriginal(Core &core, std::uint32_t address) {
   psx::cpu::callOriginalToReturn(core, address, psx::cpu::ExecutionBudget::currentTurn(core), "original call");
 }

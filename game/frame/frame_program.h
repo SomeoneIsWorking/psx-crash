@@ -16,6 +16,13 @@ struct SceneTable {
   std::uint32_t sizeMask;
 };
 
+// The level's spawn points: `*levelHeader` is the resident level header, whose first word is the spawn count; the
+// level load starts the player at the spawn `spawnIndex` names.
+struct SpawnPoints {
+  std::uint32_t levelHeader;
+  std::uint32_t spawnIndex;
+};
+
 // GpuUpdate's frame limiter: it skips both display waits once the VBlank counter its VSync callback bumps
 // is `skipAfterFields` past the stamp in the displayed frame record (`*displayedFrame + stampOffset`).
 struct FrameLimiter {
@@ -67,6 +74,8 @@ struct FrameProgram {
   std::uint32_t sceneIdAddress;
   std::uint32_t sceneRequestAddress;
   SceneTable sceneTable;
+  // Empty when the spawn points are not measured.
+  std::optional<SpawnPoints> spawns;
   std::uint32_t rootCounterIncrement;
   std::uint32_t setRootCounter;
   std::uint32_t startRootCounter;

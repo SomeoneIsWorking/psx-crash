@@ -10,6 +10,14 @@
 #include <vector>
 
 namespace crash {
+namespace {
+
+std::string loopNotRunning(Core &core) {
+  const auto *driver = core.game->frameDriverIf<FrameDriver>();
+  return driver != nullptr && driver->warpAllowed() ? std::string() : "a warp is legal only once the game loop is running";
+}
+
+} // namespace
 
 DebugMenu::DebugMenu() {
   warp({
@@ -36,12 +44,17 @@ DebugMenu::DebugMenu() {
             }
             return scenes;
           },
-      .refusal =
-          [](Core &core) {
-            const auto *driver = core.game->frameDriverIf<FrameDriver>();
-            return driver != nullptr && driver->warpAllowed() ? std::string()
-                                                              : "a warp is legal only once the game loop is running";
+      .refusal = loopNotRunning,
+  });
+  verb({
+      .name = "spawn",
+      .summary = "re-enter the current level at one of its spawn points",
+      .params = {psx::game::DebugParam::integer("point", 0, 0xFF)},
+      .run =
+          [](const psx::game::DebugCall &call) {
+            call.reply = call.core.game->frameDriverAs<FrameDriver>().armSpawn(call.core, call.values.u32(0));
           },
+      .refusal = loopNotRunning,
   });
 }
 

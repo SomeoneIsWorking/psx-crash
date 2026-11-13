@@ -86,6 +86,8 @@ constexpr crash::FrameProgram kFrame{
     .sceneIdAddress = CRASH_SCENE_ID_ADDRESS,
     .sceneRequestAddress = CRASH_SCENE_REQUEST_ADDRESS,
     .sceneTable = {0x80069034u, 0x3Du, 12u, 0x1FFFFu},
+    // g_LevelHeader (NsdLevel) and the spawn index func_8001F9C4 starts the level at (crash2-decomp).
+    .spawns = crash::SpawnPoints{.levelHeader = 0x8006759Cu, .spawnIndex = 0x8006CD7Cu},
     .rootCounterIncrement = CRASH_ROOT_COUNTER_INCREMENT,
     .setRootCounter = CRASH_SET_ROOT_COUNTER,
     .startRootCounter = CRASH_START_ROOT_COUNTER,
