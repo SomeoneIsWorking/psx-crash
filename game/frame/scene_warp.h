@@ -19,7 +19,8 @@ public:
 
   // The returned text answers the client. A scene whose table row is empty is refused.
   std::string arm(std::uint32_t scene, Core &core, const FrameProgram &program);
-  // Re-enters the current scene at its spawn point `spawn`; refused while no level header is resident.
+  // Re-enters the current scene at its spawn point `spawn`; refused while no level header is resident. The current
+  // scene is the one loaded now, which the game may have changed itself (Crash 2's scene 0x23 runs into 0x3B).
   std::string armSpawn(std::uint32_t spawn, Core &core, const FrameProgram &program);
   // Raises the armed request when the guest has none pending; returns the scene applied.
   std::optional<std::uint32_t> apply(Core &core, const FrameProgram &program);

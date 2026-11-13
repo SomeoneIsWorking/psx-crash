@@ -35,7 +35,12 @@ points, which `func_8001F9C4` starts a load at) reaches every spawn point of the
 (0xD, 0x19, 0x20, 0x21, 0x23; 37 points), 12 to 15 seconds each with Crash idle and again with up held: the lit
 draw step 0x80040FC4 runs thousands of times, the lit reader in none (`PSXPORT_OVERRIDE_DIFF=0x80040D14` samples 0
 calls), so no object drawn there is pitched. The next place to look is a pitched two-frame object outside the default
-index: an object byte +0x121 of 6 in another scene. The t = 1 probe matches the real chain in 298 of 299 frames of scene 0x15 (the other
+index: an object byte +0x121 of 6 in another scene. Neither +0x121 nor +0x6C is entity data: the only native store to
+the word +0x120 is `Obj_Init`'s clear (0x80019A1C) and the only read of +0x121 is the draw-step pick (0x8001AF80), so
+GOOL code sets both. Finding where the lit reader can run from data therefore means reading every level's GOOL
+entries for stores to those two fields and every SVTX animation's frame count; neither repository has an NSF or GOOL
+reader yet. Until that scan says otherwise the lit reader's override is unproven; if it finds no such object, the
+override is dead code and goes. The t = 1 probe matches the real chain in 298 of 299 frames of scene 0x15 (the other
 is a declared checkpoint cut) and 299 of 299 of scene 0x6 once the replay queues in the real walk's order (issue 0038).
 
 Guest time: each native call charges the instructions the retail reader runs on the same path (cache hit, raw, the
