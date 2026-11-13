@@ -28,9 +28,11 @@ Shipped (2026-11-13): `titles/crash2/render/morph_reader.*` and `pose_blend`'s q
 is set only inside a replay: the real draw runs after the replays over the same packet addresses. The box at 0x118 and
 0x11C (`func_800436F4`) is weighted with the bytes. The unlit reader matches the original in 61,780 of 61,780 sampled
 calls (`PSXPORT_OVERRIDE_DIFF`, scenes 0x15 and 0x6 with fps60 off), and in scenes 0xD and 0x19 before its unaligned
-loads were restructured. The lit reader's GTE tail was not
-reached in any scene start: 0x80040FC4 takes it only for an object with a nonzero word +0x6C near the camera, so it
-has no differential evidence yet. The t = 1 probe matches the real chain in 298 of 299 frames of scene 0x15 (the other
+loads were restructured. The lit reader has no differential evidence yet: it runs only for a two-frame object of draw index 6 (the default in
+scenes whose flags have bit 0 and a property 0x186 height) with a nonzero word +0x6C and its y within 0x16A << 8 of that
+height (crash2-decomp `docs/notes/frame-loop.md`), and the level starts of the five such warps (scenes 0xD, 0x19, 0x20,
+0x21, 0x23) hold no such object. Reaching one needs a title-owned warp past a level's start (a zone or checkpoint warp
+through `Sys_LoadCheckpoint`) and a scan of each zone's objects for the three conditions. The t = 1 probe matches the real chain in 298 of 299 frames of scene 0x15 (the other
 is a declared checkpoint cut) and 299 of 299 of scene 0x6 once the replay queues in the real walk's order (issue 0038).
 
 Guest time: each native call charges the instructions the retail reader runs on the same path (cache hit, raw, the
