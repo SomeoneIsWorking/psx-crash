@@ -6,6 +6,8 @@
 #include "native_dispatch.h"
 
 #include <array>
+#include <optional>
+#include <span>
 
 namespace crash2 {
 namespace {
@@ -23,6 +25,8 @@ constexpr std::uint32_t kCameraX = 0x800607F4u;
 constexpr std::uint32_t kObjPool = 0x8006CB14u;
 constexpr std::uint32_t kObjStride = 0x23Cu;
 constexpr std::uint32_t kObjCount = 0x60u;
+// The player's record, allocated apart from the pool.
+constexpr std::uint32_t kPlayer = 0x8005F38Cu;
 
 // g_CameraX/Y/Z (24.8), then g_CameraAngleX/Y/Z (4096 a turn).
 constexpr std::array<MotionField, 6> kCameraFields{{
@@ -69,18 +73,23 @@ public:
 };
 const ObjectPose kObjectPose;
 
-const std::array<MotionTrack, 2> kTracks{{
+// Obj_Init sets an object's first word to 1, Obj_Kill to 0.
+constexpr RecordByte kObjectLive{.offset = 0x00u, .low = 1, .high = 1};
+
+const std::array<MotionTrack, 3> kTracks{{
     {.name = "camera", .address = kCameraX, .fields = kCameraFields},
     {.name = "objects",
      .address = kObjPool,
      .fields = kObjectFields,
      .rule = &kObjectPose,
      .keys = kObjectKeys,
-     // Obj_Init sets the first word to 1, Obj_Kill to 0.
-     .records = {.throughPointer = true,
-                 .stride = kObjStride,
-                 .count = kObjCount,
-                 .live = RecordByte{.offset = 0x00u, .low = 1, .high = 1}}},
+     .records = {.throughPointer = true, .stride = kObjStride, .count = kObjCount, .live = kObjectLive}},
+    {.name = "player",
+     .address = kPlayer,
+     .fields = kObjectFields,
+     .rule = &kObjectPose,
+     .keys = kObjectKeys,
+     .records = {.throughPointer = true, .stride = kObjStride, .count = 1, .live = kObjectLive}},
 }};
 
 void sampleOverride(Core *core) {
@@ -100,8 +109,13 @@ void updateViewOverride(Core *core) {
 
 DrawReplay::DrawReplay() : frame_(section_, kTracks, sources_) {}
 
-const psx::present::MotionTrack &DrawReplay::objectTrack() {
-  return kTracks[1];
+std::optional<psx::present::MotionRule::Samples> DrawReplay::pairedObject(std::uint32_t object) const {
+  for (const MotionTrack &track : std::span(kTracks).subspan(1)) {
+    if (auto samples = frame_.motion().pairedRecord(track, object)) {
+      return samples;
+    }
+  }
+  return std::nullopt;
 }
 
 void DrawReplay::registerOverrides(Core &core) {

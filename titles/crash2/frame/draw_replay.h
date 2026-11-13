@@ -1,5 +1,5 @@
-// draw_replay.h — Crash 2's in-betweens: the draw section replayed with the camera, the object pool's poses and the
-// view's stepped state blended.
+// draw_replay.h — Crash 2's in-betweens: the draw section replayed with the camera, the object pool's and the player's
+// poses and the view's stepped state blended.
 #pragma once
 
 #include "crash2/frame/draw_section.h"
@@ -8,6 +8,8 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
+#include <optional>
 
 class Core;
 
@@ -27,8 +29,8 @@ public:
   [[nodiscard]] ViewEntry &view() {
     return view_;
   }
-  // The object pool's track, and its animation fields' places in a sample.
-  [[nodiscard]] static const psx::present::MotionTrack &objectTrack();
+  // An object's two samples, from the pool's track or the player's; its animation fields' places in them.
+  [[nodiscard]] std::optional<psx::present::MotionRule::Samples> pairedObject(std::uint32_t object) const;
   static constexpr std::size_t kAnimField = 9;
   static constexpr std::size_t kAnimFrameField = 10;
 

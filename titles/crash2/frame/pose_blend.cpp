@@ -14,23 +14,23 @@ namespace crash2::pose_blend {
 namespace {
 
 // Names and layouts from external/crash2-decomp (src/game/8001A014.c, docs/notes/frame-loop.md).
-constexpr std::uint32_t kFetchFrames = 0x8001A90Cu;
+constexpr std::uint32_t kQueueObject = 0x8001ABF8u;
+constexpr std::uint32_t kFetchPose = 0x8001A4A4u;
+constexpr std::uint32_t kBlock = 0x08u;
+constexpr std::uint32_t kScale = 0x78u;
 constexpr std::uint32_t kAnim = 0xE8u;
 constexpr std::uint32_t kAnimFrame = 0xECu;
+// The block's two vertex frames, which Gfx_QueueObject's kind 1 draws.
+constexpr std::uint32_t kFirstFrame = 0x20u;
+constexpr std::uint32_t kSecondFrame = 0x24u;
+constexpr std::uint8_t kVertexKind = 1;
 // A vertex frame's model entry id, which both frames of a morph must share.
 constexpr std::uint32_t kFrameModel = 0x10u;
 
-struct Fetched {
+struct Frames {
   std::uint32_t first = 0;
   std::uint32_t second = 0;
-  std::uint32_t index = 0;
-};
-
-// The fetch's arguments: the object and where its two frames go.
-struct Call {
-  std::uint32_t object = 0;
-  std::uint32_t outFirst = 0;
-  std::uint32_t outSecond = 0;
+  bool operator==(const Frames &) const = default;
 };
 
 struct Pose {
@@ -38,56 +38,69 @@ struct Pose {
   std::uint32_t frame = 0;
 };
 
-// The original fetch with the object's animation and frame set to `pose`.
-Fetched fetch(Core &core, const Call &call, Pose pose) {
-  core.mem_w32(call.object + kAnim, pose.anim);
-  core.mem_w32(call.object + kAnimFrame, pose.frame);
-  core.r[4] = call.object;
-  core.r[5] = call.outFirst;
-  core.r[6] = call.outSecond;
-  psx::cpu::callOriginalToReturn(core, kFetchFrames, psx::cpu::ExecutionBudget::currentTurn(core), "Crash 2 pose");
-  return {core.mem_r32(call.outFirst), core.mem_r32(call.outSecond), core.r[2]};
+// The frames func_8001A4A4 puts in the object's block for `pose`.
+Frames fetch(Core &core, std::uint32_t object, Pose pose) {
+  core.mem_w32(object + kAnim, pose.anim);
+  core.mem_w32(object + kAnimFrame, pose.frame);
+  core.r[4] = object;
+  core.r[5] = object + kScale;
+  psx::cpu::callOriginalToReturn(core, kFetchPose, psx::cpu::ExecutionBudget::currentTurn(core), "Crash 2 pose");
+  const std::uint32_t block = core.mem_r32(object + kBlock);
+  return {core.mem_r32(block + kFirstFrame), core.mem_r32(block + kSecondFrame)};
 }
 
 // The pair whose equal-weight sum is the four frames' mean, when there is one.
-std::optional<std::pair<std::uint32_t, std::uint32_t>> halfway(const Fetched &from, const Fetched &to) {
+std::optional<Frames> halfway(const Frames &from, const Frames &to) {
   std::array<std::uint32_t, 4> frames{from.first, from.second, to.first, to.second};
   std::ranges::sort(frames);
   if (frames[0] != frames[1] || frames[2] != frames[3]) {
     return std::nullopt;
   }
-  return std::pair{frames[0], frames[2]};
+  return Frames{frames[0], frames[2]};
 }
 
-void fetchOverride(Core *core) {
-  DrawReplay &replay = session(*core).drawReplay;
-  const Call call{.object = core->r[4], .outFirst = core->r[5], .outSecond = core->r[6]};
+// The halfway pose of a vertex object the replay queues, written to its block before the queue reads it.
+void blendPose(Core &core, std::uint32_t object) {
+  DrawReplay &replay = session(core).drawReplay;
   const std::optional<float> t = replay.frame().replaying();
-  const std::optional<psx::present::MotionRule::Samples> samples =
-      t && *t == 0.5f && call.outSecond != 0u ? replay.frame().motion().pairedRecord(replay.objectTrack(), call.object)
-                                              : std::nullopt;
-  if (!samples) {
-    psx::cpu::callOriginalToReturn(*core, kFetchFrames, psx::cpu::ExecutionBudget::currentTurn(*core), "Crash 2 pose");
+  const std::uint32_t anim = core.mem_r32(object + kAnim);
+  const std::uint32_t block = core.mem_r32(object + kBlock);
+  if (!t || *t != 0.5f || anim == 0u || block == 0u || core.mem_r8(anim) != kVertexKind) {
     return;
   }
-  const Pose later{.anim = core->mem_r32(call.object + kAnim), .frame = core->mem_r32(call.object + kAnimFrame)};
-  const Fetched from =
-      fetch(*core,
-            call,
-            {.anim = samples->from[DrawReplay::kAnimField], .frame = samples->from[DrawReplay::kAnimFrameField]});
-  const Fetched to = fetch(*core, call, later);
-  if (const auto pair = halfway(from, to);
-      pair && core->mem_r32(pair->first + kFrameModel) == core->mem_r32(pair->second + kFrameModel)) {
-    core->mem_w32(call.outFirst, pair->first);
-    core->mem_w32(call.outSecond, pair->second);
+  const std::optional<psx::present::MotionRule::Samples> samples = replay.pairedObject(object);
+  if (!samples) {
+    return;
   }
-  core->r[2] = to.index;
+  const Pose later{.anim = anim, .frame = core.mem_r32(object + kAnimFrame)};
+  const Frames drawn{core.mem_r32(block + kFirstFrame), core.mem_r32(block + kSecondFrame)};
+  const Frames from =
+      fetch(core,
+            object,
+            {.anim = samples->from[DrawReplay::kAnimField], .frame = samples->from[DrawReplay::kAnimFrameField]});
+  const Frames to = fetch(core, object, later);
+  // A block that does not hold its animation's frames is drawn as it stands.
+  const std::optional<Frames> pair = to == drawn ? halfway(from, to) : std::nullopt;
+  const Frames shown =
+      pair && core.mem_r32(pair->first + kFrameModel) == core.mem_r32(pair->second + kFrameModel) ? *pair : drawn;
+  core.mem_w32(block + kFirstFrame, shown.first);
+  core.mem_w32(block + kSecondFrame, shown.second);
+}
+
+void queueOverride(Core *core) {
+  const std::uint32_t object = core->r[4];
+  const std::uint32_t place = core->r[5];
+  blendPose(*core, object);
+  core->r[4] = object;
+  core->r[5] = place;
+  psx::cpu::callOriginalToReturn(
+      *core, kQueueObject, psx::cpu::ExecutionBudget::currentTurn(*core), "Crash 2 queue object");
 }
 
 } // namespace
 
 void registerOverride(Core &core) {
-  psx::cpu::installNativeOverride(core, kFetchFrames, "Crash 2 pose blend", fetchOverride);
+  psx::cpu::installNativeOverride(core, kQueueObject, "Crash 2 pose blend", queueOverride);
 }
 
 } // namespace crash2::pose_blend

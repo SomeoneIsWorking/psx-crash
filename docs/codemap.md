@@ -42,9 +42,9 @@ Frame loop: not owned. Each step runs the core loop iteration (`native_frame.ite
 | `crash1::BlockPool` | `titles/crash1/render/block_pool.*` | The size-class cell lookup at `0x80015978` and its walk (issue 0020) |
 | `crash2::Runtime`, `crash2::facts` | `titles/crash2/entry/` | Crash 2's facts: libpad buffers, code-module arena, scene table; its session (`crash2::Session` with the draw replay) |
 | `crash2::DrawSection` | `titles/crash2/frame/draw_section.*` | The replayed picture half of `Sys_MainLoop`: `Gfx_UpdateView` to `Gfx_EndFrame`'s `Snd_Update`, objects queued by `Obj_UpdateAll` with `g_FrameFlags` 0x8 (object logic) clear (crash2-decomp `docs/notes/frame-loop.md`) |
-| `crash2::DrawReplay` | `titles/crash2/frame/draw_replay.*` | Crash 2's in-betweens: psxport `ReplayFrame` over the camera and object-pool tracks (position, angles, scale stepping on a flip), sampled at `Sys_BeforeDrawObjects` |
+| `crash2::DrawReplay` | `titles/crash2/frame/draw_replay.*` | Crash 2's in-betweens: psxport `ReplayFrame` over the camera, object-pool and player tracks (position, angles, scale stepping on a flip), sampled at `Sys_BeforeDrawObjects` |
 | `crash2::ViewEntry` | `titles/crash2/frame/view_entry.*` | What `Gfx_UpdateView` steps (screen shake, streak scroll), recorded at each real call and written blended into a replay |
-| `crash2::pose_blend` | `titles/crash2/frame/pose_blend.*` | An object's pose in a t = 1/2 replay: the four fetched vertex frames of its two ticks, sent to the retail morph drawer as one pair when they make two frames twice |
+| `crash2::pose_blend` | `titles/crash2/frame/pose_blend.*` | An object's pose in a t = 1/2 replay, at `Gfx_QueueObject`: its two ticks' vertex frames refetched (`func_8001A4A4`) and sent to the retail morph drawer as one pair when they make two frames twice |
 | `crash2::camera_cuts` | `titles/crash2/frame/camera_cuts.*` | The game's camera cuts (prepared cut, zone walk, checkpoint restore) declared to `crash::FrameCut` |
 | `crash3::Runtime`, `crash3::facts` | `titles/crash3/entry/` | Crash 3's facts: no GPU watchdog override, libpad via the title's own SIO, code-module arena, scene table |
 | `crash::Catalog`, `createCatalog` | `product/catalog.*` | The product's three identities and runtimes, provisioned under `scratch/bin` |
