@@ -31,7 +31,7 @@ Frame loop: not owned. Each step runs the core loop iteration (`native_frame.ite
 | `crash::callback_boot` | `game/boot/callback_boot.*` | Native callback/event initializer; each BIOS leaf runs as guest code with its retail return address |
 | `crash::gpu_watchdog` | `game/boot/gpu_watchdog.*` | libgpu queue-timeout bookkeeping on the host display counter (Crash 1 and 2; Crash 3's check differs and runs as guest code) |
 | `crash::LeafCall`, `callLeaf` | `game/boot/leaf_call.h` | One guest leaf call from a native boot owner, at a return address inside the retail body |
-| `crash::FrameDriver` | `game/frame/frame_driver.*` | One host frame: CoreLoop iteration to the transition, one display field per guest VSync wait, CNT2 at its `SetRCnt` target, presentation commit |
+| `crash::FrameDriver` | `game/frame/frame_driver.*` | One host frame: CoreLoop iteration to the transition, one display field per guest VSync wait, CNT2 at its `SetRCnt` target, presentation commit; the perf meter's logic frame (game-logic, present) |
 | `crash::FrameProgram`, `SceneTable` | `game/frame/frame_program.h` | A title's measured frame loop: CoreLoop, iteration, transition, GpuUpdate VSync sites, the loading swap, scene words, root-counter entries |
 | `crash::FrameCut` | `game/frame/frame_cut.*` | Whether a sealed frame is a cut: a new scene from the guest scene id and request words, or a cut the title declared |
 | `crash::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): the warp catalogue (`scene 0xNN`) over `SceneWarp`, refused until the game loop runs |
@@ -44,7 +44,8 @@ Frame loop: not owned. Each step runs the core loop iteration (`native_frame.ite
 | `crash2::DrawSection` | `titles/crash2/frame/draw_section.*` | The replayed picture half of `Sys_MainLoop`: `Gfx_UpdateView` to `Gfx_EndFrame`'s `Snd_Update`, objects queued by `Obj_UpdateAll` with `g_FrameFlags` 0x8 (object logic) clear (crash2-decomp `docs/notes/frame-loop.md`) |
 | `crash2::DrawReplay` | `titles/crash2/frame/draw_replay.*` | Crash 2's in-betweens: psxport `ReplayFrame` over the camera, object-pool and player tracks (position, angles, scale stepping on a flip), sampled at `Sys_BeforeDrawObjects` |
 | `crash2::ViewEntry` | `titles/crash2/frame/view_entry.*` | What `Gfx_UpdateView` steps (screen shake, streak scroll), recorded at each real call and written blended into a replay |
-| `crash2::pose_blend` | `titles/crash2/frame/pose_blend.*` | An object's pose in a t = 1/2 replay, at `Gfx_QueueObject`: its two ticks' vertex frames refetched (`func_8001A4A4`) and sent to the retail morph drawer as one pair when they make two frames twice |
+| `crash2::pose_blend` | `titles/crash2/frame/pose_blend.*` | An object's pose in a t = 1/2 replay, at `Gfx_QueueObject`: its two ticks' vertex frames refetched (`func_8001A4A4`); when the four are at most two frames, that pair is queued with k quarters on the second, keyed by the queued packet |
+| `crash2::MorphReader` | `titles/crash2/render/morph_reader.*` | The morph vertex readers `func_8003ED14` and `func_80040D14` in host code with k quarters on the second frame (k = 2 is the retail sum), and the five morph draw steps, which set a replay packet's k and its box at the same weight |
 | `crash2::camera_cuts` | `titles/crash2/frame/camera_cuts.*` | The game's camera cuts (prepared cut, zone walk, checkpoint restore) declared to `crash::FrameCut` |
 | `crash3::Runtime`, `crash3::facts` | `titles/crash3/entry/` | Crash 3's facts: no GPU watchdog override, libpad via the title's own SIO, code-module arena, scene table |
 | `crash::Catalog`, `createCatalog` | `product/catalog.*` | The product's three identities and runtimes, provisioned under `scratch/bin` |

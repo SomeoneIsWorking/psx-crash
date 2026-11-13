@@ -1,7 +1,7 @@
 ---
 id: 37
 title: "Crash 2: Ripper Roo's in-betweens draw him at the later tick"
-status: open
+status: resolved
 symptom: at 60 fps Ripper Roo's intro descent moves at 30 Hz while the camera and Crash move at 60 Hz
 state_items: S007
 tags: crash2,fps60,interpolation
@@ -28,6 +28,11 @@ where before it was 10.39 and 2.08 (`scratch/interp/shots/scene6_roo_fixed.png`)
 Scenes 0x8 (Komodo Bros) and 0x9: in-betweens sit between their neighbours (scene 0x9 whole frame 2.13 against 2.15, the
 Komodo brother 8.4 against 8.7); a hit's white flash is a per-tick colour and steps with the later tick.
 
-Remaining: the warp-in rings (executable 0x801BD2E0) play a half-rate animation (header bit 0). Between frame 6 (stored
-frame 3 twice) and 7 (3 and 4) the halfway pose is a quarter of the way, which the equal-weight morph drawer cannot draw,
-so they step, and so does Crash's run cycle. Drawing them needs a weighted vertex reader (plan 0002).
+The warp-in rings (executable 0x801BD2E0) and Crash's run play half-rate animations (header bit 0): between frame 6
+(stored frame 3 twice) and 7 (3 and 4) the halfway pose is a quarter of the way, which the equal-weight morph reader
+cannot draw, so they stepped. Fixed (2026-11-13, plan 0002): `crash2::pose_blend` queues the pair with k quarters on
+the second frame, keyed by the packet, and `crash2::MorphReader` draws it through native readers that weight the
+frames' bytes and boxes alike. Mean crop difference of an in-between to the previous and the next real present,
+the old way against now, same input and byte-identical real presents: scene 0x15 Crash 23.3/15.1 against 19.9/20.2,
+scene 0x6 rings 21.4/10.0 against 16.9/14.9
+(`scratch/morph/crash_run_AB_153_156.png`, `rings_s6_AB_20_23.png`, `crash_run_final_32_35.png`).

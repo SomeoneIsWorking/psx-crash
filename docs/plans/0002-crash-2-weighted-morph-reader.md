@@ -1,7 +1,7 @@
 ---
 id: 2
 title: "Crash 2: a weighted morph vertex reader for half-rate animations"
-status: planned
+status: resolved
 issues: 37
 state_items: S007
 created: 2026-11-13
@@ -23,3 +23,17 @@ The interface and the exact weighted sum are in crash2-decomp `docs/notes/frame-
 3. Proof: Crash's run in scene 0x15 held up and the rings in scene 0x6, `fps60dump` crops in consecutive presents,
    each in-between halfway between its neighbours; a t = 1 replay byte-identical to the real chain; `[perf] cpu`
    instructions per logic frame against the run-to-run spread, since every morph vertex then goes through host code.
+
+Shipped (2026-11-13): `titles/crash2/render/morph_reader.*` and `pose_blend`'s quarter weights (issue 0037). The weight
+is set only inside a replay: the real draw runs after the replays over the same packet addresses. The box at 0x118 and
+0x11C (`func_800436F4`) is weighted with the bytes. The unlit reader matches the original in 61,780 of 61,780 sampled
+calls (`PSXPORT_OVERRIDE_DIFF`, scenes 0x15 and 0x6 with fps60 off), and in scenes 0xD and 0x19 before its unaligned
+loads were restructured. The lit reader's GTE tail was not
+reached in any scene start: 0x80040FC4 takes it only for an object with a nonzero word +0x6C near the camera, so it
+has no differential evidence yet. The t = 1 probe differs in 13 of 299 frames of scene 0x15 with the retail readers too
+(issue 0038).
+
+Cost: the readers add about 1,390 host dispatches a logic frame on scene 0x15 (host_dispatches 15,984 to 570,417 over
+400 frames). The instruction meter cannot isolate them: the native readers retire no guest instructions, so the two
+builds' runs diverge, and the frame p50 read +10.9% (124.8 to 138.4 Minsn) from one state and -2.8% (148.9 to 144.7)
+from another, each with a run-to-run spread under 0.01%.
