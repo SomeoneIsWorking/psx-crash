@@ -16,7 +16,6 @@ using namespace psx::cpu;
 
 // Names and layouts from external/crash2-decomp (config/symbol_addrs.txt, docs/notes/frame-loop.md).
 constexpr std::uint32_t kUnlitReader = 0x8003ED14u;
-constexpr std::uint32_t kLitReader = 0x80040D14u;
 // The morph draw steps (table 0x8005B708) that reach a reader; Gfx_DrawObjects calls them with the packet in $sp.
 constexpr std::uint32_t kStep8003F1C8 = 0x8003F1C8u;
 constexpr std::uint32_t kStep8003F1D8 = 0x8003F1D8u;
@@ -38,19 +37,11 @@ constexpr std::uint32_t kBoxXy = 0x118u;
 constexpr std::uint32_t kBoxZ = 0x11Cu;
 // Strip command bit 26: the vertex is already in the cache.
 constexpr std::uint32_t kCachedBit = 1u << 26;
-// The lit reader's three MVMVA commands, and the IR registers it reads after each.
-constexpr std::uint32_t kLitTransformY = 0x4A4AE012u;
-constexpr std::uint32_t kLitTransformX = 0x4A4A6012u;
-constexpr std::uint32_t kLitTransformZ = 0x4A4B6012u;
-constexpr std::uint32_t kIr1 = 9;
-constexpr std::uint32_t kIr2 = 10;
-constexpr std::uint32_t kIr3 = 11;
 constexpr lucent::Channel morphChannel{"morph"};
 // Instructions the retail readers execute on each path, delay slots included, charged to the guest clock: the entry
 // to the cache test (0x8003ED14..0x8003ED24), the cache hit (..ED30), the colour tail (0x8003EF60, 7 either way), the
 // uncached path's test (ED34, ED38), the raw path's reads (ED3C..ED4C) and its unaligned half (ED50..ED58), the
-// delta path's two final loads (EF1C, EF20), the sum (EF24..EF5C), and the lit reader's GTE tail past the sum
-// (0x80040F58..0x80040F98) in place of the unlit's two stores.
+// delta path's two final loads (EF1C, EF20), and the sum and its two stores (EF24..EF5C).
 constexpr std::uint32_t kEntryInstructions = 5;
 constexpr std::uint32_t kCachedInstructions = 3;
 constexpr std::uint32_t kTailInstructions = 7;
@@ -59,7 +50,6 @@ constexpr std::uint32_t kRawInstructions = 5;
 constexpr std::uint32_t kRawUnalignedInstructions = 3;
 constexpr std::uint32_t kDeltaLoadInstructions = 2;
 constexpr std::uint32_t kSumInstructions = 15;
-constexpr std::uint32_t kLitTailInstructions = 15;
 // A field's next word fetch (0x8003ED88..EDC0), its shift and test (EDC4..EDCC), its delta (EDD0..EDEC) and its two
 // byte stores (EDF0, EDF4).
 constexpr std::uint32_t kFetchInstructions = 15;
@@ -169,7 +159,7 @@ MorphReader::Weight MorphReader::weightFor(Core &core, std::uint32_t packet) con
           .boxZ = static_cast<std::int32_t>(z)};
 }
 
-void MorphReader::read(Core &core, Lighting lighting) const {
+void MorphReader::read(Core &core) const {
   std::uint32_t *r = core.r;
   const std::uint32_t v1 = r[kV1];
   const std::uint32_t t0 = r[kT0];
@@ -216,21 +206,6 @@ void MorphReader::read(Core &core, Lighting lighting) const {
     r[kA0] &= 0xFF00u;
     r[kA1] &= 0xFF00u;
     r[kT8] = (((4u - k) * r[kA0] + k * r[kA1]) >> 8) + boxZ;
-    if (lighting == Lighting::Lit) {
-      Gte &gte = core.gte();
-      for (std::uint32_t vector = 0; vector < 3; ++vector) {
-        gte.writeData(vector * 2u, r[kT9]);
-        gte.writeData(vector * 2u + 1u, r[kT8]);
-      }
-      gte.execute(kLitTransformY);
-      r[kT9] = gte.readData(kIr2);
-      gte.execute(kLitTransformX);
-      r[kT8] = gte.readData(kIr1);
-      r[kT9] = (r[kT9] << 16) | (r[kT8] & 0xFFFFu);
-      gte.execute(kLitTransformZ);
-      r[kT8] = gte.readData(kIr3);
-      instructions += kLitTailInstructions;
-    }
     core.mem_w32(slot, r[kT9]);
     core.mem_w32(slot + 4u, r[kT8]);
   }
@@ -241,8 +216,8 @@ void MorphReader::read(Core &core, Lighting lighting) const {
   accountGuestInstructions(core, instructions);
 }
 
-template <MorphReader::Lighting L> void MorphReader::readVertex(Core *core) {
-  session(*core).morphReader.read(*core, L);
+void MorphReader::readVertex(Core *core) {
+  session(*core).morphReader.read(*core);
 }
 
 template <std::uint32_t Entry> void MorphReader::drawStep(Core *core) {
@@ -263,8 +238,7 @@ template <std::uint32_t Entry> void MorphReader::drawStep(Core *core) {
 }
 
 void MorphReader::registerOverrides(Core &core) {
-  installNativeOverride(core, kUnlitReader, "Crash 2 morph vertex reader", readVertex<Lighting::Unlit>);
-  installNativeOverride(core, kLitReader, "Crash 2 lit morph vertex reader", readVertex<Lighting::Lit>);
+  installNativeOverride(core, kUnlitReader, "Crash 2 morph vertex reader", readVertex);
   installNativeOverride(core, kStep8003F1C8, "Crash 2 morph draw step 0x8003F1C8", drawStep<kStep8003F1C8>);
   installNativeOverride(core, kStep8003F1D8, "Crash 2 morph draw step 0x8003F1D8", drawStep<kStep8003F1D8>);
   installNativeOverride(core, kStep8003F410, "Crash 2 morph draw step 0x8003F410", drawStep<kStep8003F410>);
