@@ -30,4 +30,4 @@ Komodo brother 8.4 against 8.7); a hit's white flash is a per-tick colour and st
 
 Remaining: the warp-in rings (executable 0x801BD2E0) play a half-rate animation (header bit 0). Between frame 6 (stored
 frame 3 twice) and 7 (3 and 4) the halfway pose is a quarter of the way, which the equal-weight morph drawer cannot draw,
-so they step. Drawing them needs a weighted vertex reader in place of `func_8003ED14`.
+so they step, and so does Crash's run cycle. Drawing them needs a weighted vertex reader (plan 0002).
