@@ -180,6 +180,7 @@ add_crash_title(
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/draw_section.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/pose_blend.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/view_entry.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/fade_level.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/morph_reader.cpp"
 )
 add_crash_title(crash3)

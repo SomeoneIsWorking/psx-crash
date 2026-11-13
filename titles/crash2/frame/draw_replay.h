@@ -1,8 +1,9 @@
 // draw_replay.h — Crash 2's in-betweens: the draw section replayed with the camera, the object pool's and the player's
-// poses and the view's stepped state blended.
+// poses, the view's stepped state and the screen fade blended.
 #pragma once
 
 #include "crash2/frame/draw_section.h"
+#include "crash2/frame/fade_level.h"
 #include "crash2/frame/object_walk.h"
 #include "crash2/frame/view_entry.h"
 #include "replay_frame.h"
@@ -30,6 +31,9 @@ public:
   [[nodiscard]] ViewEntry &view() {
     return view_;
   }
+  [[nodiscard]] FadeLevel &fade() {
+    return fade_;
+  }
   [[nodiscard]] ObjectWalk &walk() {
     return walk_;
   }
@@ -40,9 +44,10 @@ public:
 
 private:
   ViewEntry view_;
+  FadeLevel fade_;
   ObjectWalk walk_;
   DrawSection section_;
-  std::array<psx::present::MotionSource *, 1> sources_{&view_};
+  std::array<psx::present::MotionSource *, 2> sources_{&view_, &fade_};
   psx::present::ReplayFrame frame_;
 };
 
