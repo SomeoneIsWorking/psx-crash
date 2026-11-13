@@ -1,5 +1,5 @@
 // draw_section.h — Crash 2's draw section: Sys_MainLoop's picture half, from Gfx_UpdateView to Gfx_EndFrame's band,
-// with the objects queued by the game's own paused pass, Obj_UpdateAll(0).
+// with Obj_UpdateAll queueing the objects while g_FrameFlags runs no object logic.
 #pragma once
 
 #include "replay_frame.h"

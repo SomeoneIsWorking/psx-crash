@@ -1,8 +1,12 @@
-// draw_replay.h — Crash 2's in-betweens: the draw section replayed with the camera and the object pool's poses blended.
+// draw_replay.h — Crash 2's in-betweens: the draw section replayed with the camera, the object pool's poses and the
+// view's stepped state blended.
 #pragma once
 
 #include "crash2/frame/draw_section.h"
+#include "crash2/frame/view_entry.h"
 #include "replay_frame.h"
+
+#include <array>
 
 class Core;
 
@@ -12,16 +16,21 @@ class DrawReplay {
 public:
   DrawReplay();
 
-  // Installs the sample point: Sys_BeforeDrawObjects, the empty function Sys_MainLoop calls between Obj_UpdateAll and
-  // Gfx_DrawObjects.
-  static void registerOverride(Core &core);
+  // The sample point, Sys_BeforeDrawObjects (the empty function Sys_MainLoop calls between Obj_UpdateAll and
+  // Gfx_DrawObjects), and the view entry's record at Gfx_UpdateView.
+  static void registerOverrides(Core &core);
 
   [[nodiscard]] psx::present::ReplayFrame &frame() {
     return frame_;
   }
+  [[nodiscard]] ViewEntry &view() {
+    return view_;
+  }
 
 private:
+  ViewEntry view_;
   DrawSection section_;
+  std::array<psx::present::MotionSource *, 1> sources_{&view_};
   psx::present::ReplayFrame frame_;
 };
 

@@ -9,7 +9,7 @@ class Core;
 
 namespace crash {
 
-// Whether a sealed frame starts a new scene, from the guest's own scene words.
+// Whether a sealed frame is a cut: a new scene from the guest's own scene words, or a camera cut the title declares.
 class FrameCut {
 public:
   explicit FrameCut(const FrameProgram &program);
@@ -20,6 +20,11 @@ public:
   // A new session's first sealed frame is a cut.
   void reset();
 
+  // The title's own camera cut (a shot change, a checkpoint's camera) in the frame being run.
+  void declare() {
+    declared_ = true;
+  }
+
   bool isCut() const {
     return cut_;
   }
@@ -29,6 +34,7 @@ private:
   std::uint32_t sceneRequestAddress_;
   std::optional<std::uint32_t> scene_;
   bool requestPending_ = false;
+  bool declared_ = false;
   bool cut_ = true;
 };
 

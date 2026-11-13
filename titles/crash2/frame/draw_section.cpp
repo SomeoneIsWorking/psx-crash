@@ -24,6 +24,10 @@ constexpr std::uint32_t kGfxEndFrame = 0x8001645Cu;
 // Gfx_EndFrame + 0x334: the jal Snd_Update, after the fade and the band; the swap and DrawOTag follow.
 constexpr std::uint32_t kSoundUpdate = 0x80016790u;
 constexpr std::uint32_t kBuildBuffer = 0x80063458u;
+constexpr std::uint32_t kPaused = 0x8005F180u;
+constexpr std::uint32_t kFrameFlags = 0x8006CB94u;
+// g_FrameFlags bit 3: Obj_Update runs an object's GOOL code and physics only while it is set (its only reader).
+constexpr std::uint32_t kObjectLogic = 0x8u;
 // GfxFrame.ot, which Gfx_EndFrame hands DrawOTag.
 constexpr std::uint32_t kOrderingTableOffset = 0x18u;
 
@@ -33,9 +37,13 @@ std::optional<std::uint32_t> DrawSection::draw(Core &core, psx::present::GuestRe
   const std::uint32_t frame = core.mem_r32(kBuildBuffer);
   // The buffer as the last Gfx_EndFrame left it for this frame: primitives from the start, no object queued.
   const std::array<std::uint32_t, 1> buffer{frame};
-  const std::array<std::uint32_t, 1> paused{0u};
-  if (!redraw.dispatch(kGfxResetFrame, buffer) || !redraw.resumeTo(kSysMainLoop, kViewCall, kObjectsCall) ||
-      !redraw.dispatch(kObjUpdateAll, paused) || !redraw.resumeTo(kSysMainLoop, kDrawObjects, kEndFrameCall) ||
+  // The real frame's Obj_UpdateAll argument, so the same objects queue; with logic off each one only places itself.
+  const std::array<std::uint32_t, 1> unpaused{core.mem_r32(kPaused) == 0u ? 1u : 0u};
+  if (!redraw.dispatch(kGfxResetFrame, buffer) || !redraw.resumeTo(kSysMainLoop, kViewCall, kObjectsCall)) {
+    return std::nullopt;
+  }
+  redraw.writeWord(kFrameFlags, core.mem_r32(kFrameFlags) & ~kObjectLogic);
+  if (!redraw.dispatch(kObjUpdateAll, unpaused) || !redraw.resumeTo(kSysMainLoop, kDrawObjects, kEndFrameCall) ||
       !redraw.dispatchTo(kGfxEndFrame, kSoundUpdate, {})) {
     return std::nullopt;
   }

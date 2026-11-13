@@ -1,5 +1,6 @@
 #include "crash2/frame/draw_replay.h"
 
+#include "blend.h"
 #include "core.h"
 #include "crash2/entry/session.h"
 #include "native_dispatch.h"
@@ -17,6 +18,7 @@ using psx::present::RecordByte;
 
 // Names and layouts from external/crash2-decomp (config/symbol_addrs.txt, docs/notes/frame-loop.md).
 constexpr std::uint32_t kSampleStub = 0x80011E88u;
+constexpr std::uint32_t kGfxUpdateView = 0x80017BC4u;
 constexpr std::uint32_t kCameraX = 0x800607F4u;
 constexpr std::uint32_t kObjPool = 0x8006CB14u;
 constexpr std::uint32_t kObjStride = 0x23Cu;
@@ -32,23 +34,42 @@ constexpr std::array<MotionField, 6> kCameraFields{{
     {.offset = 0x14u, .motion = Motion::Angle12Low},
 }};
 
-// Object position (+0x60) and rotation (+0x6C, 4096 a turn); scale and animation frames step.
-constexpr std::array<MotionField, 6> kObjectFields{{
+// GoolObject pos (+0x60), rot (+0x6C, 4096 a turn) and scale (+0x78, x negated to flip).
+constexpr std::array<MotionField, 9> kObjectFields{{
     {.offset = 0x60u, .motion = Motion::Linear},
     {.offset = 0x64u, .motion = Motion::Linear},
     {.offset = 0x68u, .motion = Motion::Linear},
     {.offset = 0x6Cu, .motion = Motion::Angle12Low},
     {.offset = 0x70u, .motion = Motion::Angle12Low},
     {.offset = 0x74u, .motion = Motion::Angle12Low},
+    {.offset = 0x78u, .motion = Motion::Linear},
+    {.offset = 0x7Cu, .motion = Motion::Linear},
+    {.offset = 0x80u, .motion = Motion::Linear},
 }};
+constexpr std::size_t kFirstScale = 6;
 // The object's executable: a slot freed and reused by another kind does not pair.
 constexpr std::array<MotionKey, 1> kObjectKeys{{{.offset = 0x0Cu}}};
+
+// Position and angles by their fields' motion; a scale whose sign changes (a flip) steps.
+class ObjectPose final : public psx::present::MotionRule {
+public:
+  void blend(const Samples &samples, float t, std::span<std::uint32_t> out) const override {
+    for (std::size_t i = 0; i < kObjectFields.size(); ++i) {
+      const std::uint32_t from = samples.from[i];
+      const std::uint32_t to = samples.to[i];
+      const bool flips = i >= kFirstScale && ((from ^ to) & 0x80000000u) != 0;
+      out[i] = flips ? to : psx::present::blendedWord(kObjectFields[i].motion, from, to, t);
+    }
+  }
+};
+const ObjectPose kObjectPose;
 
 const std::array<MotionTrack, 2> kTracks{{
     {.name = "camera", .address = kCameraX, .fields = kCameraFields},
     {.name = "objects",
      .address = kObjPool,
      .fields = kObjectFields,
+     .rule = &kObjectPose,
      .keys = kObjectKeys,
      // Obj_Init sets the first word to 1, Obj_Kill to 0.
      .records = {.throughPointer = true,
@@ -61,12 +82,22 @@ void sampleOverride(Core *core) {
   session(*core).drawReplay.frame().beforeDraw(*core);
 }
 
+void updateViewOverride(Core *core) {
+  DrawReplay &replay = session(*core).drawReplay;
+  if (!replay.frame().replaying()) {
+    replay.view().record(*core);
+  }
+  psx::cpu::callOriginalToReturn(
+      *core, kGfxUpdateView, psx::cpu::ExecutionBudget::currentTurn(*core), "Crash 2 view entry");
+}
+
 } // namespace
 
-DrawReplay::DrawReplay() : frame_(section_, kTracks) {}
+DrawReplay::DrawReplay() : frame_(section_, kTracks, sources_) {}
 
-void DrawReplay::registerOverride(Core &core) {
+void DrawReplay::registerOverrides(Core &core) {
   psx::cpu::installNativeOverride(core, kSampleStub, "Crash 2 draw replay sample", sampleOverride);
+  psx::cpu::installNativeOverride(core, kGfxUpdateView, "Crash 2 view entry", updateViewOverride);
 }
 
 } // namespace crash2

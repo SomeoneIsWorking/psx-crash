@@ -174,8 +174,10 @@ target_compile_definitions(crash1_runtime PRIVATE "CRASH1_BIOS_PAD_READ_WORD_ADD
 add_crash_title(
   crash2
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/entry/session.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/camera_cuts.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/draw_replay.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/draw_section.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/view_entry.cpp"
 )
 add_crash_title(crash3)
 
