@@ -1,5 +1,5 @@
 // draw_section.h — Crash 2's draw section: Sys_MainLoop's picture half, from Gfx_UpdateView to Gfx_EndFrame's band,
-// with Obj_UpdateAll queueing the objects while g_FrameFlags runs no object logic.
+// with Obj_UpdateAll queueing the objects the real walk queued (ObjectWalk) while g_FrameFlags runs no object logic.
 #pragma once
 
 #include "replay_frame.h"

@@ -121,6 +121,7 @@ std::optional<psx::present::MotionRule::Samples> DrawReplay::pairedObject(std::u
 void DrawReplay::registerOverrides(Core &core) {
   psx::cpu::installNativeOverride(core, kSampleStub, "Crash 2 draw replay sample", sampleOverride);
   psx::cpu::installNativeOverride(core, kGfxUpdateView, "Crash 2 view entry", updateViewOverride);
+  ObjectWalk::registerOverrides(core);
 }
 
 } // namespace crash2

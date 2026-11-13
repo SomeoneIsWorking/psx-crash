@@ -110,6 +110,7 @@ std::uint32_t blendPose(Core &core, std::uint32_t object) {
 void queueOverride(Core *core) {
   const std::uint32_t object = core->r[4];
   const std::uint32_t place = core->r[5];
+  session(*core).drawReplay.walk().queued(*core, object);
   const std::uint32_t quarters = blendPose(*core, object);
   const std::uint32_t frame = core->mem_r32(kBuildBuffer);
   const std::uint32_t head = core->mem_r32(frame + kPacketHead);

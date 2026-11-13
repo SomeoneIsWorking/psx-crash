@@ -3,6 +3,7 @@
 #pragma once
 
 #include "crash2/frame/draw_section.h"
+#include "crash2/frame/object_walk.h"
 #include "crash2/frame/view_entry.h"
 #include "replay_frame.h"
 
@@ -29,6 +30,9 @@ public:
   [[nodiscard]] ViewEntry &view() {
     return view_;
   }
+  [[nodiscard]] ObjectWalk &walk() {
+    return walk_;
+  }
   // An object's two samples, from the pool's track or the player's; its animation fields' places in them.
   [[nodiscard]] std::optional<psx::present::MotionRule::Samples> pairedObject(std::uint32_t object) const;
   static constexpr std::size_t kAnimField = 9;
@@ -36,6 +40,7 @@ public:
 
 private:
   ViewEntry view_;
+  ObjectWalk walk_;
   DrawSection section_;
   std::array<psx::present::MotionSource *, 1> sources_{&view_};
   psx::present::ReplayFrame frame_;
