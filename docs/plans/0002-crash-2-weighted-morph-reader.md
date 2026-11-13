@@ -43,10 +43,10 @@ three delta fields with or without a word fetch and a delta, the lit GTE tail), 
 one: over 139,264 calls of scene 0x15 the retail reader, run first on the same state, advanced it by the same count in
 every call, and its registers, running bytes and cache words matched the native reader's in every call.
 
-Cost: `s15_run` with fps60 off, `PSXPORT_DEBUG=perf,perfframe`, two runs a build. The readers add about 470 host
-dispatches a logic frame (8,474 to 148,722 over 300). With and without `MorphReader` the guest clock and Crash's
-position match frame for frame through frame 63; there game-logic falls from 77.230 to 76.567 Minsn a frame (-0.86%) and
-the frame from 89.925 to 89.27 (-0.73%), against a run-to-run spread of 0.006 Minsn. The runs parted from frame 64
-until psxport d4de29d4 (issue 0039: the device clock charged Lightrec cycles, so the override boundary moved CNT2);
-since then RAM, scratchpad and the guest clock match frame for frame over 600 frames. Against a build whose overrides
-only call the retail readers, over all 300 frames, the native readers take 3.17 Minsn a frame less (game-logic -3.80%).
+Cost: scene 0x15 from a saved state with up held, fps60 off, `PSXPORT_DEBUG=perf`, 300 logic frames, two runs a build
+on the same tree. With and without `MorphReader`, RAM, scratchpad and the guest clock match frame for frame (shown over
+600 frames once psxport d4de29d4 fixed issue 0039, where the device clock charged Lightrec cycles and the override
+boundary moved CNT2). The readers add about 394 host dispatches a logic frame (7,284 to 125,308). Game logic falls
+from 77.209 to 76.494 Minsn a frame (-0.93%) and the frame from 88.570 to 87.846 (-0.82%), against run-to-run spreads
+of 0.001 and 0.006 Minsn. Against a build whose overrides only call the retail readers, the native readers took 3.17
+Minsn a frame less (game logic -3.80%; measured before d4de29d4).
