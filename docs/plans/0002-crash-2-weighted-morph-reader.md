@@ -41,6 +41,18 @@ than kept. If a player sees such an object step: reach it with `spawn`, confirm 
 the sum, 0x80040F58..0x80040F98, 15 instructions) and prove it with the same differential. The t = 1 probe matches the real chain in 298 of 299 frames of scene 0x15 (the other
 is a declared checkpoint cut) and 299 of 299 of scene 0x6 once the replay queues in the real walk's order (issue 0038).
 
+Four frames (2026-11-14): a tick pair whose four frames are three or four distinct frames (scene 0x6's rings at
+four indices a tick, (a, b) to (c, d); Crash's run at (a, b) to (b, c); animation switches) is drawn as their mean.
+The packet keeps the pair that differs, since `Gfx_QueueObject` sends a pair of one frame to the static drawer, and
+the other pair is read beside it in host state. Its two streams open at `func_80043658` (overridden: the original
+runs, then they start at each frame's data offset) and follow the packet's fetches and deltas under the same
+model's control stream (crash2-decomp `docs/notes/frame-loop.md`, Animation). A temporary probe read every replayed
+packet's own pair as the second pair and matched the guest's running bytes in 369,007 of 369,007 vertex reads
+(scenes 0x6 and 0x15, delta and raw paths). Scene 0x6 respawn, `scratch/fade/crash4_AB_675_676.png` and
+`rings4_AB.png` (top: the later pair, as before; bottom: the mean): at the in-between Crash's arms are between real
+675's raised arms and real 676's level ones, where before they were already at 676's. Real presents are identical
+between the two builds (76 of 76).
+
 Guest time: each native call charges the instructions the retail reader runs on the same path (cache hit, raw, the
 three delta fields with or without a word fetch and a delta), so the guest clock is the retail
 one: over 139,264 calls of scene 0x15 the retail reader, run first on the same state, advanced it by the same count in
