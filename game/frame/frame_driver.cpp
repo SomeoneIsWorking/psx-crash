@@ -5,8 +5,9 @@
 #include "execution_control.h"
 #include "field_rate.h"
 #include "game.h"
-#include "logic_frame.h"
+#include "gpu_perf.h"
 #include "guest_call.h"
+#include "logic_frame.h"
 #include "native_dispatch.h"
 
 #include <cstdlib>
@@ -246,14 +247,17 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
 
   serviceRootCounter(core, game_.timing.emulatedCpuTicks());
   game_.timing.frameTick();
+  game_.perf.frameBegin();
   psx::frame::LogicFrame::begin(game_, completedFrames_);
   publishInput(core);
   warp_.apply(core, program_);
+  game_.perf.markPre();
   deliveredFields_ = 0;
   gpuUpdateWaits_ = {};
   loadingSwapWaits_ = {};
   frameCompleted_ = false;
 
+  game_.perf.phaseBegin(GpuPerf::Phase::GameLogic);
   psx::cpu::ExecutionResult result;
   if (resumePc_) {
     result = runGuestToBoundary(core, *std::exchange(resumePc_, std::nullopt), execute_);
@@ -315,10 +319,14 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
   if (deliveredFields_ == 0) {
     deliverSkippedWaits(core, frame);
   }
+  game_.perf.phaseEnd(GpuPerf::Phase::GameLogic);
   frameCut_.observe(core);
+  game_.perf.phaseBegin(GpuPerf::Phase::Present);
   game_.presentation.commit(&core, static_cast<int>(deliveredFields_));
+  game_.perf.phaseEnd(GpuPerf::Phase::Present);
   displayBoundaryTick_ = game_.timing.emulatedCpuTicks();
   ++completedFrames_;
+  game_.perf.frameEnd();
 }
 
 } // namespace crash
