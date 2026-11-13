@@ -52,5 +52,5 @@ diagnostics, never native producer input.
 
 There are no unit tests. Build with `CC=clang CXX=clang++ uv run --frozen python
 external/psxport/tools/port/consumer_build.py --build build/agent --target crash_port`. The
-`probe_crash1_*` tools in `tools/` drive the product through the framework's loopback control
-channel; they need the user's disc and are run by hand.
+product is driven through the framework's debug server (`PSXPORT_DEBUG_SERVER`, psxport `tools/dbgclient.py`); `warp`
+takes a catalogue index or a place name (`warp 15` and `warp scene 0x15` are the same Crash 2 level).

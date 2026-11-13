@@ -18,8 +18,8 @@ traced. Fixed at the owner: `arm` refuses an id whose row masks to
 size 0, using `FrameProgram::sceneTable`; `tests/scene_warp.cpp` covers it.
 
 The earlier reading that ids 0xC to 0x28 load "warp-room variants" was wrong. Every populated id from 0xA to
-0x27 starts Crash on a pad in front of a round door and runs out into a level; `warp 0x15`, `0x10`, `0x25` and
-`0x1B` each drove Crash running and (0x15) jumping in a distinct level under forced input. Ids 6 to 9 are bosses,
+0x27 starts Crash on a pad in front of a round door and runs out into a level; `warp scene 0x15`, `scene 0x10`, `scene 0x25` and
+`scene 0x1B` each drove Crash running and (0x15) jumping in a distinct level under forced input. Ids 6 to 9 are bosses,
 2 the new-game intro scene (the warp room), 3 and 0x28 and 0x29 cutscenes, 0x3B the continue screen, 0x3C the
 logo and title.
 
