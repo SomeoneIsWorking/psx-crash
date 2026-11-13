@@ -23,7 +23,7 @@ built from previous/current simulation state (psxport F-FPS60.1); until then `in
 setting. No interpolation capture goes in the README until this is done.
 
 Crash 2 (2026-11-13): fixed by replaying its draw section (`titles/crash2/frame/`, crash2-decomp
-`docs/notes/frame-loop.md`); `warp 15` (scene 0x15) in-betweens land halfway (S007). Crash 1 still has no section, and Crash 3 no
-interpolation. Crash 2's remaining gaps: animation frames step at 30 Hz (crash2-decomp `docs/notes/frame-loop.md` Animation: the
-engine fetches two vertex frames per object, but the drawer and weight that blend them are not yet read); the
-prepared-cut and zone-walk cut declarations (`titles/crash2/frame/camera_cuts.cpp`) have not been seen firing in a run.
+`docs/notes/frame-loop.md`); `warp 15` (scene 0x15) held up, the `fps60dump` in-betweens land halfway (S007). Crash 1 still
+has no section, and Crash 3 no interpolation. Crash 2's remaining gaps: the retail morph drawer adds two frames at a fixed
+equal weight, so only a t = 1/2 pose whose frames pair up is drawn halfway and the rest step at 30 Hz; the prepared-cut and
+zone-walk cut declarations (`titles/crash2/frame/camera_cuts.cpp`) have not been seen firing in a run.

@@ -34,8 +34,8 @@ constexpr std::array<MotionField, 6> kCameraFields{{
     {.offset = 0x14u, .motion = Motion::Angle12Low},
 }};
 
-// GoolObject pos (+0x60), rot (+0x6C, 4096 a turn) and scale (+0x78, x negated to flip).
-constexpr std::array<MotionField, 9> kObjectFields{{
+// GoolObject pos (+0x60), rot (+0x6C, 4096 a turn), scale (+0x78, x negated to flip) and animation.
+constexpr std::array<MotionField, 11> kObjectFields{{
     {.offset = 0x60u, .motion = Motion::Linear},
     {.offset = 0x64u, .motion = Motion::Linear},
     {.offset = 0x68u, .motion = Motion::Linear},
@@ -45,7 +45,12 @@ constexpr std::array<MotionField, 9> kObjectFields{{
     {.offset = 0x78u, .motion = Motion::Linear},
     {.offset = 0x7Cu, .motion = Motion::Linear},
     {.offset = 0x80u, .motion = Motion::Linear},
+    // The animation and its frame << 8; the pose between two ticks is pose_blend's.
+    {.offset = 0xE8u, .motion = Motion::Step},
+    {.offset = 0xECu, .motion = Motion::Step},
 }};
+static_assert(kObjectFields[DrawReplay::kAnimField].offset == 0xE8u);
+static_assert(kObjectFields[DrawReplay::kAnimFrameField].offset == 0xECu);
 constexpr std::size_t kFirstScale = 6;
 // The object's executable: a slot freed and reused by another kind does not pair.
 constexpr std::array<MotionKey, 1> kObjectKeys{{{.offset = 0x0Cu}}};
@@ -57,7 +62,7 @@ public:
     for (std::size_t i = 0; i < kObjectFields.size(); ++i) {
       const std::uint32_t from = samples.from[i];
       const std::uint32_t to = samples.to[i];
-      const bool flips = i >= kFirstScale && ((from ^ to) & 0x80000000u) != 0;
+      const bool flips = i >= kFirstScale && i < kFirstScale + 3 && ((from ^ to) & 0x80000000u) != 0;
       out[i] = flips ? to : psx::present::blendedWord(kObjectFields[i].motion, from, to, t);
     }
   }
@@ -94,6 +99,10 @@ void updateViewOverride(Core *core) {
 } // namespace
 
 DrawReplay::DrawReplay() : frame_(section_, kTracks, sources_) {}
+
+const psx::present::MotionTrack &DrawReplay::objectTrack() {
+  return kTracks[1];
+}
 
 void DrawReplay::registerOverrides(Core &core) {
   psx::cpu::installNativeOverride(core, kSampleStub, "Crash 2 draw replay sample", sampleOverride);

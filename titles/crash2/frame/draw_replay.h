@@ -7,6 +7,7 @@
 #include "replay_frame.h"
 
 #include <array>
+#include <cstddef>
 
 class Core;
 
@@ -26,6 +27,10 @@ public:
   [[nodiscard]] ViewEntry &view() {
     return view_;
   }
+  // The object pool's track, and its animation fields' places in a sample.
+  [[nodiscard]] static const psx::present::MotionTrack &objectTrack();
+  static constexpr std::size_t kAnimField = 9;
+  static constexpr std::size_t kAnimFrameField = 10;
 
 private:
   ViewEntry view_;

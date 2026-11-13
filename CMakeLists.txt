@@ -177,6 +177,7 @@ add_crash_title(
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/camera_cuts.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/draw_replay.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/draw_section.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/pose_blend.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/view_entry.cpp"
 )
 add_crash_title(crash3)
