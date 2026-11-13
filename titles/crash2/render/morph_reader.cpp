@@ -2,6 +2,7 @@
 
 #include "core.h"
 #include "crash2/entry/session.h"
+#include "execution_services.h"
 #include "native_dispatch.h"
 #include "r3000.h"
 
@@ -45,6 +46,26 @@ constexpr std::uint32_t kIr1 = 9;
 constexpr std::uint32_t kIr2 = 10;
 constexpr std::uint32_t kIr3 = 11;
 constexpr lucent::Channel morphChannel{"morph"};
+// Instructions the retail readers execute on each path, delay slots included, charged to the guest clock: the entry
+// to the cache test (0x8003ED14..0x8003ED24), the cache hit (..ED30), the colour tail (0x8003EF60, 7 either way), the
+// uncached path's test (ED34, ED38), the raw path's reads (ED3C..ED4C) and its unaligned half (ED50..ED58), the
+// delta path's two final loads (EF1C, EF20), the sum (EF24..EF5C), and the lit reader's GTE tail past the sum
+// (0x80040F58..0x80040F98) in place of the unlit's two stores.
+constexpr std::uint32_t kEntryInstructions = 5;
+constexpr std::uint32_t kCachedInstructions = 3;
+constexpr std::uint32_t kTailInstructions = 7;
+constexpr std::uint32_t kUncachedInstructions = 2;
+constexpr std::uint32_t kRawInstructions = 5;
+constexpr std::uint32_t kRawUnalignedInstructions = 3;
+constexpr std::uint32_t kDeltaLoadInstructions = 2;
+constexpr std::uint32_t kSumInstructions = 15;
+constexpr std::uint32_t kLitTailInstructions = 15;
+// A field's next word fetch (0x8003ED88..EDC0), its shift and test (EDC4..EDCC), its delta (EDD0..EDEC) and its two
+// byte stores (EDF0, EDF4).
+constexpr std::uint32_t kFetchInstructions = 15;
+constexpr std::uint32_t kShiftInstructions = 3;
+constexpr std::uint32_t kDeltaInstructions = 8;
+constexpr std::uint32_t kStoreInstructions = 2;
 
 std::uint32_t sra(std::uint32_t value, std::uint32_t shift) {
   return static_cast<std::uint32_t>(static_cast<std::int32_t>(value) >> (shift & 31u));
@@ -64,14 +85,17 @@ void lwl(Core &core, Gpr reg, std::uint32_t address) {
 }
 
 // One packed field of both frames' streams: `width` selects its bits, `offset` its running byte, `delta` the
-// control word's shared delta.
+// control word's shared delta, `lead` the instructions before its fetch test (11, 9 and 8 for the three fields).
 struct Field {
   std::uint32_t width = 0;
   std::uint32_t offset = 0;
   std::uint32_t delta = 0;
+  std::uint32_t lead = 0;
 };
 
-void readField(Core &core, const Field &field) {
+// The retail instructions the field took.
+std::uint32_t readField(Core &core, const Field &field) {
+  std::uint32_t instructions = field.lead + kShiftInstructions + kStoreInstructions;
   std::uint32_t *r = core.r;
   const std::uint32_t offset = field.offset;
   const std::uint32_t delta = field.delta;
@@ -95,6 +119,7 @@ void readField(Core &core, const Field &field) {
     r[kA1] = sra(r[kA1] | (r[kSp] >> rest), shift);
     consumed = r[kT4];
     r[kT4] -= 32u;
+    instructions += kFetchInstructions;
   }
   r[kT3] <<= consumed & 31u;
   r[kSp] <<= consumed & 31u;
@@ -102,9 +127,11 @@ void readField(Core &core, const Field &field) {
   if (r[kA3] != 0u) {
     r[kA0] += delta + static_cast<std::uint32_t>(core.mem_r8s(v1 + kFirstBytes + offset));
     r[kA1] += delta + static_cast<std::uint32_t>(core.mem_r8s(v1 + kSecondBytes + offset));
+    instructions += kDeltaInstructions;
   }
   core.mem_w8(v1 + kFirstBytes + offset, static_cast<std::uint8_t>(r[kA0]));
   core.mem_w8(v1 + kSecondBytes + offset, static_cast<std::uint8_t>(r[kA1]));
+  return instructions;
 }
 
 } // namespace
@@ -148,11 +175,15 @@ void MorphReader::read(Core &core, Lighting lighting) const {
   const std::uint32_t t0 = r[kT0];
   r[kV0] = ((t0 >> 13) & 0x7F8u) + v1;
   const std::uint32_t slot = r[kV0] + kCache;
+  std::uint32_t instructions = kEntryInstructions + kTailInstructions;
   if ((t0 & kCachedBit) != 0u) {
     r[kT9] = core.mem_r32(slot);
     r[kT8] = core.mem_r32(slot + 4u);
+    instructions += kCachedInstructions;
   } else {
+    instructions += kUncachedInstructions + kSumInstructions;
     if (r[kGp] == 0u) {
+      instructions += kRawInstructions;
       // Three raw bytes a vertex, read whole.
       r[kT9] = r[kS4] & 2u;
       r[kS4] += 3u;
@@ -162,14 +193,17 @@ void MorphReader::read(Core &core, Lighting lighting) const {
       if (r[kT9] != 0u) {
         lwl(core, kA0, r[kS4]);
         lwl(core, kA1, r[kS5]);
+        instructions += kRawUnalignedInstructions;
       }
     } else {
       const std::uint32_t control = core.mem_r32(r[kGp]);
       r[kAt] = control;
       r[kGp] += 4u;
-      readField(core, {.width = control >> 6, .offset = 0u, .delta = sra(control, 25) << 1});
-      readField(core, {.width = control >> 3, .offset = 2u, .delta = sra(control << 7, 24)});
-      readField(core, {.width = control, .offset = 1u, .delta = sra(control << 15, 24)});
+      instructions +=
+          readField(core, {.width = control >> 6, .offset = 0u, .delta = sra(control, 25) << 1, .lead = 11});
+      instructions += readField(core, {.width = control >> 3, .offset = 2u, .delta = sra(control << 7, 24), .lead = 9});
+      instructions += readField(core, {.width = control, .offset = 1u, .delta = sra(control << 15, 24), .lead = 8});
+      instructions += kDeltaLoadInstructions;
       r[kA0] = core.mem_r32(v1 + kFirstBytes);
       r[kA1] = core.mem_r32(v1 + kSecondBytes);
     }
@@ -195,6 +229,7 @@ void MorphReader::read(Core &core, Lighting lighting) const {
       r[kT9] = (r[kT9] << 16) | (r[kT8] & 0xFFFFu);
       gte.execute(kLitTransformZ);
       r[kT8] = gte.readData(kIr3);
+      instructions += kLitTailInstructions;
     }
     core.mem_w32(slot, r[kT9]);
     core.mem_w32(slot + 4u, r[kT8]);
@@ -203,6 +238,7 @@ void MorphReader::read(Core &core, Lighting lighting) const {
   const std::uint32_t colour = (t0 >> 7) & 0x1FCu;
   r[kA1] = t0 << 4;
   r[kA0] = static_cast<std::int32_t>(r[kA1]) < 0 ? core.mem_r32(colour + v1 + kCache) : core.mem_r32(colour + r[kS6]);
+  accountGuestInstructions(core, instructions);
 }
 
 template <MorphReader::Lighting L> void MorphReader::readVertex(Core *core) {

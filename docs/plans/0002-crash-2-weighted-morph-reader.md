@@ -33,7 +33,15 @@ reached in any scene start: 0x80040FC4 takes it only for an object with a nonzer
 has no differential evidence yet. The t = 1 probe matches the real chain in 298 of 299 frames of scene 0x15 (the other
 is a declared checkpoint cut) and 299 of 299 of scene 0x6 once the replay queues in the real walk's order (issue 0038).
 
-Cost: the readers add about 1,390 host dispatches a logic frame on scene 0x15 (host_dispatches 15,984 to 570,417 over
-400 frames). The instruction meter cannot isolate them: the native readers retire no guest instructions, so the two
-builds' runs diverge, and the frame p50 read +10.9% (124.8 to 138.4 Minsn) from one state and -2.8% (148.9 to 144.7)
-from another, each with a run-to-run spread under 0.01%.
+Guest time: each native call charges the instructions the retail reader runs on the same path (cache hit, raw, the
+three delta fields with or without a word fetch and a delta, the lit GTE tail), so the guest clock is the retail
+one: over 139,264 calls of scene 0x15 the retail reader, run first on the same state, advanced it by the same count in
+every call, and its registers, running bytes and cache words matched the native reader's in every call.
+
+Cost: `s15_run` with fps60 off, `PSXPORT_DEBUG=perf,perfframe`, two runs a build. The readers add about 470 host
+dispatches a logic frame (8,474 to 148,722 over 300). With and without `MorphReader` the guest clock and Crash's
+position match frame for frame through frame 63; there game-logic falls from 77.230 to 76.567 Minsn a frame (-0.86%) and
+the frame from 89.925 to 89.27 (-0.73%), against a run-to-run spread of 0.006 Minsn. From frame 64 the runs part: a
+build whose overrides at the reader entries only call the retail readers parts at the same frame with the same
+positions as the native one, so the override boundary itself, not the readers' results, moves the game (not yet
+traced). Against that build, over all 300 frames, the native readers take 3.17 Minsn a frame less (game-logic -3.80%).

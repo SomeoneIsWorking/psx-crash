@@ -1,9 +1,10 @@
 // morph_reader.h — the morphing models' vertex readers, func_8003ED14 and its lit counterpart func_80040D14, with a
 // weight of k quarters on the second frame (crash2-decomp docs/notes/frame-loop.md, Animation).
 //
-// Every register, cache word and delta byte ends as the retail routine leaves it; with k = 2 the vertex is the retail
-// sum. A replay that draws a quarter pose names its queued packet and k; the morph draw steps, entered with the packet
-// in $sp, set the readers' weight and the box weighted alike for that packet's draw.
+// Every register, cache word and delta byte ends as the retail routine leaves it, and the guest clock advances by the
+// instructions it runs; with k = 2 the vertex is the retail sum. A replay that draws a quarter pose names its queued
+// packet and k; the morph draw steps, entered with the packet in $sp, set the readers' weight and the box weighted
+// alike for that packet's draw.
 #pragma once
 
 #include <cstdint>
