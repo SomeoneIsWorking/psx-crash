@@ -1,7 +1,7 @@
 # Native/Lightrec migration
 
 This is the local execution migration plan for the Crash trilogy. The ordered reverse-engineering
-dependencies are in `docs/re-frontier.md`; psxport owns the shared runtime contract.
+dependencies are in each title's decomp (`external/<decomp>/docs/re-frontier.md`); psxport owns the shared runtime contract.
 
 ## Product boundary
 

@@ -96,8 +96,7 @@
     },
     "block_pool": {
       "_measured_by": "read from the authenticated executable",
-      "_note": "Crash 1's size-class block pool. The product's guest PC when it stops is 0x800159A8, and that word is `lw $v0,0x4($v1)` - the second class-field read of the cell lookup at 0x80015978. The pool is a table of 8-byte cells: `+0x00` is the payload the allocate path stores (0x80013020 `sw a1,0(s3)`) and `+0x04` is the class the cell serves, which is the only field this module's callers compare. There are exactly six `jal 0x80015978` sites in the image and 818 distinct `jal` targets in 72,192 words, so a function-entry census saturates and cannot rank the six by likelihood; which of them ran is a RUNTIME question, answered by titles/crash1/render/block_pool.cpp.",
-      "_what_is_not_claimed": "The unit of the caller's request word is NOT established. The lookup compares each cell's +0x04 against the request word WHOLE - `beq $2,$4` at 0x8001599C and `bne $2,$4` at 0x800159B0 both name $a0, and the srl at 0x80015978 only selects the bucket - and the six callers do not pass a uniform byte count: 0x80015034 and 0x80015118 pass a tagged handle read out of a struct at `lw a0,0(s0)`. So the recovered code names the field for what it is compared against and no more.",
+      "_note": "external/crash-bandicoot-decomp/docs/notes/ns-probe-pool.md",
       "find_cell": {
         "entry": "0x80015978",
         "end": "0x800159C4",
@@ -188,7 +187,7 @@
       ],
       "call_site_count": 6,
       "pool_globals": {
-        "_note": "Every one of these is read with a `lui $reg,0x8006` + `lw` pair, so a literal-immediate scan cannot see them, and none of them has a `sw` with that displacement anywhere in the image - the pool is filled through a computed pointer, not by a direct store to the global.",
+        "_note": "external/crash-bandicoot-decomp/docs/notes/ns-probe-pool.md",
         "bucket_table": {
           "address": "0x8005C530",
           "load_sites": 8
@@ -213,7 +212,7 @@
     },
     "pool_node": {
       "_measured_by": "read from the authenticated executable",
-      "_note": "The pool's OWN ALLOCATE PATH, recovered from the image. It matters because it is where the CLASS WORD is defined: the word is loaded at 0x80012FBC, shifted at 0x80012FC8 to pick a bucket, and the SAME unshifted word is compared against a cell's class field at 0x80012FFC and stored into the cell at 0x80013140. The lookup at 0x80015978 was recovered against the SHIFTED form, could never match anything this function wrote, and its walk ran off the end of main RAM on every lookup. Corrected in titles/crash1/render/block_pool.{h,cpp}; this block is the allocate side of the same evidence and is gated by its own probe.",
+      "_note": "external/crash-bandicoot-decomp/docs/notes/ns-probe-pool.md",
       "entry": "0x80012F10",
       "end": "0x8001331C",
       "body_sha256": "217a4cd96984370fbc016c9b17b6fd394c50fe415ce79ee150adab84c0330dce",

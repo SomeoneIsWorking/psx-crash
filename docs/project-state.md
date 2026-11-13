@@ -2,7 +2,10 @@
 
 Factual capability coverage. Epic intent lives in `docs/project-goals.md`, ownership in
 `docs/codemap.md`, migration order in `docs/migration.md`, the ordered RE evidence chain in
-`docs/re-frontier.md`, and atomic work in `docs/issues/`.
+each title's decomp (`external/<decomp>/docs/re-frontier.md`), and atomic work in `docs/issues/`.
+
+The decomps are `external/crash-bandicoot-decomp`, `external/crash2-decomp` and `external/crash3-decomp` (`AGENTS.md`,
+Decomps).
 
 | ID | Capability | State | Evidence or gap |
 |---|---|---|---|

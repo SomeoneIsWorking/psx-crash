@@ -4,3 +4,6 @@
 [submodule "external/crash2-decomp"]
 	path = external/crash2-decomp
 	url = https://github.com/SomeoneIsWorking/crash2-decomp.git
+[submodule "external/crash3-decomp"]
+	path = external/crash3-decomp
+	url = https://github.com/SomeoneIsWorking/crash3-decomp.git

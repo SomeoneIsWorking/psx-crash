@@ -35,6 +35,13 @@ Each title's verified identities, addresses, VSync bodies and CPU boundaries are
 not permission to reuse another title's behavior. Keep title behavior local until direct cross-title
 evidence proves a shared `game/` owner.
 
+## Decomps
+
+Each title's decomp is a pinned submodule that holds its RE notes and symbol map: Crash 1 `external/crash-bandicoot-decomp`
+(our fork of khasinski's; no licence, evidence and names only), Crash 2 `external/crash2-decomp` (our fork of
+Gabriel-TwoBits'; GPL-3.0, evidence and names only), Crash 3 `external/crash3-decomp` (ours, MIT). Guest addresses move
+from the port's hand-written facts to the decomps' maps by `docs/plans/0001-addresses-from-the-decomp-symbol-map.md`.
+
 ## Picture
 
 Native producers consume pre-GTE game state. Interpolation consumes authoritative previous/current

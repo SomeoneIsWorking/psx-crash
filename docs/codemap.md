@@ -1,7 +1,7 @@
 # Codemap
 
 Where code lives in the Crash trilogy port. Capability state is in `docs/project-state.md`, feature hops in
-`docs/features.md`, the evidence chain in `docs/re-frontier.md`, atomic work in `docs/issues/`. A title's
+`docs/features.md`, the evidence chain, symbol map and RE notes in each title's decomp (`external/crash-bandicoot-decomp`, `external/crash2-decomp`, `external/crash3-decomp`), atomic work in `docs/issues/`. A title's
 measured executable facts are in `titles/<title>/executable.json` and its `entry/facts.cpp`.
 
 Product path: `run.sh` → the framework main (`psxport_add_product`, target `crash_port`) →
