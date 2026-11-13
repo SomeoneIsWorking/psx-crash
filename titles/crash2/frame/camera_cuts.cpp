@@ -6,7 +6,6 @@
 
 #include <cstdint>
 #include <lucent/log.h>
-#include <string_view>
 
 namespace crash2::camera_cuts {
 namespace {
@@ -18,8 +17,9 @@ constexpr std::uint32_t kLoadCheckpoint = 0x8002F6C8u;
 // The byte Cam_ProcessMessages sets for a prepared cut's go message; Cam_Update clears it each frame.
 constexpr std::uint32_t kCutGo = 0x8005B99Bu;
 
-void runOriginal(Core &core, std::uint32_t entry, std::string_view owner) {
-  psx::cpu::callOriginalToReturn(core, entry, psx::cpu::ExecutionBudget::currentTurn(core), owner);
+// A tail call: a budget exit (a checkpoint's entry loads can outrun the turn) is the caller's, resumed next turn.
+void runOriginal(Core &core, std::uint32_t entry) {
+  (void)psx::cpu::callOriginalOrPropagate(core, entry);
 }
 
 void preparedCut(Core *core) {
@@ -28,19 +28,19 @@ void preparedCut(Core *core) {
     lucent::debug("cut", "declared: prepared camera cut");
     session(*core).frameCut.declare();
   }
-  runOriginal(*core, kPreparedCut, "Crash 2 prepared camera cut");
+  runOriginal(*core, kPreparedCut);
 }
 
 void zoneWalk(Core *core) {
   lucent::debug("cut", "declared: camera zone walk");
   session(*core).frameCut.declare();
-  runOriginal(*core, kZoneWalk, "Crash 2 camera zone walk");
+  runOriginal(*core, kZoneWalk);
 }
 
 void loadCheckpoint(Core *core) {
   lucent::debug("cut", "declared: checkpoint camera");
   session(*core).frameCut.declare();
-  runOriginal(*core, kLoadCheckpoint, "Crash 2 checkpoint camera");
+  runOriginal(*core, kLoadCheckpoint);
 }
 
 } // namespace

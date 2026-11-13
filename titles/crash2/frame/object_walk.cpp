@@ -35,8 +35,8 @@ void ObjectWalk::forEachList(Core *core) {
   if (update) {
     walk.queued_.clear();
   }
-  psx::cpu::callOriginalToReturn(
-      *core, kObjForEachList, psx::cpu::ExecutionBudget::currentTurn(*core), "Crash 2 object walk");
+  // A level load's walk can outrun the turn; its budget exit is the caller's, resumed at the next turn.
+  (void)psx::cpu::callOriginalOrPropagate(*core, kObjForEachList);
 }
 
 void ObjectWalk::registerOverrides(Core &core) {
