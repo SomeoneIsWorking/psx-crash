@@ -171,7 +171,12 @@ add_crash_title(
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/executable.json" crash1_manifest_json)
 string(JSON crash1_bios_pad_word GET "${crash1_manifest_json}" runtime native_frame bios_pad_read address)
 target_compile_definitions(crash1_runtime PRIVATE "CRASH1_BIOS_PAD_READ_WORD_ADDRESS=${crash1_bios_pad_word}u")
-add_crash_title(crash2)
+add_crash_title(
+  crash2
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/entry/session.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/draw_replay.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/draw_section.cpp"
+)
 add_crash_title(crash3)
 
 add_library(crash_catalog STATIC "${CMAKE_CURRENT_SOURCE_DIR}/product/catalog.cpp")

@@ -40,7 +40,9 @@ Frame loop: not owned. Each step runs the core loop iteration (`native_frame.ite
 | `crash1::FrameDriver` | `titles/crash1/frame/frame_driver.*` | The shared turn plus the BIOS `PadRead` word publication |
 | `crash1::bios_pad_input` | `titles/crash1/input/bios_pad_input.*` | Crash 1's BIOS pad word `0x80057054` and Crash's byte order |
 | `crash1::BlockPool` | `titles/crash1/render/block_pool.*` | The size-class cell lookup at `0x80015978` and its walk (issue 0020) |
-| `crash2::Runtime`, `crash2::facts` | `titles/crash2/entry/` | Crash 2's facts: libpad buffers, code-module arena, scene table |
+| `crash2::Runtime`, `crash2::facts` | `titles/crash2/entry/` | Crash 2's facts: libpad buffers, code-module arena, scene table; its session (`crash2::Session` with the draw replay) |
+| `crash2::DrawSection` | `titles/crash2/frame/draw_section.*` | The replayed picture half of `Sys_MainLoop`: `Gfx_UpdateView` to `Gfx_EndFrame`'s `Snd_Update`, objects queued by `Obj_UpdateAll(0)` (crash2-decomp `docs/notes/frame-loop.md`) |
+| `crash2::DrawReplay` | `titles/crash2/frame/draw_replay.*` | Crash 2's in-betweens: psxport `ReplayFrame` over the camera and object-pool tracks, sampled at `Sys_BeforeDrawObjects` |
 | `crash3::Runtime`, `crash3::facts` | `titles/crash3/entry/` | Crash 3's facts: no GPU watchdog override, libpad via the title's own SIO, code-module arena, scene table |
 | `crash::Catalog`, `createCatalog` | `product/catalog.*` | The product's three identities and runtimes, provisioned under `scratch/bin` |
 | tools | `tools/` | Provisioning, executable verification, launcher, the verifier |
