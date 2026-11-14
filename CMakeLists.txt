@@ -172,6 +172,7 @@ add_crash_title(
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/frame/frame_driver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/input/bios_pad_input.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/render/block_pool.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/render/object_cull.cpp"
 )
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/executable.json" crash1_manifest_json)
 string(JSON crash1_bios_pad_word GET "${crash1_manifest_json}" runtime native_frame bios_pad_read address)

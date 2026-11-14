@@ -169,5 +169,40 @@ test culls and charges nothing, after which the scratchpad and the GTE are put b
   batch. At 4:3 both grids now make 35 draws per present (p99 58); present 8.19 against 8.06 Minsn/frame p50, from
   10.49 and 9.04.
 
-Crash 1 holds none of these constants; its world renderers (`RGteTransformWorlds` and its variants,
-crash-bandicoot-decomp `docs/names.md`) are not yet read for a screen test.
+Crash 1 (2026-11-14, crash-bandicoot-decomp `docs/notes/screen-culls.md`):
+- Reproduce: from boot at 16:9 the earliest 3D screen is the intro in Cortex's castle (about frame 2100); its margins
+  stop at whole-polygon edges. The warp catalogue is `warp scene` over Crash 1's scene table (no spawn warp: none was
+  needed). In scene 0x06 (`warp scene 0x06`, 8 s, 60 frames from a saved state) an object in the right margin is missing
+  that appears when the object cull's bounds are raised through the debug server.
+- The world has no screen test. `Gte_RTransformWorlds` 0x80035438 and its five variants project and link every
+  polygon the sort list names; their only compares are fog depths. The list is SLST disc data, copied or
+  delta-decoded by `Slst_Update` 0x80029B0C with no GTE use. So the world's margins hold what the 4:3 list names and
+  there is nothing to widen; that is why none of Crash 2/3's constants were found.
+- The objects are culled before they are transformed, in `Gfx_CalcObjectMatrices` 0x800180CC (callers: the SVTX and
+  CVTX transforms 0x80018964, 0x80018A40): a box test of the projected bound's centred extents against ±0x100
+  columns, or a centre test |x·H/z| < 0x13D. Raising both bounds by the 86-column margin (scenes 0x03, 0x06, 0x0A,
+  0x11, 0x16, 0x1A) changed only scene 0x06's right margin (216 pixels).
+- Fixed at that owner: `crash1::ObjectCull` (`titles/crash1/render/object_cull.*`) is the function's head in host
+  code, its column bounds over the record canvas's, resuming the original body where the retail test keeps the object.
+  An object only the canvas keeps gets a reject as retail (charged as retail), then the original body and its caller's
+  draw run in a psxport `GuestRedraw` that keeps only the draw context's OT, primitive tail and primitive buffer
+  (dropped if the tail passes the buffer's end), so it costs the guest clock nothing and leaves no other state.
+- 4:3 differential (`PSXPORT_OVERRIDE_DIFF=0x800180CC`, `scratch/c1cull/diffrun.py`, 6 s a scene): scenes 0x05-0x39
+  in one process 55086 of 55086 sampled calls equal (220153 calls), 0x03 883 of 883; scenes 0x06 and 0x1D with
+  every call compared 4520 of 4520. 2.5% of calls take the box test (0x08, 0x09, 0x15, 0x17-0x19, 0x1C, 0x1D, 0x1F,
+  0x22, 0x23, 0x29), the rest the centre test or the 0x40000 bypass; the level flag 0x10000 that skips the test was
+  never set. Scene 0x04 cannot be reached: its warp faults with or without the owner (issue 0043).
+- 16:9 from saved states (`scratch/c1cull/shots/crops.png`: scene 0x06 before this change, then 60 and 200 frames on,
+  then 0x18 and 0x1D): the object is drawn in the right margin of 0x06, a fruit and a platform at the right of 0x1D; the
+  centre 512 columns of each 16:9 shot equal the 4:3 shot of the same frame pixel for pixel. Main RAM, 4:3 against
+  16:9, differs only in the draw contexts' primitive tails, ordering tables and primitive buffers (0x06 at 60 and 200
+  frames, 0x1D); 0x18 is identical.
+- Cost (`PSXPORT_DEBUG=perf`, ires 0, fps60, 3840x2160 sink, 15 s after the warp, unpaced, two runs a build, p50
+  spread 0): instructions per logic frame p50, native against the guest routine. 4:3 scene 0x06: equal (game-logic
+  54.0 M, frame 61.3 M). 16:9 scene 0x06 game-logic 55.6 against 54.0 M, present 11.7 against 11.0 M, frame 67.1
+  against 65.0 M; scene 0x1D 51.9 against 50.9 M, 11.4 against 11.0 M, 62.9 against 61.9 M. The extra is the margin
+  objects' redraws and packets, run on the host off the guest clock; draws per present p99 24 against 18 (0x06) and
+  32 against 28 (0x1D).
+- Still empty: the world's margins wherever the sort list names no polygon (every scene), and the intro's 4:3-wide
+  blurred overlay rectangle (owner not traced). Sprites, fragments and text (`Gool_ObjectTransform`'s other drawers)
+  were not read for a screen test.
