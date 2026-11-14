@@ -16,7 +16,7 @@ what is missing is the guest's own rejection of primitives outside the 4:3 scree
 The edge is whole polygons. In Crash 2 it is a runtime reject, not the camera's sort list: the list carries the
 margin's polygons and the projector steps drop them (below). Crash 2 shows it in every level tried:
 `warp scene 0x15` at 16:9, 200 frames after the warp-in, the right margin is black past x = 640 of 684;
-scenes 0x10 and 0x25 the same. The warp room and earlier screens were not checked.
+scenes 0x10 and 0x25 the same. (Fixed for the world since: below.)
 
 Crash 1 shows the same edge: `warp 3` and the Jungle Rollers attract demo at 16:9 leave the clear colour and
 jagged whole-polygon edges in both margins (2026-10-28). The README carries 4:3 stills only until this closes.
@@ -43,12 +43,20 @@ Crash 2 owners (2026-11-14, crash2-decomp `docs/notes/screen-culls.md`):
   widened, so no change was made.
 - Object triangles: a routine at 0x80041BE8 applies the world test with the same bound built inline.
 
-Proper fix for the world, and why it was not made in this pass: the projectors are reached by `jr` from
-`Gfx_DrawWorlds`' loop and jump on to the draw steps and back to fixed loop addresses, so none of them is an override
-key. Widening the left edge needs `Gfx_DrawWorlds` in host code with every scene mode's projector and draw step it
-jumps through (0x80041E5C to about 0x80046100, some 4,000 retail instructions over the default mode and the modes
-`Gfx_SetupScene` selects), testing SX against the record canvas's columns (psxport `recordCanvasColumns`). Patching
-the immediate would move only the right edge and is a code patch, not an owner.
+Crash 2 world, fixed (2026-11-14): `crash2::WorldRenderer` (`titles/crash2/render/world_*`) is `Gfx_DrawWorlds` in
+host code with all ten scene modes (crash2-decomp `docs/notes/world-renderer.md`). Its column test is against the
+record canvas's columns (`recordCanvasColumns`); the row test stays the retail packed one. A polygon only the canvas
+keeps is charged to the guest clock as the retail cull left it, so the margins cost the game no time.
+- 4:3 differential (`PSXPORT_OVERRIDE_DIFF=0x80041E5C`, every reachable scene by `warp scene`, 6-8 s each): 10284
+  sampled calls of 40946, all equal (memory, scratchpad, GTE, callee-saved registers); default, depth fog, tint,
+  pulse, lamps, glow, waves and sway were reached. Fog and light are not selected at any level's entry, so their
+  steps are written from the disassembly but not yet compared.
+- 16:9: scenes 0x15, 0x10, 0x25 and the warp room (0x02) fill both margins with the world, the 4:3 picture
+  unchanged; main RAM after 200 frames from one state differs between 4:3 and 16:9 only in the two frames' ordering
+  tables and primitive buffers.
+- The warp room's right margin past the Snow Go doorway still shows the clear colour. The new test drops only
+  polygons wholly outside the canvas, so that gap is not a cull: the sort list holds nothing there.
+- Objects: no object was seen to pop at the margins in these scenes; the box test 0x80041D14 is unchanged.
 
 Crash 3 builds the same bound inline at ten sites (crash3-decomp `docs/notes/screen-culls.md`); the one read
 (0x8003CD38) has the same all-corners-past-an-edge test with the left edge as a sign bit, so it needs the same kind of

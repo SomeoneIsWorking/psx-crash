@@ -182,6 +182,11 @@ add_crash_title(
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/view_entry.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/fade_level.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/morph_reader.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_default.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_light.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_modes.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_pass.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_renderer.cpp"
 )
 add_crash_title(crash3)
 

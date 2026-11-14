@@ -5,6 +5,7 @@
 #include "crash2/frame/camera_cuts.h"
 #include "crash2/frame/pose_blend.h"
 #include "crash2/render/morph_reader.h"
+#include "crash2/render/world_renderer.h"
 #include "game.h"
 
 namespace crash2 {
@@ -17,6 +18,7 @@ void Runtime::registerOverrides(Game &game) {
   camera_cuts::registerOverrides(game.core);
   pose_blend::registerOverride(game.core);
   MorphReader::registerOverrides(game.core);
+  WorldRenderer::registerOverrides(game.core);
 }
 
 std::unique_ptr<psx::game::TitleSessionState> Runtime::createSession(Game &) {
