@@ -109,14 +109,15 @@ shared too (`world_modes`), and `crash3::WorldRenderer` adds the underwater mode
   world's sort list"). As in Crash 2's warp room, the list names only what the 4:3 view needs; left as is.
 
 Crash 3 scene 0x3A (2026-11-14): the scan that warps through every scene in one process (0x02..0x2A, a shot after
-each, then 0x3A) ended with exit 134 twice, once on HEAD, with nothing in the log. 134 is psxport's frame watchdog
-(`runtime/psx/platform/watchdog.cpp`, `_exit(134)` when no frame presents for `PSXPORT_WATCHDOG` = 3 s), not a guest
-fault or an abort: no core dump was written. The scene's load does not hold presents: logged on `presentseq` from
-0x2A, the longest gap after the 0x3A request is 24 ms (0x2A's own 86 ms). From one saved 0x2A state, the request at
-each of frames 0-149 then 400 frames runs (150 of 150), and four more full scans with stderr kept reached 0x3A and
-ran it (an Aku Aku screen). The machine was loaded by other agents' runs meanwhile (load average 21; in one clean
-scan a single 8-frame disc hunk fill took 1387 ms). The two tripped runs' stderr, which held the watchdog's
-backtrace, was not kept, so what stalled is not shown. The warp is not the owner and refuses nothing.
+each, then 0x3A) sometimes ends with exit 134, psxport's frame watchdog (no present for 3 s). The guest is not waiting
+on a device. Its timeout line (`[watchdog] guest pc=…`, psxport e21c309a) and a sampler over 4000 block boundaries put
+it in a `j .` at 0x800210FC: the `LDAT` init 0x80021084, run by the level load 0x80014BC8, traps when the loaded NSD's
+level is not the scene id, and the scene id is 0. The request for scene 0 is GOOL's own store (op 0x1C, sub-op 0xC,
+0x80036798) from object 0x800ACAB4, code word 0x1CC4DE1F at 0x800BB6B0, popping a 0 its event frame carries. It fires
+exactly 541 frames after the 0x3A load in every tripped run, here and on the second machine; clean runs never make
+that store within 30 s (crash3-decomp `docs/notes/scene-loads.md`). Scene 0 has no scene-table row. No natural flow
+tried reaches 0x3A (boot idle, New Game to 0x02), so which event sends the 0, and whether it is state the warp skips
+that the game's own route into 0x3A would set, is not traced. Not fixed.
 
 Crash 3 scene effects and objects (2026-11-14, crash3-decomp `docs/notes/screen-culls.md`, "Seen in the picture"):
 each group's right bound was raised through the debug server from one saved state per scene (0x02, 0x03, 0x04, 0x0D,
@@ -164,9 +165,9 @@ test culls and charges nothing, after which the scratchpad and the GTE are put b
   game-logic 77.6 against 81.8 M (the margin walk costs 5.2 M of the saving), present 24.6 against 16.0 M, frame
   102.8 against 97.5 M. The present cost is the presenter's: draws and render passes per present 279 against 145 at
   16:9, and 87 against 51 already at 4:3, where the packets are byte-identical and only the native stores carry the
-  vertices' unrounded places. Why placed semi-transparent sea cells split the presenter's batches is not traced.
-- Scene 0x3A's watchdog exit recurred once in a scene scan; its kept stderr shows the frame thread at a Lightrec block
-  boundary (`LightrecExecutor::Impl::blockBoundary`), so guest code was running and presented nothing for 3 s.
+  vertices' unrounded places. Fixed in psxport (b5f3c79b, psxport issue 0206): a sliver's reach split the presenter's
+  batch. At 4:3 both grids now make 35 draws per present (p99 58); present 8.19 against 8.06 Minsn/frame p50, from
+  10.49 and 9.04.
 
 Crash 1 holds none of these constants; its world renderers (`RGteTransformWorlds` and its variants,
 crash-bandicoot-decomp `docs/names.md`) are not yet read for a screen test.
