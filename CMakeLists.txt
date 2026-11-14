@@ -147,6 +147,7 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_modes.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_pass.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_renderer.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_screen.cpp"
 )
 crash_include_roots(crash_game)
 target_compile_features(crash_game PUBLIC cxx_std_20)

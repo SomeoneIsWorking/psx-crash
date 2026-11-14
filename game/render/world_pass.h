@@ -7,7 +7,7 @@
 #include "core.h"
 #include "emit_memory.h"
 #include "gte.h"
-#include "screen_cull.h"
+#include "render/world_screen.h"
 
 #include <array>
 #include <cstdint>
@@ -105,9 +105,6 @@ inline constexpr std::uint32_t kKindQuad = 0x1800u;
 // The VXY mask of a vertex word and the pair mask that keeps x's carry out of y.
 inline constexpr std::uint32_t kVertexMask = 0xFFF0FFF0u;
 inline constexpr std::uint32_t kPairMask = 0xFFFEFFFFu;
-// The retail screen: 512 columns, 217 rows, packed as the projectors subtract it.
-inline constexpr std::uint32_t kScreenEnd = 0x00D90200u;
-inline constexpr int kScreenColumns = 0x200;
 // A vertex word's bits the modes read.
 inline constexpr std::uint32_t kBit18 = 0x40000u;
 inline constexpr std::uint32_t kBit19 = 0x80000u;
@@ -303,17 +300,10 @@ enum class Ending : std::uint8_t {
   Linked,
 };
 
-// Which edge test rejected a polygon: the rows' (bit 31, tested first) or the columns' (bit 15).
-enum class Cull : std::uint8_t {
-  Visible,
-  Rows,
-  Columns,
-};
-
 class Pass {
 public:
   Pass(Core &core, const Title &title, psx::present::CullWindow columns)
-      : core_(core), title_(title), gte_(core.gte()), memory_(core), columns_(columns) {}
+      : core_(core), title_(title), gte_(core.gte()), memory_(core), screen_(columns) {}
 
   Core &core() {
     return core_;
@@ -382,9 +372,8 @@ public:
     return instructions_;
   }
 
-  // Off the screen: every corner left of its first column, right of its last, or past its last row. The rows and the
-  // retail columns are the packed test of the projectors; a wider canvas moves only the column edges. Charges the
-  // column test's branch when the rows pass. Crash 3 averages the depth first (AVSZ3 or AVSZ4).
+  // The screen test (`ScreenTest`), charging the column test's branch when the rows pass. Crash 3 averages the depth
+  // first (AVSZ3 or AVSZ4).
   Cull offScreen(const std::uint32_t *screens, int corners);
   // A polygon only the wider canvas keeps: the guest clock is charged as the retail cull left it.
   bool margin() const {
@@ -459,14 +448,12 @@ private:
   void linkSorted(std::uint32_t words);
   void linkBucket(std::uint32_t words);
   void linkOwnSlot(std::uint32_t words);
-  // The primitive at `next`, `words` long, put at the head of the slot at `slotAddress`.
-  void appendAt(std::uint32_t slotAddress, std::uint32_t words);
 
   Core &core_;
   const Title &title_;
   psx::cpu::Gte &gte_;
   psx::present::EmitMemory memory_;
-  psx::present::CullWindow columns_;
+  ScreenTest screen_;
   std::uint32_t instructions_ = 0;
   bool margin_ = false;
 };

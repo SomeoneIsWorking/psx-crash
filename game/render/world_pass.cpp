@@ -21,7 +21,6 @@ inline constexpr std::uint32_t kTagLengthShift = 24u;
 inline constexpr std::uint32_t kLinkMask = 0x00FFFFFFu;
 inline constexpr std::uint32_t kHalfLow = 0xFFFFu;
 inline constexpr std::uint32_t kHalfHigh = 0xFFFF0000u;
-inline constexpr std::uint32_t kLaneSign = 0x8000u;
 
 } // namespace
 
@@ -35,34 +34,13 @@ Cull Pass::offScreen(const std::uint32_t *screens, int corners) {
   if (title_.averageDepth) {
     gte_.execute(corners == 3 ? psx::gte::kAvsz3 : psx::gte::kAvsz4);
   }
-  // Rows: the retail packed test's high lane (the low lane's borrow included), against the retail bound alone.
-  std::uint32_t past = 0;
-  std::uint32_t all = ~0u;
-  // Columns: every corner right of the last column, or every corner left of the first.
-  std::uint32_t right = 0;
-  std::uint32_t left = kLaneSign;
-  std::uint32_t retailRight = 0;
-  std::uint32_t retailLeft = kLaneSign;
-  const auto lastColumn = static_cast<std::uint32_t>(columns_.right);
-  const auto firstColumn = static_cast<std::uint32_t>(columns_.left);
-  for (int corner = 0; corner < corners; ++corner) {
-    const std::uint32_t point = screens[corner];
-    past |= point - kScreenEnd;
-    all &= point;
-    right |= (point - lastColumn) & kLaneSign;
-    left &= (point - firstColumn) & kLaneSign;
-    retailRight |= (point - static_cast<std::uint32_t>(kScreenColumns)) & kLaneSign;
-    retailLeft &= point & kLaneSign;
-  }
-  if (negative(~past | all)) {
+  const ScreenVerdict verdict = screen_.test(screens, corners);
+  if (verdict.cull == Cull::Rows) {
     return Cull::Rows;
   }
   charge(2);
-  if (right == 0u || left != 0u) {
-    return Cull::Columns;
-  }
-  margin_ = retailRight == 0u || retailLeft != 0u;
-  return Cull::Visible;
+  margin_ = verdict.margin;
+  return verdict.cull;
 }
 
 std::uint32_t Pass::vertexColour(int corner) {
@@ -201,7 +179,7 @@ void Pass::linkBucket(std::uint32_t words) {
   charge(costs().bucketHead);
   if (scratchWord(scratch::kEntryWorld) == 0u) {
     charge(costs().bucketFront);
-    appendAt(ot, words);
+    linkAtHead(core_, ot, next, words);
     return;
   }
   charge(costs().bucketCompare);
@@ -210,18 +188,12 @@ void Pass::linkBucket(std::uint32_t words) {
     lowest = slot;
   }
   charge(costs().bucketAppend);
-  appendAt(lowest, words);
+  linkAtHead(core_, lowest, next, words);
 }
 
 void Pass::linkOwnSlot(std::uint32_t words) {
   charge(costs().ownSlot);
-  appendAt(slot, words);
-}
-
-void Pass::appendAt(std::uint32_t slotAddress, std::uint32_t words) {
-  core_.mem_w32(next, core_.mem_r32(slotAddress) | ((words - 1u) << kTagLengthShift));
-  core_.mem_w32(slotAddress, next & kLinkMask);
-  next += words * 4u;
+  linkAtHead(core_, slot, next, words);
 }
 
 std::uint32_t Pass::relinkDown(std::uint32_t target) {
