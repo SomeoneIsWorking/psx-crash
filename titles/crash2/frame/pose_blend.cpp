@@ -42,13 +42,17 @@ struct Pose {
   std::uint32_t frame = 0;
 };
 
+void callFetch(Core &core, std::uint32_t object) {
+  core.r[4] = object;
+  core.r[5] = object + kScale;
+  psx::cpu::callOriginalToReturn(core, kFetchPose, psx::cpu::ExecutionBudget::currentTurn(core), "Crash 2 pose");
+}
+
 // The frames func_8001A4A4 puts in the object's block for `pose`.
 Frames fetch(Core &core, std::uint32_t object, Pose pose) {
   core.mem_w32(object + kAnim, pose.anim);
   core.mem_w32(object + kAnimFrame, pose.frame);
-  core.r[4] = object;
-  core.r[5] = object + kScale;
-  psx::cpu::callOriginalToReturn(core, kFetchPose, psx::cpu::ExecutionBudget::currentTurn(core), "Crash 2 pose");
+  callFetch(core, object);
   const std::uint32_t block = core.mem_r32(object + kBlock);
   return {core.mem_r32(block + kFirstFrame), core.mem_r32(block + kSecondFrame)};
 }
@@ -130,6 +134,13 @@ void queueOverride(Core *core) {
 }
 
 } // namespace
+
+void fetchPose(Core &core, std::uint32_t object) {
+  const std::uint32_t anim = core.mem_r32(object + kAnim);
+  if (anim != 0u && core.mem_r8(anim) == kVertexKind) {
+    callFetch(core, object);
+  }
+}
 
 void registerOverride(Core &core) {
   psx::cpu::installNativeOverride(core, kQueueObject, "Crash 2 pose blend", queueOverride);

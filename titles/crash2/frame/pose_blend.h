@@ -8,10 +8,15 @@
 // tick's.
 #pragma once
 
+#include <cstdint>
+
 class Core;
 
 namespace crash2::pose_blend {
 
 void registerOverride(Core &core);
+
+// func_8001A4A4 for a vertex object's current pose, which the logic paths run before func_8001AA80 places it.
+void fetchPose(Core &core, std::uint32_t object);
 
 } // namespace crash2::pose_blend

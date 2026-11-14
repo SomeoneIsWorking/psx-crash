@@ -1,26 +1,26 @@
 ---
 id: 41
 title: "Crash 2: a replay's object walk faults in scene 0x22 after a checkpoint restore"
-status: open
+status: resolved
 symptom: the product aborts in scene 0x22 shortly after a spawn; a replayed Obj_Update faults in guest code
 state_items: S007
 tags: crash2,fps60,interpolation,crash
 created: 2026-11-14
 updated: 2026-11-14
 ---
+Reproduce: `scratch/cuts/phase22.py` from a paused state saved in scene 0x22 after spawn 1, reached through scene
+0x15 (`warp scene 0x15`, 4 s, `warp scene 0x22`, 4 s, `spawn 1`, 3 s); `spawn 2` then `step 200` aborted every run:
+a replayed `Obj_Update` exited as a Lightrec memory fault at 0x80042FD0 (exit 139). The same state reached without
+scene 0x15 never faulted, because which NSF pages are resident decides it.
 
-Reproduce: unpaced, fps60, ires 0, `PSXPORT_DEBUG=cut`, `warp scene 0x22`, then `spawn 1` and `spawn 2` 4 s apart, no
-input (`scratch/cuts/sweep.py s22.log 22`). Scene 0x22's spawn points put an idle Crash into a death loop: a
-checkpoint restore (`Sys_LoadCheckpoint`, declared cut) about every 97 frames. After spawn 2, the first replay after a
-restore reached the CD DMA channel's CHCR (`device-read 0x1F8010B8`) inside `Obj_UpdateAll` and was refused. On the
-next frame `crash2::ObjectWalk`'s `callGuestNow(Obj_Update)` in the replay exited as a Lightrec memory fault at
-0x80042FD0 (a GTE matrix load, 149 cycles in), and the required-return check aborted the process (exit 139). Seen twice
-in two runs of the full sweep's timing; a rerun whose spawn landed at another point of the death loop did not fault.
-The spawn request is timed by the wall clock. Two further runs that spawned 1, 2 and 3 six times each and
-saved a state every 0.4 s (`scratch/cuts/catch22.py`, with and without the `cw` store watch) did not fault, though
-each had three of the same CD DMA refusals; the refusal alone does not lead to the fault. The next step is still a
-saved state just before the fault.
+Cause: `Obj_Update` with logic off places an object through `func_8001AA80` alone, and for a vertex animation that
+passes `*(block+0x28)+0x10` to the scale step (0x8004400C via table 0x8005B650). Block +0x28 is the model entry
+`func_8001A4A4` opened at the object's last logic update. The retail callers of `func_8001AA80` on the logic paths
+(the GOOL interpreter and `func_8001D63C`) run `func_8001A4A4` just before it. In the real walk a later object's
+`Nsf_OpenEntry` paged out the faulting object's model entry (0x801A4BD8, word +0x10 0x801A4C04 became 0x38AB3895), so
+the replay's placement read garbage as a pointer.
 
-Not yet traced: which object the replay updated and whether it was live. Candidates to check from that state are
-an object `ObjectWalk` kept from a walk the restore invalidated (killed, or its GOOL code paged out by the load the
-refused replay was reaching for), and a guest fault inside a replay that is fatal where a device touch is a refusal.
+Fix: `crash2::ObjectWalk` runs `func_8001A4A4` for each vertex object (`crash2::pose_blend::fetchPose`) before its
+replayed `Obj_Update`, as the logic paths do. Proof: the same state with D = 0..6 runs 200 frames each with no executor
+error; the in-betweens through spawn 2 draw the scene intact, the fade-in halfway (mean grey 1.02, 2.35, 4.09, 6.72,
+8.38) (`scratch/cuts/s22_spawn2_a.png`, `s22_spawn2_b.png`).

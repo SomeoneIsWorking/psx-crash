@@ -2,6 +2,7 @@
 
 #include "core.h"
 #include "crash2/entry/session.h"
+#include "crash2/frame/pose_blend.h"
 #include "guest_call.h"
 #include "native_dispatch.h"
 #include "r3000.h"
@@ -28,6 +29,8 @@ void ObjectWalk::forEachList(Core *core) {
   if (update && core->writeRollback.armed()) {
     const std::uint32_t argument = core->r[psx::cpu::kA2];
     for (const std::uint32_t object : walk.queued_) {
+      // The real walk's later objects can page out this one's model entry, which the logic-off placement reads.
+      pose_blend::fetchPose(*core, object);
       psx::cpu::callGuestNow(*core, "Crash 2 object walk", kObjUpdate, object, argument);
     }
     return;
