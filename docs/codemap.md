@@ -74,7 +74,7 @@ Frame loop: not owned. Each step runs the core loop iteration (`native_frame.ite
 | Crash 3 pad | the title's own libpad SIO path over psxport's SIO device |
 | stock libcd | `StockLibcd` bound in `crash::Runtime::registerOverrides`; CD reads are synchronous |
 | level code | `crash::Runtime::stockCdReadLanded` → `publishStockReadLanding` over the title's arena |
-| widescreen | `crash::Runtime::guestWidescreenProjection` (stock aspect policy); the guest's own horizontal culls are not yet widened (issue 0030) |
+| widescreen | `crash::Runtime::guestWidescreenProjection` (stock aspect policy); the guest's horizontal culls are not yet widened: Crash 2's world cull is in `Gfx_DrawWorlds`' scene-mode projector steps, its object box test at 0x80041D14 (crash2-decomp `docs/notes/screen-culls.md`, issue 0030) |
 
 ## Where does it go?
 
