@@ -193,6 +193,7 @@ add_crash_title(
 )
 add_crash_title(
   crash3
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash3/render/water_grid.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash3/render/world_renderer.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash3/render/world_underwater.cpp"
 )

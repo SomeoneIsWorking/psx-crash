@@ -126,8 +126,7 @@ each group's right bound was raised through the debug server from one saved stat
   `scratch/c3left/ev/pair_0D_fx.png`). Raised one at a time, the sea is 0x80043FFC's alone (its bound, kept at
   scratchpad 0x38C, gives the same 2778 pixels; 0x800452A0's gives none here). 0x80043FFC is a hand-written grid
   drawer with its own cell routines (0x8004420C, 0x8004447C, 0x80044674, 0x80044878; about 830 instructions), the
-  left edge being the SXY sign bit, so no bound moves it. Widening it means owning it in host code with the world
-  renderer's column test, as for `Gfx_DrawWorlds`; not done in this pass. 0x800452A0 (with 0x800454D4) and
+  left edge being the SXY sign bit, so no bound moves it. Fixed since (below). 0x800452A0 (with 0x800454D4) and
   0x80043310 (scene 0x02) changed nothing in the scenes tried.
 - The object box test is `D_8003DEF4` (Crash 2's 0x80041D14 in quarter units; the corner check is 0x8003E000) and
   the model drawers test each triangle against the packed bound. Raising either or both changed no margin pixel in
@@ -139,6 +138,35 @@ each group's right bound was raised through the debug server from one saved stat
   scene 0x03 frame 104.9 / 134.2 M against 108.0 / 138.4 M (game-logic 86.0 against 90.2, present 17.3 against 16.8:
   the margins' polygons); scene 0x0E frame 75.5 / 112.2 M against 81.8 / 117.4-118.5 M (game-logic 64.0 against 70.3,
   present 12.2 against 11.9).
+
+Crash 3 water grid, fixed (2026-11-14): `crash3::WaterGrid` (`titles/crash3/render/water_grid.*`) is 0x80043FFC with its
+row, vertex and cell routines in host code (crash3-decomp `docs/notes/water-grid.md`). The grid walks each row from the
+column the last row's leading culls left and ends the row at the first culled cell after a drawn one, so the cull
+decides which cells, cache entries and GTE state the walk produces, not just which packets it links. The owner
+therefore runs the retail walk (retail columns, every instruction charged to the guest clock), and at 16:9 a second
+walk over the canvas's columns (`world_screen`, shared with the world renderer) that links only the cells the retail
+test culls and charges nothing, after which the scratchpad and the GTE are put back as the retail walk left them.
+- The grid runs in scenes 0x0D, 0x0E, 0x19, 0x1C, 0x21 and 0x27 (scene flag 0x1000000, read after each `warp scene`).
+  The heading at entry selects along-near everywhere but 0x19 (across-far); along-far and across-near were not seen.
+- 4:3 differential (`PSXPORT_OVERRIDE_DIFF=0x80043FFC`, every call compared): scene 0x0D from a saved state, 12 s,
+  1518 of 1518 equal; every scene 0x02..0x2A and 0x3A by `warp scene` in one process, 6 s each, 3849 of 3849 equal.
+- 16:9, scene 0x0D, the saved state 60 frames on (`scratch/c3water/crops_0D.png`: the unpatched frame from the
+  earlier pass on top, this build under it, then left and right margins of each at 3x): the sea fills both margins;
+  the left one, the sign-bit edge, had black wedges. The centre 512 columns equal the 4:3 shot pixel for pixel at
+  frames 60 and 200. Main RAM after 200 frames from the state, 4:3 against 16:9: differs only in the two frames'
+  ordering tables (0x61AA8-0x65B31) and primitive buffers (0x768AC-0x7BBBA, 0x8CCE4-0x92056); the scratchpad only at
+  0x14, a later drawer's saved primitive cursor. Logic state is the same with the widening on and off.
+- Still showing: white wedges in the top corners above the horizon in both margins (in the unpatched frame too; not
+  the grid, owner not traced), and the grid's own far edge just under the horizon in the left margin.
+- Cost (`PSXPORT_DEBUG=perf`, ires 0, fps60, 3840x2160 sink, `warp scene 0x0D`, 15 s, unpaced; native against the
+  guest grid built without the registration; p50 spread 0 over two 16:9 runs each): instructions per logic frame p50,
+  4:3 game-logic 72.4 M against 81.8 M (the grid in host code saves 9.4 M), present 10.5 against 9.0 M; 16:9
+  game-logic 77.6 against 81.8 M (the margin walk costs 5.2 M of the saving), present 24.6 against 16.0 M, frame
+  102.8 against 97.5 M. The present cost is the presenter's: draws and render passes per present 279 against 145 at
+  16:9, and 87 against 51 already at 4:3, where the packets are byte-identical and only the native stores carry the
+  vertices' unrounded places. Why placed semi-transparent sea cells split the presenter's batches is not traced.
+- Scene 0x3A's watchdog exit recurred once in a scene scan; its kept stderr shows the frame thread at a Lightrec block
+  boundary (`LightrecExecutor::Impl::blockBoundary`), so guest code was running and presented nothing for 3 s.
 
 Crash 1 holds none of these constants; its world renderers (`RGteTransformWorlds` and its variants,
 crash-bandicoot-decomp `docs/names.md`) are not yet read for a screen test.
