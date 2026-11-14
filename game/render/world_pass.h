@@ -223,6 +223,34 @@ struct Costs {
   std::uint32_t ownSlot = 0;
 };
 
+// Sway: the sine table, the angle's shift from the vertex sum, and where the triangle's third vertex is read.
+struct SwayFacts {
+  std::uint32_t sineTable = 0;
+  std::uint32_t angleShift = 0;
+  bool thirdFromGte = false;
+};
+
+// Pulse: the vertex bit that pulses a corner, the first vertex's bit that dims the polygon instead, and the depth it
+// dims from (also Crash 2 waves') and over.
+struct PulseFacts {
+  std::uint32_t pulseBit = 0;
+  std::uint32_t dimBit = 0;
+  std::uint32_t dimNear = 0;
+  std::uint32_t span = 0;
+};
+
+// Glow: the scratchpad word holding the corner's colour, the lamps' reach at the first corner and at the later ones,
+// the light's shift before tinting and the instructions where the titles' paths differ.
+struct GlowFacts {
+  std::uint32_t colourWord = 0;
+  std::uint32_t firstReach = 0;
+  std::uint32_t laterReach = 0;
+  std::uint32_t lightShift = 0;
+  std::uint32_t cornerHead = 0;
+  std::uint32_t flatTriangle = 0;
+  std::uint32_t flatQuad = 0;
+};
+
 // One title's world renderer: its entry, the guest calls it makes, its frame and scene layout, and the facts where
 // the two titles' retail code differs.
 struct Title {
@@ -251,6 +279,9 @@ struct Title {
   std::span<const Mode> modes;
   std::span<const LinkTail> tails;
   Costs costs;
+  SwayFacts sway;
+  PulseFacts pulse;
+  GlowFacts glow;
 };
 
 // Which retail path found a texture: fixed, an animation's frame, a depth level of that frame, or a depth level.

@@ -144,6 +144,7 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/game/runtime/runtime.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/runtime/session.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_default.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_modes.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_pass.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_renderer.cpp"
 )
@@ -189,7 +190,11 @@ add_crash_title(
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_modes.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_renderer.cpp"
 )
-add_crash_title(crash3)
+add_crash_title(
+  crash3
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash3/render/world_renderer.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash3/render/world_underwater.cpp"
+)
 
 add_library(crash_catalog STATIC "${CMAKE_CURRENT_SOURCE_DIR}/product/catalog.cpp")
 target_include_directories(crash_catalog PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/product")

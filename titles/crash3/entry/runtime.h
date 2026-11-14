@@ -8,6 +8,8 @@ namespace crash3 {
 class Runtime final : public crash::Runtime {
 public:
   Runtime();
+
+  void registerOverrides(Game &game) override;
 };
 
 } // namespace crash3

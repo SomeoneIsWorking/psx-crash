@@ -76,7 +76,39 @@ keeps is charged to the guest clock as the retail cull left it, so the margins c
   the guest renderer p99 33.75 ms, 1195 of 1208 (0.00 x6). The native renderer costs no presents.
 - Objects: no object was seen to pop at the margins in these scenes; the box test 0x80041D14 is unchanged.
 
-Crash 3 builds the same bound inline at ten sites (crash3-decomp `docs/notes/screen-culls.md`); the one read
-(0x8003CD38) has the same all-corners-past-an-edge test with the left edge as a sign bit, so it needs the same kind of
-native renderer. Crash 1 holds none of these constants; its world renderers (`RGteTransformWorlds` and its variants,
+Crash 3 builds the same bound inline at ten sites (crash3-decomp `docs/notes/screen-culls.md`): one in the world
+renderer `Gfx_DrawWorlds` 0x80040ED8, three in scene effects drawn after the world, five in object drawers, one whose
+caller is not traced. All test every corner past one edge, the left edge being the SXY sign bit.
+
+Crash 3 world, fixed (2026-11-14): its `Gfx_DrawWorlds` is Crash 2's with title numbers (quarter-unit vertices, AVSZ
+depth, the scene words one slot later, three link tails; crash3-decomp `docs/notes/world-renderer.md`), so
+`crash::world` (`game/render/world_*`) now serves both titles over each title's `world::Title`; sway, pulse and glow are
+shared too (`world_modes`), and `crash3::WorldRenderer` adds the underwater mode.
+- Reproduce: every scene by `warp scene` at 16:9 showed jagged whole-polygon margins; Dingodile (0x03) and the
+  underwater level (0x0E) clearly (`scratch/c3cull/repro/`). The earliest-from-boot screen was not taken.
+- 4:3 differential (`PSXPORT_OVERRIDE_DIFF=0x80040ED8`, 6 s a scene): default (scenes 0x02-0x05) 653 of 653 sampled
+  calls equal, sway (0x0B, 0x0C, 0x10) 662 of 662, glow (0x24, 0x25) 533 of 533. Underwater (0x0E, 0x1C): 536 of 537
+  differ, with no register different in the logged ones. Every difference matched against a per-polygon trace of the
+  host drawer (18 ranges, scene 0x0E) is the last corner's colour word (GT4 + 0x28, GT3 + 0x1C) of a polygon whose last
+  corner is depth-cued: the drawers (0x800429DC, 0x80042B3C) read that DPCS result with an `mfc2` in the delay slot of the
+  branch back to the default drawer, and under Lightrec the guest stores a stale value there instead, seen in the
+  guest-rendered picture as bright green and blue corners (`scratch/c3cull/repro/scene0E_1.png`). Cause:
+  `shared/lightrec` `emitter.c` `rec_cp2_do_mfc2` (and `rec_cp2_basic_CFC2`) take the `cop2_notify` path, which psxport
+  sets, and write `rt` through the C wrapper, while the branch's load-delay path then writes `rt` from `REG_TEMP`, which
+  that path never loaded. The host renderer stores the DPCS result, as the hardware does. A framework defect, not
+  fixed here.
+- Pulse and the own-slot link tail are selected at no level entry and were not compared.
+- 16:9 (`scratch/c3cull/shots/pairs.png`: 4:3 left, 16:9 right, the same frame 200 frames after one saved state;
+  Dingodile 0x03, underwater 0x0E, sway 0x0C, glow 0x24): the margins fill with the world and the centre 512 columns of
+  each 16:9 shot equal the 4:3 shot pixel for pixel. Main RAM differs only in the two frames' ordering tables and
+  cursors (0x61A88-0x65BC8) and primitive buffers, the scratchpad only in the renderer's dead stack.
+- Left: Dingodile's right edge and the underwater level's top corners still show the clear colour in places; not yet
+  traced to the sort list or a cull. The scene effects and object drawers still cull at x = 512.
+- Cost (`PSXPORT_DEBUG=perf`, ires 0, fps60, 3840x2160 sink, 16:9, 15 s after the warp, two unpaced runs a build,
+  run-to-run spread 0 on p50 and p99): instructions per logic frame p50 / p99, native against the guest renderer,
+  scene 0x03 frame 104.9 / 134.2 M against 108.0 / 138.4 M (game-logic 86.0 against 90.2, present 17.3 against 16.8:
+  the margins' polygons); scene 0x0E frame 75.5 / 112.2 M against 81.8 / 117.4-118.5 M (game-logic 64.0 against 70.3,
+  present 12.2 against 11.9).
+
+Crash 1 holds none of these constants; its world renderers (`RGteTransformWorlds` and its variants,
 crash-bandicoot-decomp `docs/names.md`) are not yet read for a screen test.

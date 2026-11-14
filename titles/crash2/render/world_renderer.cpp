@@ -175,6 +175,14 @@ inline constexpr crash::world::Title kTitle{
     .sceneModes = 0x10u,
     .modes = kModes,
     .costs = kCosts,
+    .sway = {.sineTable = 0x8005BCB0u, .angleShift = 4u},
+    .pulse = {.pulseBit = crash::world::kBit19, .dimBit = crash::world::kBit18, .dimNear = 0x258u, .span = 0x2D8u},
+    .glow = {.colourWord = crash::world::scratch::kCameraZ,
+             .firstReach = 0x15E0u,
+             .laterReach = 0x12C0u,
+             .cornerHead = run(0x80044C88u, 0x80044C90u),
+             .flatTriangle = run(0x80044D98u, 0x80044DC4u),
+             .flatQuad = run(0x80044DFCu, 0x80044E28u)},
 };
 
 void draw(Core *core) {
