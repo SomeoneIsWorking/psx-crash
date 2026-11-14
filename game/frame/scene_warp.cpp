@@ -34,6 +34,14 @@ std::string SceneWarp::armSpawn(std::uint32_t spawn, Core &core, const FrameProg
   if (spawn >= count) {
     return lucent::format("refused: the level has spawn points 0-{}", count - 1u);
   }
+  const std::uint32_t level = core.mem_r32(header + program.spawns->levelIdOffset);
+  if (level == program.spawns->warpRoomLevel) {
+    return "refused: the warp room picks its spawn point from the level left";
+  }
+  if (spawn >= program.spawns->carriedSpawns) {
+    return lucent::format(
+        "refused: the game starts level 0x{:X} only at spawn points 0-{}", level, program.spawns->carriedSpawns - 1u);
+  }
   const std::uint32_t scene = core.mem_r32(program.sceneIdAddress);
   armed_ = scene;
   spawn_ = spawn;

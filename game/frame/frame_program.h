@@ -17,10 +17,15 @@ struct SceneTable {
 };
 
 // The level's spawn points: `*levelHeader` is the resident level header, whose first word is the spawn count; the
-// level load starts the player at the spawn `spawnIndex` names.
+// level load starts the player at the spawn `spawnIndex` names. A level whose id (the header word at `levelIdOffset`)
+// is `warpRoomLevel` picks its own spawn from the level left; any other starts at the index the game left there,
+// which it only ever sets below `carriedSpawns`.
 struct SpawnPoints {
   std::uint32_t levelHeader;
   std::uint32_t spawnIndex;
+  std::uint32_t levelIdOffset;
+  std::uint32_t warpRoomLevel;
+  std::uint32_t carriedSpawns;
 };
 
 // GpuUpdate's frame limiter: it skips both display waits once the VBlank counter its VSync callback bumps

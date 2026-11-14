@@ -1,7 +1,7 @@
 ---
 id: 42
 title: "Crash 2: the real frame faults at 0x80014B74 after a scene 0x1D spawn warp with up held"
-status: open
+status: closed
 symptom: the product aborts (exit 139) right after `spawn 6` in scene 0x1D while up is held
 state_items: S007
 tags: crash2,crash,warp
@@ -28,9 +28,17 @@ Traced so far:
   (`800111B0.c`). Elsewhere the index carries over from the previous level start. So spawn 6 of a level that is not
   a warp room may be a slot retail never starts at.
 
-Not decided: whether retail reaches this state. Next:
-1. Read scene 0x1D's header +8 (level kind) and whether 0x4C694073 is in its NSD. A record's EID is at +4, 8-byte
-   records, buckets at `*0x80067590`, index `(eid >> 15) & 0xFF`.
-2. Find which object owns the GOOL code at 0x800F3584 and what it guards with op 3.
-3. If the slot is one retail never starts at, `SceneWarp::armSpawn` refuses it, using the rule `func_8001F9C4`
-   follows. If retail can reach it, the missing EID is a retail defect to record in crash2-decomp.
+Decided by RE (crash2-decomp `docs/notes/spawn-index.md`): retail never starts level 0x1D at spawn 6.
+- The scene's level header word at 8 is 0x1D, so `func_8001F9C4` keeps the index the game left. Every store to it is
+  `func_8001F9C4`, `Sys_ResetGameInfo` and the demo end (0), and GOOL `GVAW` to global 131, which stores only 0 and 1
+  in every GOOL entry on the disc. The warp room's table slot is zeroed by its `CHeOC` object on its first frame (store
+  watch: 6, then 0, on frame 2).
+- 0x800F3584 is `WillC`'s (the player's) constant pool; its `Gool_OpChunk` kind 3 asks whether `Cda0V` (0x4C694073,
+  pool word 41) is resident. Level 0x1D's NSD has no record for it, so `Nsf_LookupEid` runs off the records.
+
+Fix: `SceneWarp::armSpawn` refuses the warp room (it picks its own spawn) and, elsewhere, spawns at or past
+`SpawnPoints::carriedSpawns` (2 for Crash 2).
+
+Proof, from `s1d.state` with up held (`rep42.py p42.log 6 1 0`): `spawn 6` replies "refused: the game starts level
+0x1D only at spawn points 0-1"; `spawn 1` and `spawn 0` each run 300 frames with no fault (frames 602 and 902), and
+the present after spawn 1 shows Crash on the level's ice path.
