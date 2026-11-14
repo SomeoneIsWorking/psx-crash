@@ -49,13 +49,31 @@ record canvas's columns (`recordCanvasColumns`); the row test stays the retail p
 keeps is charged to the guest clock as the retail cull left it, so the margins cost the game no time.
 - 4:3 differential (`PSXPORT_OVERRIDE_DIFF=0x80041E5C`, every reachable scene by `warp scene`, 6-8 s each): 10284
   sampled calls of 40946, all equal (memory, scratchpad, GTE, callee-saved registers); default, depth fog, tint,
-  pulse, lamps, glow, waves and sway were reached. Fog and light are not selected at any level's entry, so their
-  steps are written from the disassembly but not yet compared.
+  pulse, lamps, glow, waves and sway were reached.
+- Fog (crash2-decomp `docs/notes/world-renderer.md`, "Where fog is selected"): only level 0xF's zones carry the flag,
+  and `LighC`'s lightning sets the global it also needs. `warp scene 0xF` then `spawn 1` (a spawn the game uses) reaches
+  it with no input. 4:3 differential there, every call compared (`PSXPORT_OVERRIDE_DIFF_EVERY=1`, 40 s): 5422 calls,
+  5422 equal; a store watch on the scene's setup word puts 895 of those frames in fog, the rest depth fog.
+- Light ("Where light is selected"): the player's dark-level code `WilnC` sets `g_FrameFlags` 0x1000000 only while the
+  player stands on floor type 15 of levels 0x15 and 0x24; no spawn the game uses stands there, so no warp reaches it
+  and it was not added. With the flag's GOOL word and global 144 set through the debug server (`w32`), 4:3, every call
+  compared, 30 s: scene 0x15 4476 of 4476 equal, scene 0x24 4462 of 4462, light's setup in all but 3 frames each. No
+  polygon there passes the light projectors' test, so the grid walk (0x800461E0) is still not compared.
 - 16:9: scenes 0x15, 0x10, 0x25 and the warp room (0x02) fill both margins with the world, the 4:3 picture
   unchanged; main RAM after 200 frames from one state differs between 4:3 and 16:9 only in the two frames' ordering
   tables and primitive buffers.
-- The warp room's right margin past the Snow Go doorway still shows the clear colour. The new test drops only
-  polygons wholly outside the canvas, so that gap is not a cull: the sort list holds nothing there.
+- The warp room's right margin past the Snow Go doorway still shows the clear colour. It is the sort list, not a cull:
+  logged per frame at 16:9 (`warp scene 0x02`), the list's polygons reach SX -376 to 664 against the canvas's right
+  column 598, but none covers SX 560-595 at SY 30 or 580-595 at SY 90. The list is SLST disc data for the 4:3 view,
+  copied or delta-applied by `func_80029800` with no screen test (crash2-decomp `docs/notes/screen-culls.md`), so there
+  is no visibility owner to override; filling the gap needs polygons the list never names. Left as is.
+- Cost (`PSXPORT_DEBUG=perf`, ires 0, fps60, 3840x2160 sink, 15 s after the warp, two unpaced runs a build, run-to-run
+  spread 0 on every percentile): instructions per logic frame p50 / p99, native against the guest renderer, scene 0x15
+  frame 100.7 / 163.6 M against 116.4 / 180.4 M (game-logic 64.5 against 72.4, replay 18.4 against 25.7, present 18.1
+  both); scene 0x02 frame 120.6 / 176.2 M against 146.8 / 197.1 M (game-logic 74.4 against 86.0, replay 30.7 against
+  43.5). Paced, hidden window, on the idle second machine, `warp scene 0x15` 20 s: native presents p50 16.75 ms, p99
+  18.25 ms, cadence 0.50 tick on 1189 of 1200 vblanks (0.00 x3, 1.00 x1, 2.00 x1, 5 unknown, load holds included);
+  the guest renderer p99 33.75 ms, 1195 of 1208 (0.00 x6). The native renderer costs no presents.
 - Objects: no object was seen to pop at the margins in these scenes; the box test 0x80041D14 is unchanged.
 
 Crash 3 builds the same bound inline at ten sites (crash3-decomp `docs/notes/screen-culls.md`); the one read
