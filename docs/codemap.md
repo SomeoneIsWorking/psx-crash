@@ -77,7 +77,7 @@ Frame loop: not owned. Each step runs the core loop iteration (`native_frame.ite
 | Crash 3 pad | the title's own libpad SIO path over psxport's SIO device |
 | stock libcd | `StockLibcd` bound in `crash::Runtime::registerOverrides`; CD reads are synchronous |
 | level code | `crash::Runtime::stockCdReadLanded` → `publishStockReadLanding` over the title's arena |
-| widescreen | `crash::Runtime::guestWidescreenProjection` (stock aspect policy); the world's column cull is widened in `crash::world` (Crash 2 and 3); not yet widened: Crash 1's world, and the object culls (Crash 2 box test 0x80041D14, Crash 3 object drawers; crash2-decomp and crash3-decomp `docs/notes/screen-culls.md`, issue 0030) |
+| widescreen | `crash::Runtime::guestWidescreenProjection` (stock aspect policy); the world's column cull is widened in `crash::world` (Crash 2 and 3); not yet widened: Crash 1's world, Crash 3's water grid 0x80043FFC, and the object culls (Crash 2 box test 0x80041D14, Crash 3 box test `D_8003DEF4` and model drawers; crash2-decomp and crash3-decomp `docs/notes/screen-culls.md`, issue 0030) |
 
 ## Where does it go?
 

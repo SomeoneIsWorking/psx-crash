@@ -102,8 +102,38 @@ shared too (`world_modes`), and `crash3::WorldRenderer` adds the underwater mode
   Dingodile 0x03, underwater 0x0E, sway 0x0C, glow 0x24): the margins fill with the world and the centre 512 columns of
   each 16:9 shot equal the 4:3 shot pixel for pixel. Main RAM differs only in the two frames' ordering tables and
   cursors (0x61A88-0x65BC8) and primitive buffers, the scratchpad only in the renderer's dead stack.
-- Left: Dingodile's right edge and the underwater level's top corners still show the clear colour in places; not yet
-  traced to the sort list or a cull. The scene effects and object drawers still cull at x = 512.
+- Dingodile's right edge and the underwater level's side wedges still show the clear colour. It is the sort list, not
+  a cull: logged per frame at 16:9 (each projected polygon rasterised into 4-pixel cells, kept or not; `warp scene
+  0x03` and `0x0E`, 60 frames from a saved state), no polygon in the list covers those cells, and the only margin
+  cells the renderer drops are below row 217, the retail row test (crash3-decomp `docs/notes/screen-culls.md`, "The
+  world's sort list"). As in Crash 2's warp room, the list names only what the 4:3 view needs; left as is.
+
+Crash 3 scene 0x3A (2026-11-14): the scan that warps through every scene in one process (0x02..0x2A, a shot after
+each, then 0x3A) ended with exit 134 twice, once on HEAD, with nothing in the log. 134 is psxport's frame watchdog
+(`runtime/psx/platform/watchdog.cpp`, `_exit(134)` when no frame presents for `PSXPORT_WATCHDOG` = 3 s), not a guest
+fault or an abort: no core dump was written. The scene's load does not hold presents: logged on `presentseq` from
+0x2A, the longest gap after the 0x3A request is 24 ms (0x2A's own 86 ms). From one saved 0x2A state, the request at
+each of frames 0-149 then 400 frames runs (150 of 150), and four more full scans with stderr kept reached 0x3A and
+ran it (an Aku Aku screen). The machine was loaded by other agents' runs meanwhile (load average 21; in one clean
+scan a single 8-frame disc hunk fill took 1387 ms). The two tripped runs' stderr, which held the watchdog's
+backtrace, was not kept, so what stalled is not shown. The warp is not the owner and refuses nothing.
+
+Crash 3 scene effects and objects (2026-11-14, crash3-decomp `docs/notes/screen-culls.md`, "Seen in the picture"):
+each group's right bound was raised through the debug server from one saved state per scene (0x02, 0x03, 0x04, 0x0D,
+0x0E), 16:9, and the shot 60 frames later compared with the same state unpatched (two unpatched runs are identical).
+- The scene effects matter: in the jet-ski level 0x0D the sea stops at jagged edges in the right and
+  left margins; with the bounds raised the right margin fills (2778 pixels, nothing else changes;
+  `scratch/c3left/ev/pair_0D_fx.png`). Raised one at a time, the sea is 0x80043FFC's alone (its bound, kept at
+  scratchpad 0x38C, gives the same 2778 pixels; 0x800452A0's gives none here). 0x80043FFC is a hand-written grid
+  drawer with its own cell routines (0x8004420C, 0x8004447C, 0x80044674, 0x80044878; about 830 instructions), the
+  left edge being the SXY sign bit, so no bound moves it. Widening it means owning it in host code with the world
+  renderer's column test, as for `Gfx_DrawWorlds`; not done in this pass. 0x800452A0 (with 0x800454D4) and
+  0x80043310 (scene 0x02) changed nothing in the scenes tried.
+- The object box test is `D_8003DEF4` (Crash 2's 0x80041D14 in quarter units; the corner check is 0x8003E000) and
+  the model drawers test each triangle against the packed bound. Raising either or both changed no margin pixel in
+  the five scenes, so no override was written. Raising both lets the guest drawers draw more, which changes the
+  game's own timing: later frames differ everywhere (0x04 out of phase by frame 150). A widening of the objects has
+  to keep the margin's drawing off the guest clock, as the world renderer does.
 - Cost (`PSXPORT_DEBUG=perf`, ires 0, fps60, 3840x2160 sink, 16:9, 15 s after the warp, two unpaced runs a build,
   run-to-run spread 0 on p50 and p99): instructions per logic frame p50 / p99, native against the guest renderer,
   scene 0x03 frame 104.9 / 134.2 M against 108.0 / 138.4 M (game-logic 86.0 against 90.2, present 17.3 against 16.8:
