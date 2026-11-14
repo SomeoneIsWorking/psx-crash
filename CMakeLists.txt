@@ -131,7 +131,7 @@ function(configure_title_native_facts target title)
   endif()
 endfunction()
 
-# The title-independent owners: runtime, session, boot services and the frame turn.
+# The title-independent owners: runtime, session, boot services, the frame turn and the world renderer.
 add_library(
   crash_game STATIC
   "${CMAKE_CURRENT_SOURCE_DIR}/game/boot/callback_boot.cpp"
@@ -143,6 +143,9 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/scene_warp.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/runtime/runtime.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/runtime/session.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_default.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_pass.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_renderer.cpp"
 )
 crash_include_roots(crash_game)
 target_compile_features(crash_game PUBLIC cxx_std_20)
@@ -182,10 +185,8 @@ add_crash_title(
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/view_entry.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/fade_level.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/morph_reader.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_default.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_light.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_modes.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_pass.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_renderer.cpp"
 )
 add_crash_title(crash3)

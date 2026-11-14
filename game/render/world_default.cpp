@@ -1,9 +1,9 @@
 // The default scene mode's projectors and drawers, which every other mode ends in.
-#include "crash2/render/world_steps.h"
+#include "render/world_default.h"
 
 #include "gte_registers.h"
 
-namespace crash2::world {
+namespace crash::world {
 namespace {
 
 using psx::gte::kRtps;
@@ -32,11 +32,11 @@ bool opaque(std::uint32_t textureSecond) {
 } // namespace
 
 void projectTriangle(Pass &pass) {
-  pass.charge(run(0x80042420u, 0x8004243Cu));
+  pass.charge(pass.costs().projectTriangleHead);
   pass.command(kRtpt);
   pass.colour[0] = pass.vertexColour(0);
   pass.decodeNext();
-  pass.charge(run(0x80042494u, 0x800424DCu));
+  pass.charge(pass.costs().projectTriangleCull);
   const std::uint32_t screens[3] = {pass.screen(0), pass.screen(1), pass.screen(2)};
   const Cull cull = pass.offScreen(screens, 3);
   if (cull == Cull::Rows) {
@@ -47,19 +47,19 @@ void projectTriangle(Pass &pass) {
   }
   pass.colour[1] = pass.vertexColour(1);
   pass.colour[2] = pass.vertexColour(2);
-  pass.charge(run(0x800424E8u, 0x80042538u) + pass.depthSlot() + run(0x80042540u, 0x80042544u));
+  pass.charge(pass.costs().projectTriangleVisible + pass.depthSlot() + pass.costs().projectTriangleTail);
   pass.drawTriangleStep(pass);
 }
 
 void projectQuadKeepFirst(Pass &pass) {
-  pass.charge(run(0x80042698u, 0x8004269Cu));
+  pass.charge(pass.costs().keepFirst);
   pass.storeScratch(scratch::kQuadFirstVxy, pass.gteData(psx::gte::kVxy0));
   pass.storeScratch(scratch::kQuadFirstVz, pass.gteData(psx::gte::kVz0));
   projectQuad(pass);
 }
 
 void projectQuad(Pass &pass) {
-  pass.charge(run(0x800426A0u, 0x800426BCu));
+  pass.charge(pass.costs().projectQuadHead);
   pass.command(kRtpt);
   pass.colour[0] = pass.vertexColour(0);
   pass.decodeNext();
@@ -72,7 +72,7 @@ void projectQuad(Pass &pass) {
   pass.command(kRtps);
   pass.colour[1] = pass.vertexColour(1);
   screens[3] = pass.screen(2);
-  pass.charge(run(0x80042714u, 0x8004279Cu));
+  pass.charge(pass.costs().projectQuadCull);
   const Cull cull = pass.offScreen(screens, 4);
   if (cull == Cull::Rows) {
     return;
@@ -82,15 +82,15 @@ void projectQuad(Pass &pass) {
   }
   pass.colour[2] = pass.vertexColour(2);
   pass.colour[3] = pass.vertexColour(3);
-  pass.charge(run(0x800427A8u, 0x80042808u) + pass.depthSlot() + run(0x80042810u, 0x80042814u));
+  pass.charge(pass.costs().projectQuadVisible + pass.depthSlot() + pass.costs().projectQuadTail);
   pass.drawQuadStep(pass);
 }
 
 void drawTriangle(Pass &pass) {
   const std::uint32_t primitive = pass.next;
-  pass.charge(run(0x80042548u, 0x80042550u));
+  pass.charge(pass.costs().triangleHead);
   if (untextured(pass)) {
-    pass.charge(run(0x80042554u, 0x80042580u));
+    pass.charge(pass.costs().triangleShaded);
     pass.storeScreen(primitive + 0x08u, 0);
     pass.storeScreen(primitive + 0x10u, 1);
     pass.storeScreen(primitive + 0x18u, 2);
@@ -100,24 +100,24 @@ void drawTriangle(Pass &pass) {
     pass.linkPrimitive(7);
     return;
   }
-  pass.charge(run(0x80042584u, 0x80042588u));
+  pass.charge(pass.costs().triangleTextured);
   const std::array<std::uint32_t, 3> texture = pass.triangleTexture();
-  pass.charge(run(0x80042614u, 0x80042628u));
+  pass.charge(pass.costs().triangleTexture);
   if (pass.scratchWord(scratch::kRotated) != 0u) {
-    pass.charge(run(0x8004262Cu, 0x8004264Cu));
+    pass.charge(pass.costs().triangleTurn);
   }
   pass.store(primitive + 0x0Cu, texture[0]);
   pass.store(primitive + 0x18u, texture[1]);
   pass.store(primitive + 0x24u, texture[2]);
   pass.store(primitive + 0x10u, pass.colour[1]);
   pass.store(primitive + 0x1Cu, pass.colour[2]);
-  pass.charge(run(0x80042650u, 0x80042670u));
+  pass.charge(pass.costs().triangleWords);
   std::uint32_t code = kPolyGt3;
   if (!opaque(texture[1])) {
-    pass.charge(1);
+    pass.charge(pass.costs().blended);
     code = kPolyGt3Blended;
   }
-  pass.charge(run(0x80042678u, 0x80042694u));
+  pass.charge(pass.costs().triangleEnd);
   pass.store(primitive + 0x04u, pass.colour[0] | code);
   pass.storeScreen(primitive + 0x08u, 0);
   pass.storeScreen(primitive + 0x14u, 1);
@@ -127,9 +127,9 @@ void drawTriangle(Pass &pass) {
 
 void drawQuad(Pass &pass) {
   const std::uint32_t primitive = pass.next;
-  pass.charge(run(0x80042818u, 0x80042820u));
+  pass.charge(pass.costs().quadHead);
   if (untextured(pass)) {
-    pass.charge(run(0x80042824u, 0x80042850u));
+    pass.charge(pass.costs().quadShaded);
     pass.storeScreen(primitive + 0x10u, 0);
     pass.storeScreen(primitive + 0x18u, 1);
     pass.storeScreen(primitive + 0x20u, 2);
@@ -140,12 +140,12 @@ void drawQuad(Pass &pass) {
     pass.linkPrimitive(9);
     return;
   }
-  pass.charge(run(0x80042854u, 0x8004285Cu));
+  pass.charge(pass.costs().quadTextured);
   const std::uint32_t texture = pass.textureAddress();
   const std::uint32_t first = pass.word(texture);
   const std::uint32_t second = pass.word(texture + 4u);
   const std::uint32_t third = pass.word(texture + 8u);
-  pass.charge(run(0x800428E8u, 0x80042924u));
+  pass.charge(pass.costs().quadWords);
   pass.store(primitive + 0x0Cu, first);
   pass.store(primitive + 0x18u, second);
   pass.store(primitive + 0x24u, third);
@@ -155,10 +155,10 @@ void drawQuad(Pass &pass) {
   pass.store(primitive + 0x28u, pass.colour[3]);
   std::uint32_t code = kPolyGt4;
   if (!opaque(second)) {
-    pass.charge(1);
+    pass.charge(pass.costs().blended);
     code = kPolyGt4Blended;
   }
-  pass.charge(run(0x8004292Cu, 0x80042944u));
+  pass.charge(pass.costs().quadEnd);
   pass.store(primitive + 0x04u, pass.colour[0] | code);
   pass.storeScreen(primitive + 0x14u, 0);
   pass.storeScreen(primitive + 0x20u, 1);
@@ -184,4 +184,4 @@ void drawFlatQuad(Pass &pass) {
   pass.linkPrimitive(6);
 }
 
-} // namespace crash2::world
+} // namespace crash::world

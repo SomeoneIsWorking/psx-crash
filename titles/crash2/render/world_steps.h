@@ -1,26 +1,16 @@
-// world_steps.h — the scene modes' projectors and drawers of Gfx_DrawWorlds in host code (crash2-decomp
+// world_steps.h — Crash 2's scene modes' projectors and drawers of Gfx_DrawWorlds in host code (crash2-decomp
 // docs/notes/world-renderer.md). A projector runs with the polygon's corners in the GTE's vectors; a drawer with its
 // corners projected and its colours, depth and slot found. Each mode composes the default steps as the retail one jumps
 // into them.
 #pragma once
 
-#include "crash2/render/world_pass.h"
-
-#include <cstdint>
-#include <span>
+#include "render/world_default.h"
+#include "render/world_pass.h"
 
 namespace crash2::world {
 
-// The default mode (Gfx_SetDefaultSceneMode): project, cull off the screen, draw shaded or textured.
-void projectTriangle(Pass &pass);      // 0x80042420
-void projectQuad(Pass &pass);          // 0x800426A0
-void projectQuadKeepFirst(Pass &pass); // 0x80042698: the first corner's vector kept first (lamps, glow)
-void drawTriangle(Pass &pass);         // 0x80042548
-void drawQuad(Pass &pass);             // 0x80042818
-// A black flat polygon instead (depth fog, glow): its last three corners from the GTE, a quad's first the projector
-// wrote; the caller charges its site's instructions.
-void drawFlatTriangle(Pass &pass);
-void drawFlatQuad(Pass &pass);
+// Crash 2's modes are written over the shared pass and default steps.
+using namespace crash::world;
 
 // Fog (flag 0x200000 with D_8006CDC4): each corner toward a bright or dark far colour by the scene's depth.
 void drawFogTriangle(Pass &pass); // 0x800459A8
@@ -49,26 +39,9 @@ void drawWaveQuad(Pass &pass);        // 0x80043D34
 void projectSwayTriangle(Pass &pass); // 0x80042AB8
 void projectSwayQuad(Pass &pass);     // 0x80042B7C
 void drawSwayTriangle(Pass &pass);    // 0x80042B44
-void drawSwayQuad(Pass &pass); // 0x80042C2C// The light around Crash (game flag 0x1000000): polygons near him divided
-                               // into a lit grid (world_light.cpp).
+void drawSwayQuad(Pass &pass);       // 0x80042C2C
+// The light around Crash (game flag 0x1000000): polygons near him divided into a lit grid (world_light.cpp).
 void projectLightTriangle(Pass &pass); // 0x80045D88
 void projectLightQuad(Pass &pass);     // 0x80045F40
-
-// A scene mode: the five entries Gfx_SetDefaultSceneMode or Gfx_SetupScene store at g_Scene + 0x10, and the host
-// steps standing for the four the dispatcher and projectors reach The setup runs as guest code.
-struct Mode {
-  std::uint32_t setup = 0;
-  std::uint32_t projectTriangle = 0;
-  std::uint32_t projectQuad = 0;
-  std::uint32_t drawTriangle = 0;
-  std::uint32_t drawQuad = 0;
-  Step projectTriangleStep = nullptr;
-  Step projectQuadStep = nullptr;
-  Step drawTriangleStep = nullptr;
-  Step drawQuadStep = nullptr;
-};
-
-// Every mode the executable stores (Gfx_SetDefaultSceneMode 0x80011E24, Gfx_SetupScene 0x80020A24).
-std::span<const Mode> modes();
 
 } // namespace crash2::world

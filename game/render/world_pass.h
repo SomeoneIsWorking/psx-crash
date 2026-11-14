@@ -1,6 +1,7 @@
-// world_pass.h — Gfx_DrawWorlds' polygon on its way through the scene's mode, and the retail steps the modes share
-// (crash2-decomp docs/notes/world-renderer.md). Every scratchpad word, primitive word and GTE register ends as the
-// retail code leaves it; the guest clock is charged the instructions the retail path runs.
+// world_pass.h — the world renderer's polygon on its way through the scene's mode (Crash 2 Gfx_DrawWorlds
+// 0x80041E5C, Crash 3 0x80040ED8; crash2-decomp docs/notes/world-renderer.md, crash3-decomp
+// docs/notes/world-renderer.md). Every scratchpad word, primitive word and GTE register ends as the retail code leaves
+// it; the guest clock is charged the instructions the title's retail path runs.
 #pragma once
 
 #include "core.h"
@@ -10,8 +11,9 @@
 
 #include <array>
 #include <cstdint>
+#include <span>
 
-namespace crash2::world {
+namespace crash::world {
 
 // The instructions in the retail run [first, last], delay slots included.
 constexpr std::uint32_t run(std::uint32_t first, std::uint32_t last) {
@@ -26,7 +28,7 @@ constexpr bool negative(std::uint32_t value) {
   return static_cast<std::int32_t>(value) < 0;
 }
 
-// Scratchpad words of the renderer, as offsets from its base.
+// Scratchpad words of the renderer, as offsets from its base (the same in both titles).
 namespace scratch {
 inline constexpr std::uint32_t kBase = 0x1F800000u;
 inline constexpr std::uint32_t kSavedSp = 0x000u;
@@ -37,6 +39,8 @@ inline constexpr std::uint32_t kSwayScale = 0x060u;
 inline constexpr std::uint32_t kDrawTriangle = 0x064u;
 inline constexpr std::uint32_t kDrawQuad = 0x068u;
 inline constexpr std::uint32_t kDrained = 0x06Cu;
+inline constexpr std::uint32_t kLinkTail = 0x070u;
+inline constexpr std::uint32_t kEntryWorld = 0x074u;
 inline constexpr std::uint32_t kUpcoming = 0x078u;
 inline constexpr std::uint32_t kLamp1Xy = 0x07Cu;
 inline constexpr std::uint32_t kLamp1Z = 0x080u;
@@ -56,6 +60,7 @@ inline constexpr std::uint32_t kCameraY = 0x0C4u;
 inline constexpr std::uint32_t kCameraZ = 0x0C8u;
 inline constexpr std::uint32_t kPhase = 0x0CCu;
 inline constexpr std::uint32_t kDepthShifts = 0x0D0u;
+inline constexpr std::uint32_t kCornerColour = 0x0DCu;
 inline constexpr std::uint32_t kSwayShift = 0x0F0u;
 inline constexpr std::uint32_t kLightTexture = 0x0F4u;
 inline constexpr std::uint32_t kWaves = 0x100u;
@@ -63,6 +68,7 @@ inline constexpr std::uint32_t kQuadFirstXy = 0x178u;
 inline constexpr std::uint32_t kQuadFirstZ = 0x17Cu;
 inline constexpr std::uint32_t kRotated = 0x184u;
 inline constexpr std::uint32_t kLitDepth = 0x188u;
+inline constexpr std::uint32_t kCornerShades = 0x190u;
 inline constexpr std::uint32_t kModeColour = 0x1A8u;
 inline constexpr std::uint32_t kQuadFirstVxy = 0x1B4u;
 inline constexpr std::uint32_t kQuadFirstVz = 0x1B8u;
@@ -73,6 +79,7 @@ inline constexpr std::uint32_t kTintFar = 0x1FCu;
 inline constexpr std::uint32_t kLampFull = 0x208u;
 inline constexpr std::uint32_t kTint = 0x214u;
 inline constexpr std::uint32_t kScreenEnd = 0x21Cu;
+inline constexpr std::uint32_t kLevelShift = 0x22Cu;
 inline constexpr std::uint32_t kWorlds = 0x280u;
 } // namespace scratch
 
@@ -118,6 +125,134 @@ struct Record {
 class Pass;
 using Step = void (*)(Pass &);
 
+// A scene mode: the setup and the four steps the scene stores, and the host steps standing for them. The setup runs
+// as guest code.
+struct Mode {
+  std::uint32_t setup = 0;
+  std::uint32_t projectTriangle = 0;
+  std::uint32_t projectQuad = 0;
+  std::uint32_t drawTriangle = 0;
+  std::uint32_t drawQuad = 0;
+  Step projectTriangleStep = nullptr;
+  Step projectQuadStep = nullptr;
+  Step drawTriangleStep = nullptr;
+  Step drawQuadStep = nullptr;
+};
+
+// How a drawn polygon joins the ordering table.
+enum class Link : std::uint8_t {
+  // Into the lowest slot linked so far, the slots between relinked (Crash 2 0x80042948, Crash 3 0x80041550).
+  Sorted,
+  // Crash 3 0x800415A4: world 0 at the table's first slot, others into the lower of their slot and the lowest.
+  Bucket,
+  // Crash 3 0x80041618: into its own slot.
+  OwnSlot,
+};
+
+struct LinkTail {
+  std::uint32_t address = 0;
+  Link link = Link::Sorted;
+};
+
+// The instructions each retail path segment runs; a path's charge is the sum of its segments.
+struct Costs {
+  // Dispatcher.
+  std::uint32_t prologue = 0;
+  std::uint32_t emptyList = 0;
+  std::uint32_t beforeSetup = 0;
+  std::uint32_t afterSetup = 0;
+  std::uint32_t firstDecode = 0;
+  std::uint32_t loopTop = 0;
+  std::uint32_t loadTriangle = 0;
+  std::uint32_t loadQuadFirst = 0;
+  std::uint32_t loadQuadLast = 0;
+  std::uint32_t loadQuad = 0;
+  std::uint32_t nextEntry = 0;
+  std::uint32_t linkedFinish = 0;
+  std::uint32_t drain = 0;
+  std::uint32_t drainAgain = 0;
+  std::uint32_t afterLoop = 0;
+  std::uint32_t afterLoopUnsorted = 0;
+  std::uint32_t linkDownHead = 0;
+  std::uint32_t linkDownSlot = 0;
+  std::uint32_t epilogue = 0;
+  // The next entry's record.
+  std::uint32_t decodeQuad = 0;
+  std::uint32_t decodeTriangle = 0;
+  // Default projectors.
+  std::uint32_t projectTriangleHead = 0;
+  std::uint32_t projectTriangleCull = 0;
+  std::uint32_t projectTriangleVisible = 0;
+  std::uint32_t projectTriangleTail = 0;
+  std::uint32_t keepFirst = 0;
+  std::uint32_t projectQuadHead = 0;
+  std::uint32_t projectQuadCull = 0;
+  std::uint32_t projectQuadVisible = 0;
+  std::uint32_t projectQuadTail = 0;
+  // Default drawers.
+  std::uint32_t triangleHead = 0;
+  std::uint32_t triangleShaded = 0;
+  std::uint32_t triangleTextured = 0;
+  std::uint32_t triangleTexture = 0;
+  std::uint32_t triangleTurn = 0;
+  std::uint32_t triangleWords = 0;
+  std::uint32_t triangleEnd = 0;
+  std::uint32_t quadHead = 0;
+  std::uint32_t quadShaded = 0;
+  std::uint32_t quadTextured = 0;
+  std::uint32_t quadWords = 0;
+  std::uint32_t quadEnd = 0;
+  std::uint32_t blended = 0;
+  // Texture lookup paths.
+  std::uint32_t textureFixed = 0;
+  std::uint32_t textureHead = 0;
+  std::uint32_t textureAnimation = 0;
+  std::uint32_t textureFrameLevel = 0;
+  std::uint32_t textureLevel = 0;
+  std::uint32_t textureEnd = 0;
+  // Link tails.
+  std::uint32_t linkHead = 0;
+  std::uint32_t relinkHead = 0;
+  std::uint32_t relinkSlot = 0;
+  std::uint32_t linkAppend = 0;
+  std::uint32_t bucketHead = 0;
+  std::uint32_t bucketCompare = 0;
+  std::uint32_t bucketRaise = 0;
+  std::uint32_t bucketAppend = 0;
+  std::uint32_t bucketFront = 0;
+  std::uint32_t ownSlot = 0;
+};
+
+// One title's world renderer: its entry, the guest calls it makes, its frame and scene layout, and the facts where
+// the two titles' retail code differs.
+struct Title {
+  std::string_view owner;
+  std::uint32_t drawWorlds = 0;
+  std::uint32_t resetOt = 0;
+  std::uint32_t resetOtReturn = 0;
+  std::uint32_t setupReturn = 0;
+  std::uint32_t depthShiftTable = 0;
+  // The frame's ordering table, from the frame argument.
+  std::uint32_t frameOt = 0;
+  // The scene's setup word; the four steps follow it.
+  std::uint32_t sceneModes = 0;
+  // Crash 3: the scene's link tail (copied to scratchpad 0x70) and texture level shift (0x22C).
+  std::uint32_t sceneLinkTail = 0;
+  std::uint32_t sceneLevelShift = 0;
+  // Crash 3 world vertices are in quarter units: VXY and VZ shifted right by 2 before the world offset.
+  std::uint32_t vertexShift = 0;
+  // Crash 3: ZSF3/ZSF4 set by the dispatcher, AVSZ3/AVSZ4 before the cull and the depth MAC0 >> 15; Crash 2 sums
+  // SZ1..SZ3 >> 5.
+  bool averageDepth = false;
+  std::uint32_t averageScale3 = 0;
+  std::uint32_t averageScale4 = 0;
+  // Crash 3: the next entry's world bits stored to scratchpad 0x74 as it is decoded.
+  bool storesEntryWorld = false;
+  std::span<const Mode> modes;
+  std::span<const LinkTail> tails;
+  Costs costs;
+};
+
 // Which retail path found a texture: fixed, an animation's frame, a depth level of that frame, or a depth level.
 enum class TexturePath : std::uint8_t {
   Fixed,
@@ -131,7 +266,7 @@ struct TextureLookup {
   TexturePath path = TexturePath::Fixed;
 };
 
-// How a polygon left the mode: skipped (0x80042390) or linked by the draw tail (0x80042948).
+// How a polygon left the mode: skipped (to the loop's next entry) or linked by the link tail.
 enum class Ending : std::uint8_t {
   Skipped,
   Linked,
@@ -146,11 +281,17 @@ enum class Cull : std::uint8_t {
 
 class Pass {
 public:
-  Pass(Core &core, psx::present::CullWindow columns)
-      : core_(core), gte_(core.gte()), memory_(core), columns_(columns) {}
+  Pass(Core &core, const Title &title, psx::present::CullWindow columns)
+      : core_(core), title_(title), gte_(core.gte()), memory_(core), columns_(columns) {}
 
   Core &core() {
     return core_;
+  }
+  const Title &title() const {
+    return title_;
+  }
+  const Costs &costs() const {
+    return title_.costs;
   }
   psx::cpu::Gte &gte() {
     return gte_;
@@ -211,8 +352,8 @@ public:
   }
 
   // Off the screen: every corner left of its first column, right of its last, or past its last row. The rows and the
-  // retail columns are the packed test of 0x800424B8; a wider canvas moves only the column edges. Charges the column
-  // test's branch when the rows pass.
+  // retail columns are the packed test of the projectors; a wider canvas moves only the column edges. Charges the
+  // column test's branch when the rows pass. Crash 3 averages the depth first (AVSZ3 or AVSZ4).
   Cull offScreen(const std::uint32_t *screens, int corners);
   // A polygon only the wider canvas keeps: the guest clock is charged as the retail cull left it.
   bool margin() const {
@@ -225,11 +366,11 @@ public:
   // The vertex's colour from the current world's table (word and halfword of its vertex).
   std::uint32_t vertexColour(int corner);
 
-  // 0x80042424..: the next entry's record, decoded while the GTE projects ($s4, $s3, $gp and the kind in $t3).
+  // The next entry's record, decoded while the GTE projects ($s4, $s3, $gp and the kind in $t3).
   void decodeNext();
   void decode(std::uint32_t entry, Record &record);
 
-  // The ordering table slot of the depth (SZ1 + SZ2 + SZ3) >> 5, slot 0 farthest; returns 1 when clamped.
+  // The ordering table slot of the polygon's depth, slot 0 farthest; returns 1 when clamped.
   std::uint32_t depthSlot();
 
   // The material's texture (fixed, an animation's frame by the clock, or a depth level's) and which path found it.
@@ -240,7 +381,7 @@ public:
   std::array<std::uint32_t, 3> textureWords(std::uint32_t texture);
   std::array<std::uint32_t, 3> triangleTexture();
 
-  // 0x80042948: the primitive linked into the table built from the top down, `words` long; ends the polygon.
+  // The scene's link tail: the primitive at `next`, `words` long, linked into the table; ends the polygon.
   void linkPrimitive(std::uint32_t words);
   // The slots from below the lowest linked down to `target`, each pointing to the one above; the slots stored.
   std::uint32_t relinkDown(std::uint32_t target);
@@ -250,9 +391,8 @@ public:
   void linkDown(std::uint32_t past);
 
   // The polygon in flight. Registers of the retail code: world block $s4 (then the next one's), the tables, the
-  // material $s5, the vertex words ($at, $a3, $t0, $a0) and halfwords, colours ($t5, $t6, $t7, $a1), the pair the
-  // dispatcher loaded last ($v0, $a2: the triangle's third vertex or the quad's fourth), the depth ($ra) and slot
-  // ($v0).
+  // material $s5, the vertex words and halfwords, colours, the pair the dispatcher loaded last (the triangle's third
+  // vertex or the quad's fourth), the depth ($ra) and slot ($v0).
   Record current;
   std::uint32_t offsetXy = 0;
   std::uint32_t offsetZ = 0;
@@ -269,9 +409,10 @@ public:
   std::uint32_t depth = 0;
   std::uint32_t slot = 0;
   Ending ending = Ending::Skipped;
-  // The mode's drawers (scratchpad 0x64 and 0x68).
+  // The mode's drawers (scratchpad 0x64 and 0x68) and the scene's link tail.
   Step drawTriangleStep = nullptr;
   Step drawQuadStep = nullptr;
+  Link link = Link::Sorted;
 
   // The upcoming entry ($t3 as the dispatcher reads it) and its record once decoded.
   std::uint32_t upcomingEntry = 0;
@@ -284,7 +425,14 @@ public:
   std::uint32_t head = 0;
 
 private:
+  void linkSorted(std::uint32_t words);
+  void linkBucket(std::uint32_t words);
+  void linkOwnSlot(std::uint32_t words);
+  // The primitive at `next`, `words` long, put at the head of the slot at `slotAddress`.
+  void appendAt(std::uint32_t slotAddress, std::uint32_t words);
+
   Core &core_;
+  const Title &title_;
   psx::cpu::Gte &gte_;
   psx::present::EmitMemory memory_;
   psx::present::CullWindow columns_;
@@ -292,4 +440,4 @@ private:
   bool margin_ = false;
 };
 
-} // namespace crash2::world
+} // namespace crash::world
