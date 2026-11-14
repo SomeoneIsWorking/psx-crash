@@ -88,15 +88,15 @@ shared too (`world_modes`), and `crash3::WorldRenderer` adds the underwater mode
   underwater level (0x0E) clearly (`scratch/c3cull/repro/`). The earliest-from-boot screen was not taken.
 - 4:3 differential (`PSXPORT_OVERRIDE_DIFF=0x80040ED8`, 6 s a scene): default (scenes 0x02-0x05) 653 of 653 sampled
   calls equal, sway (0x0B, 0x0C, 0x10) 662 of 662, glow (0x24, 0x25) 533 of 533. Underwater (0x0E, 0x1C): 536 of 537
-  differ, with no register different in the logged ones. Every difference matched against a per-polygon trace of the
+  differed, with no register different in the logged ones. Every difference matched against a per-polygon trace of the
   host drawer (18 ranges, scene 0x0E) is the last corner's colour word (GT4 + 0x28, GT3 + 0x1C) of a polygon whose last
   corner is depth-cued: the drawers (0x800429DC, 0x80042B3C) read that DPCS result with an `mfc2` in the delay slot of the
   branch back to the default drawer, and under Lightrec the guest stores a stale value there instead, seen in the
-  guest-rendered picture as bright green and blue corners (`scratch/c3cull/repro/scene0E_1.png`). Cause:
-  `shared/lightrec` `emitter.c` `rec_cp2_do_mfc2` (and `rec_cp2_basic_CFC2`) take the `cop2_notify` path, which psxport
-  sets, and write `rt` through the C wrapper, while the branch's load-delay path then writes `rt` from `REG_TEMP`, which
-  that path never loaded. The host renderer stores the DPCS result, as the hardware does. A framework defect, not
-  fixed here.
+  guest-rendered picture as bright green and blue corners (`scratch/c3cull/repro/scene0E_1.png`). Cause: with
+  psxport's `cop2_notify`, Lightrec's MFC/CFC C wrapper `lightrec.c:lightrec_mfc_cb` wrote `rt` directly, and the
+  branch's load-delay check then wrote `rt` from `temp_reg`, which that path never loaded. Fixed in the Lightrec fork
+  (5aa9bdf, psxport issue 0205): the guest drawer now stores the DPCS result, and the differential is 603 of 603
+  equal at 0x0E and 646 of 646 at 0x1C, every call compared.
 - Pulse and the own-slot link tail are selected at no level entry and were not compared.
 - 16:9 (`scratch/c3cull/shots/pairs.png`: 4:3 left, 16:9 right, the same frame 200 frames after one saved state;
   Dingodile 0x03, underwater 0x0E, sway 0x0C, glow 0x24): the margins fill with the world and the centre 512 columns of
