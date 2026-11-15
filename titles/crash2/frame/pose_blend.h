@@ -8,15 +8,25 @@
 // tick's.
 #pragma once
 
+#include "crash2/render/morph_reader.h"
+#include "replay/object_walk.h"
+
 #include <cstdint>
 
 class Core;
 
-namespace crash2::pose_blend {
+namespace crash2 {
 
-void registerOverride(Core &core);
+class PoseBlend final : public crash::QueuePoses {
+public:
+  void beforeQueue(Core &core, std::uint32_t object) override;
+  void queued(Core &core, std::uint32_t packet) override;
+  // func_8001A4A4 for a vertex object's current pose, which the logic paths run before func_8001AA80 places it.
+  void fetchPose(Core &core, std::uint32_t object) override;
 
-// func_8001A4A4 for a vertex object's current pose, which the logic paths run before func_8001AA80 places it.
-void fetchPose(Core &core, std::uint32_t object);
+private:
+  // The mix the object being queued takes.
+  MorphReader::Mix mix_;
+};
 
-} // namespace crash2::pose_blend
+} // namespace crash2

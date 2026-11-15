@@ -13,7 +13,6 @@ public:
 
   void registerOverrides(Game &game) override;
   std::unique_ptr<psx::game::TitleSessionState> createSession(Game &game) override;
-  psx::present::ReplayFrame *replayFrame(Core &core) override;
   bool interpolates() const override {
     return true;
   }

@@ -53,6 +53,9 @@ void Runtime::registerOverrides(Game &game) {
     gpu_watchdog::registerOverrides(game.core, *facts_.gpuWatchdog);
   }
   FrameDriver::installOverrides(game, facts_.frame);
+  if (facts_.replay) {
+    DrawReplay::registerOverrides(game.core, *facts_.replay);
+  }
 }
 
 std::unique_ptr<psx::game::TitleSessionState> Runtime::createSession(Game &) {
@@ -79,6 +82,11 @@ void Runtime::stockCdReadLanded(Core &core, const psx::cd::StockReadLanding &lan
 
 std::optional<double> Runtime::presentDeadline(Core &core, psx::frame::FieldCadence cadence) {
   return core.game->framePacer.presentedFieldsDeadline(core, cadence);
+}
+
+psx::present::ReplayFrame *Runtime::replayFrame(Core &core) {
+  Session &owner = session(core);
+  return owner.hasDrawReplay() ? &owner.drawReplay().frame() : nullptr;
 }
 
 bool Runtime::sealedFrameIsCut(Core &core) const {

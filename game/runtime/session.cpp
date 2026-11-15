@@ -9,7 +9,16 @@
 
 namespace crash {
 
-Session::Session(const TitleFacts &facts) : frameCut(facts.frame) {}
+Session::Session(const TitleFacts &facts)
+    : frameCut(facts.frame), drawReplay_(facts.replay ? std::make_unique<DrawReplay>(*facts.replay) : nullptr) {}
+
+DrawReplay &Session::drawReplay() {
+  if (!drawReplay_) {
+    lucent::error("crash-runtime", "the shared draw replay ran for a title without its facts");
+    std::abort();
+  }
+  return *drawReplay_;
+}
 
 Session &session(Core &core) {
   if (core.game == nullptr || !core.game->sessionState) {

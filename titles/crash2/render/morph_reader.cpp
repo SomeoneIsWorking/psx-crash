@@ -291,7 +291,7 @@ template <std::uint32_t Entry> void MorphReader::drawStep(Core *core) {
   Session &state = session(*core);
   MorphReader &reader = state.morphReader;
   // The real draw follows the replays over the same packet addresses; only a replay's own queue weighs them.
-  reader.current_ = state.drawReplay.frame().replaying() ? reader.weightFor(*core, core->r[kSp]) : Weight{};
+  reader.current_ = state.drawReplay().frame().replaying() ? reader.weightFor(*core, core->r[kSp]) : Weight{};
   lucent::debug(morphChannel,
                 "step 0x{:08X} packet 0x{:08X} object 0x{:08X} quarters {} {} {} {} box {:08X} {}",
                 Entry,

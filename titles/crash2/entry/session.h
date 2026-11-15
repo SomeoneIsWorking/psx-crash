@@ -1,17 +1,21 @@
 #pragma once
 
-#include "crash2/frame/draw_replay.h"
+#include "crash2/frame/pose_blend.h"
 #include "crash2/render/morph_reader.h"
 #include "runtime/session.h"
 
 namespace crash2 {
 
-// The shared Crash session plus Crash 2's draw replay and the morph readers' weights.
+// The shared Crash session plus Crash 2's poses at the object queue and the morph readers' weights.
 class Session final : public crash::Session {
 public:
   using crash::Session::Session;
 
-  DrawReplay drawReplay;
+  [[nodiscard]] crash::QueuePoses *queuePoses() override {
+    return &poses;
+  }
+
+  PoseBlend poses;
   MorphReader morphReader;
 };
 

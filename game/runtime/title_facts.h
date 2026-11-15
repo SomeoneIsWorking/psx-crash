@@ -6,6 +6,7 @@
 #include "crt0_boot.h"
 #include "frame/frame_program.h"
 #include "guest_address_range.h"
+#include "replay/replay_facts.h"
 #include "runtime/guest_function_range.h"
 #include "stock_libcd.h"
 #include "stock_pad_buffers.h"
@@ -36,6 +37,8 @@ struct TitleFacts {
   GuestAddressRange codeModuleArena;
   // libpad InitPAD receive buffers; empty when the title reads the pad another way.
   std::optional<psx::input::StockPadBuffers::Layout> padBuffers;
+  // The shared draw replay's facts; empty for a title with a replay of its own (Crash 1).
+  std::optional<ReplayFacts> replay;
 };
 
 // Compile-time check each title's facts file asserts: ranges are non-empty, the VSync seams sit inside GpuUpdate and a

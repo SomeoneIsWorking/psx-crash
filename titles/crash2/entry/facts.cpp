@@ -118,6 +118,43 @@ constexpr psx::host::TitleIdentity kIdentity{
     .discExecutablePath = CRASH_EXE_NAME,
 };
 
+// The draw replay: names and sites from external/crash2-decomp (config/symbol_addrs.txt, docs/notes/frame-loop.md).
+constexpr crash::ReplayFacts kReplay{
+    .mainLoop = 0x80011800u,
+    .viewCall = 0x80011B68u,
+    .objectsCall = 0x80011D80u,
+    .drawObjects = 0x80011D94u,
+    .endFrameCall = 0x80011DB4u,
+    .sampleStub = 0x80011E88u,
+    .objUpdateAll = 0x8001C29Cu,
+    .resetFrame = 0x800163C4u,
+    .endFrame = 0x8001645Cu,
+    .endFrameArgument = std::nullopt,
+    .endFrameDeviceTail = 0x80016790u,
+    .buildBuffer = 0x80063458u,
+    .orderingTable = 0x18u,
+    .packetHead = 0x2088u,
+    .paused = 0x8005F180u,
+    .frameFlags = 0x8006CB94u,
+    .objectLogic = 0x8u,
+    .additiveFade = 0x800000u,
+    .objectsFirst = 0u,
+    .updateView = 0x80017BC4u,
+    .screenShake = 0x8006CB78u,
+    .streakScroll = 0x80062A6Cu,
+    .drawFade = 0x80016B08u,
+    .objForEachList = 0x80018DD0u,
+    .objUpdate = 0x8001C718u,
+    .queueObject = 0x8001ABF8u,
+    .tracks =
+        {.camera = 0x800607F4u,
+         .objectPool = 0x8006CB14u,
+         .objectStride = 0x23Cu,
+         .objectCount = 0x60u,
+         .player = 0x8005F38Cu,
+         .object = {.exec = 0x0Cu, .trans = 0x60u, .rot = 0x6Cu, .scale = 0x78u, .anim = 0xE8u, .animFrame = 0xECu}},
+};
+
 constexpr crash::TitleFacts kFacts{
     .crt0 = kCrt0,
     .staticConstructors = CRASH_STATIC_CONSTRUCTORS_ENTRY,
@@ -132,6 +169,7 @@ constexpr crash::TitleFacts kFacts{
     .vsyncQueryCounter = CRASH_TITLE_VSYNC_QUERY_COUNTER,
     .codeModuleArena = {0x0006F1F0u, 0x00200000u},
     .padBuffers = kPadBuffers,
+    .replay = kReplay,
 };
 
 static_assert(crash::isCoherent(kFacts));

@@ -25,6 +25,8 @@ public:
   void deliverPad(Core &core, const psx::input::PadDelivery &delivery) override;
   void stockCdReadLanded(Core &core, const psx::cd::StockReadLanding &landing) override;
   bool sealedFrameIsCut(Core &core) const override;
+  // The shared draw replay's frame; null for a title without its facts.
+  psx::present::ReplayFrame *replayFrame(Core &core) override;
   // The frame driver delivers each field at the guest's wait; a present only plans its deadline.
   std::optional<double> presentDeadline(Core &core, psx::frame::FieldCadence cadence) override;
   const psx::present::GuestWidescreenProjection *guestWidescreenProjection() const override;

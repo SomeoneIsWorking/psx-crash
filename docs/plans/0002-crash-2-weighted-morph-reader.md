@@ -15,7 +15,7 @@ The interface and the exact weighted sum are in crash2-decomp `docs/notes/frame-
    decomp's equivalent C is GPL-3.0: evidence only). Every register the routine writes ($v0, $a0-$a3, $at, $t3,
    $t4, $t8, $t9, $s4, $s5, $gp, $sp) ends as the guest's does, and the cache words and the 0x110-0x116 deltas are
    stored alike. With k = 2 the output is the retail sum, so real draws and the t = 1 replay stay byte-identical.
-2. The weight comes from the packet. `crash2::pose_blend` picks the pair and k at `Gfx_QueueObject` (multisets of
+2. The weight comes from the packet. `crash2::PoseBlend` picks the pair and k at `Gfx_QueueObject` (multisets of
    the two ticks' four frames: x x y y gives k = 2, x x x y gives (x, y) with k = 1, x y y y gives k = 3) and keys
    it by the queued packet. The morph draw steps that call the readers (0x8003EF88, `func_8003F1D8`,
    `func_8003F410`, `func_800417B0` and the lit one) are entered with the packet in $sp, so overrides there set the

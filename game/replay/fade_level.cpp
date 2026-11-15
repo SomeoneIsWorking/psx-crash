@@ -1,30 +1,22 @@
-#include "crash2/frame/fade_level.h"
+#include "replay/fade_level.h"
 
 #include "blend.h"
 #include "core.h"
-#include "crash2/entry/session.h"
 #include "native_dispatch.h"
 
-namespace crash2 {
+namespace crash {
 namespace {
 
-// Names and layouts from external/crash2-decomp (config/symbol_addrs.txt, docs/notes/frame-loop.md).
-constexpr std::uint32_t kDrawFade = 0x80016B08u;
-constexpr std::uint32_t kBuildBuffer = 0x80063458u;
-// GfxFrame's primitive cursor.
+// GfxFrame's primitive cursor; Gfx_DrawFade takes its draw mode there, then its flat quad, whose grey is its r, g, b.
 constexpr std::uint32_t kCursor = 0x08u;
-// Gfx_DrawFade takes its draw mode, then its flat quad; the quad's grey is its r, g and b.
 constexpr std::uint32_t kQuad = 0x0Cu;
 constexpr std::uint32_t kGrey = 0x04u;
-constexpr std::uint32_t kFrameFlags = 0x8006CB94u;
-// Set: blend mode 1 (adds); clear: mode 2 (subtracts).
-constexpr std::uint32_t kAdditive = 0x800000u;
-
-bool subtractive(Core &core) {
-  return (core.mem_r32(kFrameFlags) & kAdditive) == 0u;
-}
 
 } // namespace
+
+bool FadeLevel::subtractive(Core &core) const {
+  return (core.mem_r32(facts_.frameFlags) & facts_.additiveFade) == 0u;
+}
 
 void FadeLevel::sample(Core &core) {
   from_ = drawn_;
@@ -45,15 +37,14 @@ psx::present::MotionCount FadeLevel::write(psx::present::GuestRedraw &, float) c
   return {.drawn = from_ && from_->grey != 0u ? 1u : 0u, .unpaired = unpaired ? 1u : 0u};
 }
 
-void FadeLevel::draw(Core &core) {
-  const std::optional<float> t = session(core).drawReplay.frame().replaying();
+void FadeLevel::draw(Core &core, std::optional<float> t) {
   const std::uint32_t later = core.r[4];
   const std::optional<Quad> from = t ? earlier() : std::nullopt;
   // A later tick that draws none still links the earlier tick's quad, to fade it out.
   const std::uint32_t level = later == 0u && from ? from->level : later;
-  const std::uint32_t quad = core.mem_r32(core.mem_r32(kBuildBuffer) + kCursor) + kQuad;
+  const std::uint32_t quad = core.mem_r32(core.mem_r32(facts_.buildBuffer) + kCursor) + kQuad;
   core.r[4] = level;
-  psx::cpu::callOriginalToReturn(core, kDrawFade, psx::cpu::ExecutionBudget::currentTurn(core), "Crash 2 fade");
+  psx::cpu::callOriginalToReturn(core, facts_.drawFade, psx::cpu::ExecutionBudget::currentTurn(core), "Crash fade");
   if (level == 0u) {
     if (!t) {
       drawn_ = Quad{};
@@ -76,12 +67,4 @@ void FadeLevel::draw(Core &core) {
   }
 }
 
-void FadeLevel::drawOverride(Core *core) {
-  session(*core).drawReplay.fade().draw(*core);
-}
-
-void FadeLevel::registerOverride(Core &core) {
-  psx::cpu::installNativeOverride(core, kDrawFade, "Crash 2 fade level", drawOverride);
-}
-
-} // namespace crash2
+} // namespace crash

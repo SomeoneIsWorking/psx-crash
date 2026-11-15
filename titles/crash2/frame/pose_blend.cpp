@@ -11,11 +11,10 @@
 #include <optional>
 #include <utility>
 
-namespace crash2::pose_blend {
+namespace crash2 {
 namespace {
 
 // Names and layouts from external/crash2-decomp (src/game/8001A014.c, docs/notes/frame-loop.md).
-constexpr std::uint32_t kQueueObject = 0x8001ABF8u;
 constexpr std::uint32_t kFetchPose = 0x8001A4A4u;
 constexpr std::uint32_t kBlock = 0x08u;
 constexpr std::uint32_t kScale = 0x78u;
@@ -27,9 +26,6 @@ constexpr std::uint32_t kSecondFrame = 0x24u;
 constexpr std::uint8_t kVertexKind = 1;
 // A vertex frame's model entry id, which both frames of a morph must share.
 constexpr std::uint32_t kFrameModel = 0x10u;
-// g_BuildBuffer and its GfxFrame's packet list head, which Gfx_QueueObject pushes the object's packet onto.
-constexpr std::uint32_t kBuildBuffer = 0x80063458u;
-constexpr std::uint32_t kPacketHead = 0x2088u;
 
 struct Frames {
   std::uint32_t first = 0;
@@ -87,7 +83,7 @@ Morph quarterPose(const Frames &from, const Frames &to) {
 // The pose of a vertex object the replay queues halfway between its ticks, written to its block before the queue reads
 // it; the mix its morph draw takes.
 MorphReader::Mix blendPose(Core &core, std::uint32_t object) {
-  DrawReplay &replay = session(core).drawReplay;
+  crash::DrawReplay &replay = session(core).drawReplay();
   const std::optional<float> t = replay.frame().replaying();
   const std::uint32_t anim = core.mem_r32(object + kAnim);
   const std::uint32_t block = core.mem_r32(object + kBlock);
@@ -100,10 +96,10 @@ MorphReader::Mix blendPose(Core &core, std::uint32_t object) {
   }
   const Pose later{.anim = anim, .frame = core.mem_r32(object + kAnimFrame)};
   const Frames drawn{core.mem_r32(block + kFirstFrame), core.mem_r32(block + kSecondFrame)};
-  const Frames from =
-      fetch(core,
-            object,
-            {.anim = samples->from[DrawReplay::kAnimField], .frame = samples->from[DrawReplay::kAnimFrameField]});
+  const Frames from = fetch(core,
+                            object,
+                            {.anim = samples->from[crash::ReplayTracks::kAnimField],
+                             .frame = samples->from[crash::ReplayTracks::kAnimFrameField]});
   const Frames to = fetch(core, object, later);
   const std::uint32_t model = core.mem_r32(drawn.first + kFrameModel);
   const std::array<std::uint32_t, 4> frames{from.first, from.second, to.first, to.second};
@@ -117,33 +113,21 @@ MorphReader::Mix blendPose(Core &core, std::uint32_t object) {
   return shown.mix;
 }
 
-void queueOverride(Core *core) {
-  const std::uint32_t object = core->r[4];
-  const std::uint32_t place = core->r[5];
-  session(*core).drawReplay.walk().queued(*core, object);
-  const MorphReader::Mix mix = blendPose(*core, object);
-  const std::uint32_t frame = core->mem_r32(kBuildBuffer);
-  const std::uint32_t head = core->mem_r32(frame + kPacketHead);
-  core->r[4] = object;
-  core->r[5] = place;
-  psx::cpu::callOriginalToReturn(
-      *core, kQueueObject, psx::cpu::ExecutionBudget::currentTurn(*core), "Crash 2 queue object");
-  if (const std::uint32_t packet = core->mem_r32(frame + kPacketHead); packet != head) {
-    session(*core).morphReader.weigh(packet, mix);
-  }
-}
-
 } // namespace
 
-void fetchPose(Core &core, std::uint32_t object) {
+void PoseBlend::beforeQueue(Core &core, std::uint32_t object) {
+  mix_ = blendPose(core, object);
+}
+
+void PoseBlend::queued(Core &core, std::uint32_t packet) {
+  session(core).morphReader.weigh(packet, mix_);
+}
+
+void PoseBlend::fetchPose(Core &core, std::uint32_t object) {
   const std::uint32_t anim = core.mem_r32(object + kAnim);
   if (anim != 0u && core.mem_r8(anim) == kVertexKind) {
     callFetch(core, object);
   }
 }
 
-void registerOverride(Core &core) {
-  psx::cpu::installNativeOverride(core, kQueueObject, "Crash 2 pose blend", queueOverride);
-}
-
-} // namespace crash2::pose_blend
+} // namespace crash2

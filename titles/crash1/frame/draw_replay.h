@@ -5,6 +5,7 @@
 #include "crash1/frame/draw_section.h"
 #include "crash1/frame/pose_blend.h"
 #include "crash1/frame/screen_effects.h"
+#include "replay/replay_tracks.h"
 #include "replay_frame.h"
 
 class Core;
@@ -37,6 +38,7 @@ public:
 
 private:
   DrawSection section_;
+  crash::ReplayTracks tracks_;
   PoseBlend poses_;
   ScreenEffects screen_;
   psx::present::ReplayFrame frame_;

@@ -22,7 +22,7 @@ replay at the head of their list, so every packet behind them moved and equal-de
 order. After the checkpoint restore an object queued twice in the real walk was queued once by the replay, and objects
 that died after their visit were still queued by it.
 
-Fix: `crash2::ObjectWalk` records the objects the real walk hands `Gfx_QueueObject` (its one caller is `Obj_Update`'s
+Fix: `crash::ObjectWalk` records the objects the real walk hands `Gfx_QueueObject` (its one caller is `Obj_Update`'s
 tail) and, inside a replay, `Obj_ForEachList` called with `Obj_Update` runs `Obj_Update` with logic off on those
 objects in that order instead of walking the lists.
 

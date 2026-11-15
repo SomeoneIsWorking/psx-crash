@@ -131,7 +131,7 @@ function(configure_title_native_facts target title)
   endif()
 endfunction()
 
-# The title-independent owners: runtime, session, boot services, the frame turn and the world renderer.
+# The title-independent owners: runtime, session, boot services, the frame turn, the world renderer and the draw replay.
 add_library(
   crash_game STATIC
   "${CMAKE_CURRENT_SOURCE_DIR}/game/boot/callback_boot.cpp"
@@ -148,6 +148,12 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_pass.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_renderer.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_screen.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/draw_replay.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/draw_section.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/fade_level.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/object_walk.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/replay_tracks.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/view_entry.cpp"
 )
 crash_include_roots(crash_game)
 target_compile_features(crash_game PUBLIC cxx_std_20)
@@ -185,12 +191,7 @@ add_crash_title(
   crash2
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/entry/session.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/camera_cuts.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/draw_replay.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/object_walk.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/draw_section.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/pose_blend.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/view_entry.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/fade_level.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/morph_reader.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_light.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_modes.cpp"

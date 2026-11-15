@@ -17,12 +17,12 @@ next real present (480x270 grey): presents 4 to 10 are 19-32 from the previous a
 
 Expected: the fade level at t = 1/2 halfway between the two ticks', as the camera and objects are.
 
-Cause: `titles/crash2/frame/draw_section.cpp` `DrawSection::draw` runs `Gfx_EndFrame` to `Snd_Update`, which steps the
+Cause: `game/replay/draw_section.cpp` `crash::DrawSection::draw` runs `Gfx_EndFrame` to `Snd_Update`, which steps the
 fade word 0x8006CD18 by 0x8006CD1C before `Gfx_DrawFade` draws it, and nothing blended the fade, so each replay drew
 the later tick's level (crash2-decomp `docs/notes/frame-loop.md`, Fade). After `warp 2` the word enters at 0x100 and
 falls 0x20 a tick; the real frames draw 0xE0 down to 0.
 
-Fix (2026-11-14): `crash2::FadeLevel` (`titles/crash2/frame/fade_level.*`), a `DrawReplay` motion source with an
+Fix (2026-11-14): `crash::FadeLevel` (`game/replay/fade_level.*`), a `DrawReplay` motion source with an
 override at `Gfx_DrawFade`. A real call records its level, its quad's grey and the blend mode. In a replay the quad
 takes the grey t of the way from the earlier tick's to the later's. A tick that drew none counts as grey 0, and when
 the later tick draws none, the earlier tick's quad is linked to fade it out. Two ticks in different blend modes draw

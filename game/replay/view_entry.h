@@ -1,18 +1,22 @@
-// view_entry.h — what Gfx_UpdateView steps when unpaused, as each real call found it: the screen shake and the
-// streaks' scroll. The replay's own call steps it again, so each in-between starts it from the blend of two entries.
+// view_entry.h — what Gfx_UpdateView steps when unpaused, as each real call found it: the screen shake and, where the
+// title scrolls streaks there, their scroll. The replay's own call steps it again, so each in-between starts it from
+// the blend of two entries.
 #pragma once
 
 #include "motion_set.h"
+#include "replay/replay_facts.h"
 
 #include <array>
 #include <cstdint>
 
 class Core;
 
-namespace crash2 {
+namespace crash {
 
 class ViewEntry final : public psx::present::MotionSource {
 public:
+  explicit ViewEntry(const ReplayFacts &facts) : facts_(facts) {}
+
   [[nodiscard]] const char *name() const override {
     return "view entry";
   }
@@ -22,11 +26,12 @@ public:
   psx::present::MotionCount write(psx::present::GuestRedraw &redraw, float t) const override;
 
 private:
-  // g_ScreenShake, then the streaks' last and current scroll (0x80062A6C..0x80062A78).
+  // The screen shake, then the streaks' last and current scroll.
   using Words = std::array<std::uint32_t, 5>;
+  const ReplayFacts &facts_;
   Words entered_{};
   Words from_{};
   Words to_{};
 };
 
-} // namespace crash2
+} // namespace crash

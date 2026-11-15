@@ -20,7 +20,7 @@ passes `*(block+0x28)+0x10` to the scale step (0x8004400C via table 0x8005B650).
 `Nsf_OpenEntry` paged out the faulting object's model entry (0x801A4BD8, word +0x10 0x801A4C04 became 0x38AB3895), so
 the replay's placement read garbage as a pointer.
 
-Fix: `crash2::ObjectWalk` runs `func_8001A4A4` for each vertex object (`crash2::pose_blend::fetchPose`) before its
+Fix: `crash::ObjectWalk` runs `func_8001A4A4` for each vertex object (`crash2::PoseBlend::fetchPose`) before its
 replayed `Obj_Update`, as the logic paths do. Proof: the same state with D = 0..6 runs 200 frames each with no executor
 error; the in-betweens through spawn 2 draw the scene intact, the fade-in halfway (mean grey 1.02, 2.35, 4.09, 6.72,
 8.38) (`scratch/cuts/s22_spawn2_a.png`, `s22_spawn2_b.png`).
