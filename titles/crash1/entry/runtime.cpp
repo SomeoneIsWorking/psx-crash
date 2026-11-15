@@ -14,6 +14,7 @@ void Runtime::registerOverrides(Game &game) {
   crash::Runtime::registerOverrides(game);
   BlockPool::registerOverride(game.core);
   ObjectCull::registerOverride(game.core);
+  DrawReplay::registerOverrides(game.core);
 }
 
 std::unique_ptr<psx::game::TitleSessionState> Runtime::createSession(Game &) {
@@ -23,6 +24,10 @@ std::unique_ptr<psx::game::TitleSessionState> Runtime::createSession(Game &) {
 std::unique_ptr<psx::game::FrameDriver> Runtime::createFrameDriver(Game &game) {
   return std::make_unique<FrameDriver>(
       game, crash::session(game.core).frameCut, facts().frame, facts().vsync.begin, FrameDriver::executeHostTurn);
+}
+
+psx::present::ReplayFrame *Runtime::replayFrame(Core &core) {
+  return &session(core).drawReplay.frame();
 }
 
 } // namespace crash1

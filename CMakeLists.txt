@@ -169,6 +169,8 @@ endfunction()
 add_crash_title(
   crash1
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/entry/session.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/frame/draw_replay.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/frame/draw_section.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/frame/frame_driver.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/input/bios_pad_input.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/render/block_pool.cpp"

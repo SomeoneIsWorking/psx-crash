@@ -6,7 +6,7 @@
 
 namespace crash1 {
 
-// Crash 1: the shared Crash runtime over its facts, plus its block pool and BIOS pad word.
+// Crash 1: the shared Crash runtime over its facts, plus its block pool, BIOS pad word and draw replay.
 class Runtime final : public crash::Runtime {
 public:
   Runtime();
@@ -14,6 +14,7 @@ public:
   void registerOverrides(Game &game) override;
   std::unique_ptr<psx::game::TitleSessionState> createSession(Game &game) override;
   std::unique_ptr<psx::game::FrameDriver> createFrameDriver(Game &game) override;
+  psx::present::ReplayFrame *replayFrame(Core &core) override;
   bool interpolates() const override {
     return true;
   }

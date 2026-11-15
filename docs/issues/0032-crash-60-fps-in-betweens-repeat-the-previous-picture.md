@@ -6,7 +6,7 @@ symptom: the 60 fps option doubles every present but moves nothing between them;
 state_items: S005,S007,S017
 tags: crash1,crash2,crash3,fps60,interpolation
 created: 2026-10-28
-updated: 2026-11-13
+updated: 2026-11-15
 ---
 
 Reproduce: `crash_port` headless, `pick crash1`, idle into the Jungle Rollers attract demo, `pause`, `state save`; then
@@ -27,3 +27,11 @@ Crash 2 (2026-11-13): fixed by replaying its draw section (`titles/crash2/frame/
 has no section, and Crash 3 no interpolation. Crash 2's remaining gaps: the retail morph drawer adds two frames at a fixed
 equal weight, so only a t = 1/2 pose whose frames pair up is drawn halfway and the rest step at 30 Hz; the prepared-cut and
 zone-walk cut declarations (`titles/crash2/frame/camera_cuts.cpp`) have not been seen firing in a run.
+
+Crash 1 (2026-11-15): replays `CORE_Loop`'s picture half (`titles/crash1/frame/`): `Gpu_Update`'s end state for the
+render buffer, then `Gfx_UpdateMatrices` to `Gpu_Update`'s `Audio_Update` with object logic off, sampled at
+`Gool_UpdateObjects`' return. The camera and the objects' placement blend; in the attract demo in-betweens land halfway.
+Open: an object's pose draws the later tick's animation frame (Crash 1's model drawer reads one vertex frame, so a
+blend needs a reader of two); `Gfx_UpdateMatrices` steps the screen shake (`g_cam_mat_dirty_flag`) and `Gpu_Update`
+the fade overlay (`0x80061A34`) inside the section, so a replay draws their later tick; no camera cut but the scene's is
+declared; the walk-order question of Crash 2's issue 0038 has not been checked here.
