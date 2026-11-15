@@ -4,6 +4,7 @@
 #include "game_runtime.h"
 #include "replay/draw_replay.h"
 #include "replay/object_walk.h"
+#include "replay/pose_blend.h"
 
 #include <memory>
 
@@ -25,13 +26,16 @@ public:
   [[nodiscard]] bool hasDrawReplay() const {
     return drawReplay_ != nullptr;
   }
-  // The title's poses at the object queue; none draws each object's queued pose.
-  [[nodiscard]] virtual QueuePoses *queuePoses() {
-    return nullptr;
+  // The poses at the object queue; none draws each object's queued pose.
+  [[nodiscard]] QueuePoses *queuePoses() {
+    return poses_.get();
   }
+  // The morph reader the poses weigh; aborts for a title without pose facts.
+  [[nodiscard]] MorphReader &morphReader();
 
 private:
   std::unique_ptr<DrawReplay> drawReplay_;
+  std::unique_ptr<PoseBlend> poses_;
 };
 
 // The session of the Game `core` belongs to; aborts when it has none.

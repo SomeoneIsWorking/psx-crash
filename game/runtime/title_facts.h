@@ -6,6 +6,7 @@
 #include "crt0_boot.h"
 #include "frame/frame_program.h"
 #include "guest_address_range.h"
+#include "replay/pose_blend.h"
 #include "replay/replay_facts.h"
 #include "runtime/guest_function_range.h"
 #include "stock_libcd.h"
@@ -39,6 +40,8 @@ struct TitleFacts {
   std::optional<psx::input::StockPadBuffers::Layout> padBuffers;
   // The shared draw replay's facts; empty for a title with a replay of its own (Crash 1).
   std::optional<ReplayFacts> replay;
+  // The vertex-animated poses the replay blends through the morph reader; empty for a title without them.
+  std::optional<PoseFacts> poses;
 };
 
 // Compile-time check each title's facts file asserts: ranges are non-empty, the VSync seams sit inside GpuUpdate and a

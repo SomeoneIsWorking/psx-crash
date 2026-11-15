@@ -10,7 +10,16 @@
 namespace crash {
 
 Session::Session(const TitleFacts &facts)
-    : frameCut(facts.frame), drawReplay_(facts.replay ? std::make_unique<DrawReplay>(*facts.replay) : nullptr) {}
+    : frameCut(facts.frame), drawReplay_(facts.replay ? std::make_unique<DrawReplay>(*facts.replay) : nullptr),
+      poses_(facts.poses ? std::make_unique<PoseBlend>(*facts.poses) : nullptr) {}
+
+MorphReader &Session::morphReader() {
+  if (!poses_) {
+    lucent::error("crash-runtime", "the morph reader ran for a title without pose facts");
+    std::abort();
+  }
+  return poses_->reader();
+}
 
 DrawReplay &Session::drawReplay() {
   if (!drawReplay_) {

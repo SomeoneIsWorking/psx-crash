@@ -155,6 +155,31 @@ constexpr crash::ReplayFacts kReplay{
          .object = {.exec = 0x0Cu, .trans = 0x60u, .rot = 0x6Cu, .scale = 0x78u, .anim = 0xE8u, .animFrame = 0xECu}},
 };
 
+// The vertex poses and the unlit morph reader (crash2-decomp src/game/8001A014.c, docs/notes/frame-loop.md, Animation):
+// the pose fetch func_8001A4A4, the reader func_8003ED14, the stream opener 0x80043658 and the morph draw steps
+// (table 0x8005B708) that reach a reader.
+constexpr crash::PoseFacts kPoses{
+    .fetchPose = 0x8001A4A4u,
+    .block = 0x08u,
+    .scale = 0x78u,
+    .anim = 0xE8u,
+    .animFrame = 0xECu,
+    .firstFrame = 0x20u,
+    .secondFrame = 0x24u,
+    .vertexKind = 1,
+    .frameModel = 0x10u,
+    .reader = {.owner = "Crash 2 morph reader",
+               .unlitReader = 0x8003ED14u,
+               .openStreams = 0x80043658u,
+               .frameData = 0x14u,
+               .packetFirstFrame = 0x28u,
+               .packetSecondFrame = 0x2Cu,
+               .steps = {0x8003F1C8u, 0x8003F1D8u, 0x8003F410u, 0x80040FC4u, 0x800417B0u},
+               .stepCount = 5,
+               .sumXyShift = 0,
+               .sumZShift = 8},
+};
+
 constexpr crash::TitleFacts kFacts{
     .crt0 = kCrt0,
     .staticConstructors = CRASH_STATIC_CONSTRUCTORS_ENTRY,
@@ -170,6 +195,7 @@ constexpr crash::TitleFacts kFacts{
     .codeModuleArena = {0x0006F1F0u, 0x00200000u},
     .padBuffers = kPadBuffers,
     .replay = kReplay,
+    .poses = kPoses,
 };
 
 static_assert(crash::isCoherent(kFacts));

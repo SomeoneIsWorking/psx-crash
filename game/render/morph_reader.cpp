@@ -1,34 +1,21 @@
-#include "crash2/render/morph_reader.h"
+#include "render/morph_reader.h"
 
 #include "core.h"
-#include "crash2/entry/session.h"
 #include "execution_services.h"
 #include "native_dispatch.h"
 #include "r3000.h"
+#include "runtime/session.h"
 
 #include <cstdint>
 #include <lucent/log.h>
 #include <span>
 
-namespace crash2 {
+namespace crash {
 namespace {
 
 using namespace psx::cpu;
 
-// Names and layouts from external/crash2-decomp (config/symbol_addrs.txt, docs/notes/frame-loop.md).
-constexpr std::uint32_t kUnlitReader = 0x8003ED14u;
-// Opens the packet's two frame streams at each frame's data offset, with empty bit buffers and running bytes.
-constexpr std::uint32_t kOpenStreams = 0x80043658u;
-constexpr std::uint32_t kFrameData = 0x14u;
-// The morph draw steps (table 0x8005B708) that reach a reader; Gfx_DrawObjects calls them with the packet in $sp.
-constexpr std::uint32_t kStep8003F1C8 = 0x8003F1C8u;
-constexpr std::uint32_t kStep8003F1D8 = 0x8003F1D8u;
-constexpr std::uint32_t kStep8003F410 = 0x8003F410u;
-constexpr std::uint32_t kStep80040FC4 = 0x80040FC4u;
-constexpr std::uint32_t kStep800417B0 = 0x800417B0u;
-// GfxObjectPacket: the two vertex frames, from the object's block +0x20 and +0x24.
-constexpr std::uint32_t kPacketFirstFrame = 0x28u;
-constexpr std::uint32_t kPacketSecondFrame = 0x2Cu;
+// The layouts both titles share (crash2-decomp and crash3-decomp docs/notes/frame-loop.md).
 constexpr std::uint32_t kPacketObject = 0x10u;
 // A vertex frame's box: packed x/y halves, then z.
 constexpr std::uint32_t kFrameBoxXy = 0x00u;
@@ -172,8 +159,8 @@ MorphReader::Weight MorphReader::weightFor(Core &core, std::uint32_t packet) con
     return {};
   }
   const Mix &mix = found->second;
-  const std::array<std::uint32_t, 4> frames{core.mem_r32(packet + kPacketFirstFrame),
-                                            core.mem_r32(packet + kPacketSecondFrame),
+  const std::array<std::uint32_t, 4> frames{core.mem_r32(packet + facts_.packetFirstFrame),
+                                            core.mem_r32(packet + facts_.packetSecondFrame),
                                             mix.second[0],
                                             mix.second[1]};
   std::int32_t x = 0;
@@ -199,11 +186,13 @@ MorphReader::Weight MorphReader::weightFor(Core &core, std::uint32_t packet) con
 }
 
 void MorphReader::openStreams(Core *core) {
-  callOriginalToReturn(*core, kOpenStreams, ExecutionBudget::currentTurn(*core), "Crash 2 morph streams");
-  Weight &weight = session(*core).morphReader.current_;
+  MorphReader &reader = session(*core).morphReader();
+  callOriginalToReturn(*core, reader.facts_.openStreams, ExecutionBudget::currentTurn(*core), reader.facts_.owner);
+  Weight &weight = reader.current_;
   for (std::size_t i = 0; i < weight.streams.size(); ++i) {
     const std::uint32_t frame = weight.mix.second[i];
-    weight.streams[i] = frame == 0u ? Stream{} : Stream{.address = frame + core->mem_r32(frame + kFrameData)};
+    weight.streams[i] =
+        frame == 0u ? Stream{} : Stream{.address = frame + core->mem_r32(frame + reader.facts_.frameData)};
   }
 }
 
@@ -266,13 +255,16 @@ void MorphReader::read(Core &core) {
     r[kAt] = core.mem_r32(v1 + kBoxZ);
     const std::uint32_t boxZ = current_.weighted ? static_cast<std::uint32_t>(current_.boxZ) : r[kAt];
     const std::uint32_t lanes = r[kT1];
-    r[kT9] = (w[0] * (r[kA0] & lanes) + w[1] * (r[kA1] & lanes) + w[2] * (second[0] & lanes) +
-              w[3] * (second[1] & lanes) + boxXy) &
-             r[kT2];
+    r[kT9] =
+        (((w[0] * (r[kA0] & lanes) + w[1] * (r[kA1] & lanes) + w[2] * (second[0] & lanes) + w[3] * (second[1] & lanes))
+          << facts_.sumXyShift) +
+         boxXy) &
+        r[kT2];
     r[kA0] &= 0xFF00u;
     r[kA1] &= 0xFF00u;
-    r[kT8] =
-        ((w[0] * r[kA0] + w[1] * r[kA1] + w[2] * (second[0] & 0xFF00u) + w[3] * (second[1] & 0xFF00u)) >> 8) + boxZ;
+    r[kT8] = ((w[0] * r[kA0] + w[1] * r[kA1] + w[2] * (second[0] & 0xFF00u) + w[3] * (second[1] & 0xFF00u)) >>
+              facts_.sumZShift) +
+             boxZ;
     core.mem_w32(slot, r[kT9]);
     core.mem_w32(slot + 4u, r[kT8]);
   }
@@ -284,17 +276,18 @@ void MorphReader::read(Core &core) {
 }
 
 void MorphReader::readVertex(Core *core) {
-  session(*core).morphReader.read(*core);
+  session(*core).morphReader().read(*core);
 }
 
-template <std::uint32_t Entry> void MorphReader::drawStep(Core *core) {
+template <std::size_t Step> void MorphReader::drawStep(Core *core) {
   Session &state = session(*core);
-  MorphReader &reader = state.morphReader;
+  MorphReader &reader = state.morphReader();
+  const std::uint32_t entry = reader.facts_.steps[Step];
   // The real draw follows the replays over the same packet addresses; only a replay's own queue weighs them.
   reader.current_ = state.drawReplay().frame().replaying() ? reader.weightFor(*core, core->r[kSp]) : Weight{};
   lucent::debug(morphChannel,
                 "step 0x{:08X} packet 0x{:08X} object 0x{:08X} quarters {} {} {} {} box {:08X} {}",
-                Entry,
+                entry,
                 core->r[kSp],
                 core->mem_r32(core->r[kSp] + kPacketObject),
                 reader.current_.mix.quarters[0],
@@ -303,18 +296,20 @@ template <std::uint32_t Entry> void MorphReader::drawStep(Core *core) {
                 reader.current_.mix.quarters[3],
                 reader.current_.boxXy,
                 reader.current_.boxZ);
-  callOriginalToReturn(*core, Entry, ExecutionBudget::currentTurn(*core), "Crash 2 morph draw step");
+  callOriginalToReturn(*core, entry, ExecutionBudget::currentTurn(*core), reader.facts_.owner);
   reader.current_ = {};
 }
 
-void MorphReader::registerOverrides(Core &core) {
-  installNativeOverride(core, kUnlitReader, "Crash 2 morph vertex reader", readVertex);
-  installNativeOverride(core, kOpenStreams, "Crash 2 morph streams", openStreams);
-  installNativeOverride(core, kStep8003F1C8, "Crash 2 morph draw step 0x8003F1C8", drawStep<kStep8003F1C8>);
-  installNativeOverride(core, kStep8003F1D8, "Crash 2 morph draw step 0x8003F1D8", drawStep<kStep8003F1D8>);
-  installNativeOverride(core, kStep8003F410, "Crash 2 morph draw step 0x8003F410", drawStep<kStep8003F410>);
-  installNativeOverride(core, kStep80040FC4, "Crash 2 morph draw step 0x80040FC4", drawStep<kStep80040FC4>);
-  installNativeOverride(core, kStep800417B0, "Crash 2 morph draw step 0x800417B0", drawStep<kStep800417B0>);
+template <std::size_t... Steps>
+void MorphReader::registerSteps(Core &core, const MorphFacts &facts, std::index_sequence<Steps...>) {
+  ((Steps < facts.stepCount ? installNativeOverride(core, facts.steps[Steps], facts.owner, drawStep<Steps>) : void()),
+   ...);
 }
 
-} // namespace crash2
+void MorphReader::registerOverrides(Core &core, const MorphFacts &facts) {
+  installNativeOverride(core, facts.unlitReader, facts.owner, readVertex);
+  installNativeOverride(core, facts.openStreams, facts.owner, openStreams);
+  registerSteps(core, facts, std::make_index_sequence<MorphFacts::kMaxSteps>{});
+}
+
+} // namespace crash

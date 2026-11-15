@@ -143,6 +143,7 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/scene_warp.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/runtime/runtime.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/runtime/session.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/render/morph_reader.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_default.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_modes.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/render/world_pass.cpp"
@@ -152,6 +153,7 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/draw_section.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/fade_level.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/object_walk.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/pose_blend.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/replay_tracks.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/replay/view_entry.cpp"
 )
@@ -189,10 +191,7 @@ string(JSON crash1_bios_pad_word GET "${crash1_manifest_json}" runtime native_fr
 target_compile_definitions(crash1_runtime PRIVATE "CRASH1_BIOS_PAD_READ_WORD_ADDRESS=${crash1_bios_pad_word}u")
 add_crash_title(
   crash2
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/entry/session.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/camera_cuts.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/pose_blend.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/morph_reader.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_light.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_modes.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_renderer.cpp"

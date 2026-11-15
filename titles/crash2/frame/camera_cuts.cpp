@@ -1,8 +1,8 @@
 #include "crash2/frame/camera_cuts.h"
 
 #include "core.h"
-#include "crash2/entry/session.h"
 #include "native_dispatch.h"
+#include "runtime/session.h"
 
 #include <cstdint>
 #include <lucent/log.h>
@@ -26,20 +26,20 @@ void preparedCut(Core *core) {
   // Without the go message the handler only follows the current path.
   if (core->mem_r8(kCutGo) != 0u) {
     lucent::debug("cut", "declared: prepared camera cut");
-    session(*core).frameCut.declare();
+    crash::session(*core).frameCut.declare();
   }
   runOriginal(*core, kPreparedCut);
 }
 
 void zoneWalk(Core *core) {
   lucent::debug("cut", "declared: camera zone walk");
-  session(*core).frameCut.declare();
+  crash::session(*core).frameCut.declare();
   runOriginal(*core, kZoneWalk);
 }
 
 void loadCheckpoint(Core *core) {
   lucent::debug("cut", "declared: checkpoint camera");
-  session(*core).frameCut.declare();
+  crash::session(*core).frameCut.declare();
   runOriginal(*core, kLoadCheckpoint);
 }
 

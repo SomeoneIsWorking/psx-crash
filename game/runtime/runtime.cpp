@@ -56,6 +56,9 @@ void Runtime::registerOverrides(Game &game) {
   if (facts_.replay) {
     DrawReplay::registerOverrides(game.core, *facts_.replay);
   }
+  if (facts_.poses) {
+    MorphReader::registerOverrides(game.core, facts_.poses->reader);
+  }
 }
 
 std::unique_ptr<psx::game::TitleSessionState> Runtime::createSession(Game &) {

@@ -2,17 +2,14 @@
 
 #include "runtime/runtime.h"
 
-#include <memory>
-
 namespace crash2 {
 
-// Crash 2: the shared Crash runtime over its facts, plus its draw replay.
+// Crash 2: the shared Crash runtime over its facts, its draw replay and poses included.
 class Runtime final : public crash::Runtime {
 public:
   Runtime();
 
   void registerOverrides(Game &game) override;
-  std::unique_ptr<psx::game::TitleSessionState> createSession(Game &game) override;
   bool interpolates() const override {
     return true;
   }
