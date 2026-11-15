@@ -209,4 +209,3 @@ target_compile_features(crash_catalog PUBLIC cxx_std_20)
 target_link_libraries(crash_catalog PUBLIC crash1_runtime crash2_runtime crash3_runtime)
 
 psxport_add_product(crash_port CATALOG crash::createCatalog HEADER catalog.h LIBRARIES crash_catalog)
-set_target_properties(crash_port PROPERTIES ENABLE_EXPORTS ON)
