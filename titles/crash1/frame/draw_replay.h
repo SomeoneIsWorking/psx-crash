@@ -1,7 +1,9 @@
-// draw_replay.h — Crash 1's in-betweens: the draw section replayed with the camera and the objects' placement blended.
+// draw_replay.h — Crash 1's in-betweens: the draw section replayed with the camera, the objects' placement and their
+// vertex-animated poses blended.
 #pragma once
 
 #include "crash1/frame/draw_section.h"
+#include "crash1/frame/pose_blend.h"
 #include "replay_frame.h"
 
 class Core;
@@ -19,9 +21,16 @@ public:
   [[nodiscard]] psx::present::ReplayFrame &frame() {
     return frame_;
   }
+  [[nodiscard]] PoseBlend &poses() {
+    return poses_;
+  }
+  [[nodiscard]] const PoseBlend &poses() const {
+    return poses_;
+  }
 
 private:
   DrawSection section_;
+  PoseBlend poses_;
   psx::present::ReplayFrame frame_;
 };
 

@@ -31,7 +31,8 @@ zone-walk cut declarations (`titles/crash2/frame/camera_cuts.cpp`) have not been
 Crash 1 (2026-11-15): replays `CORE_Loop`'s picture half (`titles/crash1/frame/`): `Gpu_Update`'s end state for the
 render buffer, then `Gfx_UpdateMatrices` to `Gpu_Update`'s `Audio_Update` with object logic off, sampled at
 `Gool_UpdateObjects`' return. The camera and the objects' placement blend; in the attract demo in-betweens land halfway.
-Open: an object's pose draws the later tick's animation frame (Crash 1's model drawer reads one vertex frame, so a
-blend needs a reader of two); `Gfx_UpdateMatrices` steps the screen shake (`g_cam_mat_dirty_flag`) and `Gpu_Update`
+Poses: `Gfx_TransformSvtx` draws a blend of the object's last real SVTX frame and the replay's, written over the frame
+for that call (`crash1::PoseBlend`); a vertex rounds to a whole frame unit. Open: CVTX models (`Gfx_TransformCvtx`)
+draw the later frame; `Gfx_UpdateMatrices` steps the screen shake (`g_cam_mat_dirty_flag`) and `Gpu_Update`
 the fade overlay (`0x80061A34`) inside the section, so a replay draws their later tick; no camera cut but the scene's is
 declared; the walk-order question of Crash 2's issue 0038 has not been checked here.

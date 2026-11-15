@@ -81,11 +81,16 @@ const std::array<MotionTrack, 3> kTracks{{
 
 void updateObjectsOverride(Core *core) {
   const std::uint32_t returnAddress = core->r[31];
+  DrawReplay &replay = session(*core).drawReplay;
+  const bool real = returnAddress == facts::kObjectsReturn && !replay.frame().replaying();
+  if (real) {
+    replay.poses().openPass();
+  }
   psx::cpu::callOriginalToReturn(
       *core, facts::kGoolUpdateObjects, psx::cpu::ExecutionBudget::currentTurn(*core), "Crash 1 object update");
-  psx::present::ReplayFrame &frame = session(*core).drawReplay.frame();
-  if (returnAddress == facts::kObjectsReturn && !frame.replaying()) {
-    frame.beforeDraw(*core);
+  if (real) {
+    replay.poses().closePass();
+    replay.frame().beforeDraw(*core);
   }
 }
 
@@ -105,6 +110,7 @@ DrawReplay::DrawReplay() : frame_(section_, kTracks) {}
 void DrawReplay::registerOverrides(Core &core) {
   psx::cpu::installNativeOverride(core, facts::kGoolUpdateObjects, "Crash 1 draw replay sample", updateObjectsOverride);
   psx::cpu::installNativeOverride(core, facts::kPadUpdate, "Crash 1 pad update", padUpdateOverride);
+  PoseBlend::registerOverride(core);
 }
 
 } // namespace crash1

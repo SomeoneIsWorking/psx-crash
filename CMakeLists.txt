@@ -172,6 +172,7 @@ add_crash_title(
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/frame/draw_replay.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/frame/draw_section.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/frame/frame_driver.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/frame/pose_blend.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/input/bios_pad_input.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/render/block_pool.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash1/render/object_cull.cpp"

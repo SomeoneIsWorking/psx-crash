@@ -21,6 +21,8 @@ inline constexpr std::uint32_t kGpuUpdate = 0x80016E5Cu;
 // DrawOTag follow.
 inline constexpr std::uint32_t kAudioUpdateCall = 0x8001704Cu;
 inline constexpr std::uint32_t kGpuRResetOt = 0x800342D8u;
+// Gfx_TransformSvtx(frame, ot, object): Gool_ObjectTransform's draw of a vertex-animated model's one frame.
+inline constexpr std::uint32_t kTransformSvtx = 0x80018964u;
 // Pad_Update: the BIOS pad read, which GOOL_UpdateObject calls for the player before anything else; nothing reads its
 // result back.
 inline constexpr std::uint32_t kPadUpdate = 0x800167A4u;
@@ -56,5 +58,16 @@ inline constexpr std::uint32_t kScale = 0x98u;
 inline constexpr std::uint32_t kAnimSeq = 0x108u;
 inline constexpr std::uint32_t kAnimFrame = 0x10Cu;
 } // namespace object
+
+// An SVTX frame (Gte_RTransformSvtx): its vertex count, model (TGEO) id, origin (three words), box (six) and collision
+// point (three), then per vertex x, y and z bytes (model position (byte + origin - 0x80) << 2) and three normal bytes.
+namespace svtx {
+inline constexpr std::uint32_t kVertexCount = 0x00u;
+inline constexpr std::uint32_t kModel = 0x04u;
+inline constexpr std::uint32_t kOrigin = 0x08u;
+inline constexpr std::uint32_t kVertices = 0x38u;
+inline constexpr std::uint32_t kVertexBytes = 6u;
+inline constexpr std::uint32_t kPositionBytes = 3u;
+} // namespace svtx
 
 } // namespace crash1::frame_facts

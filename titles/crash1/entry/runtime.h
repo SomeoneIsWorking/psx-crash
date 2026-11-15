@@ -15,6 +15,7 @@ public:
   std::unique_ptr<psx::game::TitleSessionState> createSession(Game &game) override;
   std::unique_ptr<psx::game::FrameDriver> createFrameDriver(Game &game) override;
   psx::present::ReplayFrame *replayFrame(Core &core) override;
+  void reportRun(Core &core) const override;
   bool interpolates() const override {
     return true;
   }
