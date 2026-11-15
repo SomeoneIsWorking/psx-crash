@@ -4,6 +4,7 @@
 // executable's disassembly.
 #pragma once
 
+#include <array>
 #include <cstdint>
 
 namespace crash1::frame_facts {
@@ -23,6 +24,14 @@ inline constexpr std::uint32_t kAudioUpdateCall = 0x8001704Cu;
 inline constexpr std::uint32_t kGpuRResetOt = 0x800342D8u;
 // Gfx_TransformSvtx(frame, ot, object): Gool_ObjectTransform's draw of a vertex-animated model's one frame.
 inline constexpr std::uint32_t kTransformSvtx = 0x80018964u;
+// Gfx_UpdateMatrices, the section's first call; it reads the screen shake and steps it for the next tick.
+inline constexpr std::uint32_t kUpdateMatrices = 0x80017A14u;
+// g_cam_mat_dirty_flag, the screen shake: bits 8 and up offset the projection centre vertically, and each
+// Gfx_UpdateMatrices flips the sign and takes one off the size.
+inline constexpr std::uint32_t kScreenShake = 0x80061894u;
+// Gpu_DrawOverlay(fade): the full-screen fade, 0 drawing nothing; Gpu_Update's three calls return here.
+inline constexpr std::uint32_t kDrawOverlay = 0x80017448u;
+inline constexpr std::array<std::uint32_t, 3> kFadeReturns{0x80016F14u, 0x80016F2Cu, 0x80016F50u};
 // Pad_Update: the BIOS pad read, which GOOL_UpdateObject calls for the player before anything else; nothing reads its
 // result back.
 inline constexpr std::uint32_t kPadUpdate = 0x800167A4u;

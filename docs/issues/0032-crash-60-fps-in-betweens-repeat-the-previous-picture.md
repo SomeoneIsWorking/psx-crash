@@ -32,7 +32,8 @@ Crash 1 (2026-11-15): replays `CORE_Loop`'s picture half (`titles/crash1/frame/`
 render buffer, then `Gfx_UpdateMatrices` to `Gpu_Update`'s `Audio_Update` with object logic off, sampled at
 `Gool_UpdateObjects`' return. The camera and the objects' placement blend; in the attract demo in-betweens land halfway.
 Poses: `Gfx_TransformSvtx` draws a blend of the object's last real SVTX frame and the replay's, written over the frame
-for that call (`crash1::PoseBlend`); a vertex rounds to a whole frame unit. Open: CVTX models (`Gfx_TransformCvtx`)
-draw the later frame; `Gfx_UpdateMatrices` steps the screen shake (`g_cam_mat_dirty_flag`) and `Gpu_Update`
-the fade overlay (`0x80061A34`) inside the section, so a replay draws their later tick; no camera cut but the scene's is
-declared; the walk-order question of Crash 2's issue 0038 has not been checked here.
+for that call (`crash1::PoseBlend`); a vertex rounds to a whole frame unit. A replay runs after the newest tick's
+object pass and before its `Gpu_Update`: the screen shake it would read is the tick after's, so the newest tick's is
+written back, and the fade it steps to is the newest tick's, drawn t of the way from the tick before's
+(`crash1::ScreenEffects`). Open: CVTX models (`Gfx_TransformCvtx`)
+draw the later frame; no camera cut but the scene's is declared; the walk-order question of Crash 2's issue 0038 has not been checked here.

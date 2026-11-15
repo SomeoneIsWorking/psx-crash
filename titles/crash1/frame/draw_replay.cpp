@@ -85,6 +85,7 @@ void updateObjectsOverride(Core *core) {
   const bool real = returnAddress == facts::kObjectsReturn && !replay.frame().replaying();
   if (real) {
     replay.poses().openPass();
+    replay.screen().openPass();
   }
   psx::cpu::callOriginalToReturn(
       *core, facts::kGoolUpdateObjects, psx::cpu::ExecutionBudget::currentTurn(*core), "Crash 1 object update");
@@ -111,6 +112,7 @@ void DrawReplay::registerOverrides(Core &core) {
   psx::cpu::installNativeOverride(core, facts::kGoolUpdateObjects, "Crash 1 draw replay sample", updateObjectsOverride);
   psx::cpu::installNativeOverride(core, facts::kPadUpdate, "Crash 1 pad update", padUpdateOverride);
   PoseBlend::registerOverride(core);
+  ScreenEffects::registerOverrides(core);
 }
 
 } // namespace crash1

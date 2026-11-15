@@ -32,6 +32,7 @@ psx::present::ReplayFrame *Runtime::replayFrame(Core &core) {
 
 void Runtime::reportRun(Core &core) const {
   session(core).drawReplay.poses().report();
+  session(core).drawReplay.screen().report();
 }
 
 } // namespace crash1

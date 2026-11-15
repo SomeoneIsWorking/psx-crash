@@ -1,9 +1,10 @@
 // draw_replay.h — Crash 1's in-betweens: the draw section replayed with the camera, the objects' placement and their
-// vertex-animated poses blended.
+// vertex-animated poses blended, the shake held and the fade blended.
 #pragma once
 
 #include "crash1/frame/draw_section.h"
 #include "crash1/frame/pose_blend.h"
+#include "crash1/frame/screen_effects.h"
 #include "replay_frame.h"
 
 class Core;
@@ -27,10 +28,17 @@ public:
   [[nodiscard]] const PoseBlend &poses() const {
     return poses_;
   }
+  [[nodiscard]] ScreenEffects &screen() {
+    return screen_;
+  }
+  [[nodiscard]] const ScreenEffects &screen() const {
+    return screen_;
+  }
 
 private:
   DrawSection section_;
   PoseBlend poses_;
+  ScreenEffects screen_;
   psx::present::ReplayFrame frame_;
 };
 
