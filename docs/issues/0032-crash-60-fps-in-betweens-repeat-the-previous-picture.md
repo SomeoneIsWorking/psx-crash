@@ -35,8 +35,8 @@ Poses: `Gfx_TransformSvtx` draws a blend of the object's last real SVTX frame an
 for that call (`crash1::PoseBlend`); a vertex rounds to a whole frame unit. A replay runs after the newest tick's
 object pass and before its `Gpu_Update`: the screen shake it would read is the tick after's, so the newest tick's is
 written back, and the fade it steps to is the newest tick's, drawn t of the way from the tick before's
-(`crash1::ScreenEffects`). Open: CVTX models (`Gfx_TransformCvtx`)
-draw the later frame; no camera cut but the scene's is declared; the walk-order question of Crash 2's issue 0038 has not been checked here.
+(`crash1::ScreenEffects`). CVTX frames (`Gfx_TransformCvtx`) have the SVTX layout
+with colour bytes for normals and blend the same way. Open: no camera cut but the scene's is declared; the walk-order question of Crash 2's issue 0038 has not been checked here.
 
 Crash 3 (2026-11-15): replays the same picture half through the shared `crash::DrawReplay` (`titles/crash3/entry/facts.cpp`
 `kReplay`, crash3-decomp `docs/notes/frame-loop.md`). A t = 1 replay matched the real frame in all but the first frame

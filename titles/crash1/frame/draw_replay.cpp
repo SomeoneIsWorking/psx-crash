@@ -55,7 +55,7 @@ DrawReplay::DrawReplay() : tracks_(kTracks), frame_(section_, tracks_.tracks()) 
 void DrawReplay::registerOverrides(Core &core) {
   psx::cpu::installNativeOverride(core, facts::kGoolUpdateObjects, "Crash 1 draw replay sample", updateObjectsOverride);
   psx::cpu::installNativeOverride(core, facts::kPadUpdate, "Crash 1 pad update", padUpdateOverride);
-  PoseBlend::registerOverride(core);
+  PoseBlend::registerOverrides(core);
   ScreenEffects::registerOverrides(core);
 }
 

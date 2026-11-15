@@ -38,9 +38,10 @@ void writeFrame(Core &core, std::uint32_t frame, const std::vector<std::uint8_t>
   }
 }
 
-// The origin, box and collision point move linearly; a vertex's position bytes are unsigned, its normal bytes signed.
+// The origin, box and collision point move linearly; a vertex's position bytes are unsigned, its normal bytes signed
+// and its colour bytes unsigned.
 std::vector<std::uint8_t>
-blendFrames(const std::vector<std::uint8_t> &from, const std::vector<std::uint8_t> &to, float t) {
+blendFrames(const std::vector<std::uint8_t> &from, const std::vector<std::uint8_t> &to, float t, bool signedTail) {
   std::vector<std::uint8_t> out = to;
   for (std::uint32_t offset = svtx::kOrigin; offset < svtx::kVertices; offset += 4u) {
     const auto word = static_cast<std::uint32_t>(
@@ -50,7 +51,7 @@ blendFrames(const std::vector<std::uint8_t> &from, const std::vector<std::uint8_
     }
   }
   for (std::uint32_t offset = svtx::kVertices; offset < out.size(); ++offset) {
-    const bool normal = (offset - svtx::kVertices) % svtx::kVertexBytes >= svtx::kPositionBytes;
+    const bool normal = signedTail && (offset - svtx::kVertices) % svtx::kVertexBytes >= svtx::kPositionBytes;
     const std::int32_t a = normal ? static_cast<std::int8_t>(from[offset]) : from[offset];
     const std::int32_t b = normal ? static_cast<std::int8_t>(to[offset]) : to[offset];
     out[offset] = static_cast<std::uint8_t>(lerpInt(a, b, t));
@@ -72,9 +73,11 @@ void PoseBlend::closePass() {
 
 void PoseBlend::report() const {
   lucent::info("crash1-replay",
-               "poses: {} drawn blended, {} drawn as the later tick (no matching frame last tick)",
-               blended_,
-               unpaired_);
+               "poses: SVTX {} drawn blended, {} drawn as the later tick (no matching frame last tick); CVTX {}, {}",
+               blended_[0],
+               unpaired_[0],
+               blended_[1],
+               unpaired_[1]);
 }
 
 const PoseBlend::Frame *PoseBlend::drawnFrame(std::uint32_t object) const {
@@ -82,42 +85,50 @@ const PoseBlend::Frame *PoseBlend::drawnFrame(std::uint32_t object) const {
   return it == drawn_.end() ? nullptr : &*it;
 }
 
-void PoseBlend::transform(Core &core, std::uint32_t frame, std::uint32_t object, std::optional<float> t) {
-  const auto original = [&core] {
-    psx::cpu::callOriginalToReturn(
-        core, frame_facts::kTransformSvtx, psx::cpu::ExecutionBudget::currentTurn(core), "Crash 1 SVTX frame");
+void PoseBlend::transform(Core &core, Kind kind, std::uint32_t frame, std::uint32_t object, std::optional<float> t) {
+  const auto original = [&core, kind] {
+    psx::cpu::callOriginalToReturn(core,
+                                   kind == Kind::Svtx ? frame_facts::kTransformSvtx : frame_facts::kTransformCvtx,
+                                   psx::cpu::ExecutionBudget::currentTurn(core),
+                                   kind == Kind::Svtx ? "Crash 1 SVTX frame" : "Crash 1 CVTX frame");
   };
   const std::uint32_t size = frameBytes(core, frame);
   const std::uint32_t exec = core.mem_r32(object + frame_facts::object::kExec);
   if (!t) {
     if (recording_ && std::ranges::find(drawing_, object, &Frame::object) == drawing_.end()) {
-      drawing_.push_back({.object = object, .exec = exec, .bytes = readFrame(core, frame, size)});
+      drawing_.push_back({.object = object, .exec = exec, .kind = kind, .bytes = readFrame(core, frame, size)});
     }
     original();
     return;
   }
   const Frame *earlier = drawnFrame(object);
   std::vector<std::uint8_t> later = readFrame(core, frame, size);
-  if (earlier == nullptr || earlier->exec != exec || earlier->bytes.size() != later.size() ||
+  if (earlier == nullptr || earlier->exec != exec || earlier->kind != kind || earlier->bytes.size() != later.size() ||
       wordAt(earlier->bytes, svtx::kModel) != wordAt(later, svtx::kModel)) {
-    ++unpaired_;
+    ++unpaired_[static_cast<std::size_t>(kind)];
     original();
     return;
   }
-  ++blended_;
-  writeFrame(core, frame, blendFrames(earlier->bytes, later, *t));
+  ++blended_[static_cast<std::size_t>(kind)];
+  writeFrame(core, frame, blendFrames(earlier->bytes, later, *t, kind == Kind::Svtx));
   original();
   // Another object may draw the same frame later in this replay.
   writeFrame(core, frame, later);
 }
 
-void PoseBlend::transformOverride(Core *core) {
+void PoseBlend::svtxOverride(Core *core) {
   Session &owner = session(*core);
-  owner.drawReplay.poses().transform(*core, core->r[4], core->r[6], owner.drawReplay.frame().replaying());
+  owner.drawReplay.poses().transform(*core, Kind::Svtx, core->r[4], core->r[6], owner.drawReplay.frame().replaying());
 }
 
-void PoseBlend::registerOverride(Core &core) {
-  psx::cpu::installNativeOverride(core, frame_facts::kTransformSvtx, "Crash 1 SVTX pose blend", transformOverride);
+void PoseBlend::cvtxOverride(Core *core) {
+  Session &owner = session(*core);
+  owner.drawReplay.poses().transform(*core, Kind::Cvtx, core->r[4], core->r[6], owner.drawReplay.frame().replaying());
+}
+
+void PoseBlend::registerOverrides(Core &core) {
+  psx::cpu::installNativeOverride(core, frame_facts::kTransformSvtx, "Crash 1 SVTX pose blend", svtxOverride);
+  psx::cpu::installNativeOverride(core, frame_facts::kTransformCvtx, "Crash 1 CVTX pose blend", cvtxOverride);
 }
 
 } // namespace crash1

@@ -24,6 +24,8 @@ inline constexpr std::uint32_t kAudioUpdateCall = 0x8001704Cu;
 inline constexpr std::uint32_t kGpuRResetOt = 0x800342D8u;
 // Gfx_TransformSvtx(frame, ot, object): Gool_ObjectTransform's draw of a vertex-animated model's one frame.
 inline constexpr std::uint32_t kTransformSvtx = 0x80018964u;
+// Gfx_TransformCvtx(frame, ot, object): the same for a vertex-coloured model's CVTX frame.
+inline constexpr std::uint32_t kTransformCvtx = 0x80018A40u;
 // Gfx_UpdateMatrices, the section's first call; it reads the screen shake and steps it for the next tick.
 inline constexpr std::uint32_t kUpdateMatrices = 0x80017A14u;
 // g_cam_mat_dirty_flag, the screen shake: bits 8 and up offset the projection centre vertically, and each
@@ -70,6 +72,7 @@ inline constexpr std::uint32_t kAnimFrame = 0x10Cu;
 
 // An SVTX frame (Gte_RTransformSvtx): its vertex count, model (TGEO) id, origin (three words), box (six) and collision
 // point (three), then per vertex x, y and z bytes (model position (byte + origin - 0x80) << 2) and three normal bytes.
+// A CVTX frame (Gte_RTransformCvtx 0x80034B08) has the same layout with r, g and b colour bytes for the normals.
 namespace svtx {
 inline constexpr std::uint32_t kVertexCount = 0x00u;
 inline constexpr std::uint32_t kModel = 0x04u;
