@@ -180,6 +180,14 @@ constexpr crash::PoseFacts kPoses{
                .sumZShift = 8},
 };
 
+// Cam_Update's mode 7 and 9 handlers, its go byte and Sys_LoadCheckpoint (crash2-decomp docs/notes/camera-cuts.md).
+constexpr crash::CameraCutFacts kCameraCuts{
+    .preparedCut = 0x80022E74u,
+    .cutGo = 0x8005B99Bu,
+    .zoneWalk = 0x80022F58u,
+    .loadCheckpoint = 0x8002F6C8u,
+};
+
 constexpr crash::TitleFacts kFacts{
     .crt0 = kCrt0,
     .staticConstructors = CRASH_STATIC_CONSTRUCTORS_ENTRY,
@@ -196,6 +204,7 @@ constexpr crash::TitleFacts kFacts{
     .padBuffers = kPadBuffers,
     .replay = kReplay,
     .poses = kPoses,
+    .cameraCuts = kCameraCuts,
 };
 
 static_assert(crash::isCoherent(kFacts));

@@ -59,6 +59,9 @@ void Runtime::registerOverrides(Game &game) {
   if (facts_.poses) {
     MorphReader::registerOverrides(game.core, facts_.poses->reader);
   }
+  if (facts_.cameraCuts) {
+    CameraCuts::registerOverrides(game.core, *facts_.cameraCuts);
+  }
 }
 
 std::unique_ptr<psx::game::TitleSessionState> Runtime::createSession(Game &) {

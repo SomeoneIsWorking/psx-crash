@@ -4,6 +4,7 @@
 #include "boot/gpu_watchdog.h"
 #include "boot/libcd_init.h"
 #include "crt0_boot.h"
+#include "frame/camera_cuts.h"
 #include "frame/frame_program.h"
 #include "guest_address_range.h"
 #include "replay/pose_blend.h"
@@ -42,6 +43,8 @@ struct TitleFacts {
   std::optional<ReplayFacts> replay;
   // The vertex-animated poses the replay blends through the morph reader; empty for a title without them.
   std::optional<PoseFacts> poses;
+  // Cam_Update's and Sys_LoadCheckpoint's camera cuts; empty for a title that declares its own (Crash 1).
+  std::optional<CameraCutFacts> cameraCuts;
 };
 
 // Compile-time check each title's facts file asserts: ranges are non-empty, the VSync seams sit inside GpuUpdate and a

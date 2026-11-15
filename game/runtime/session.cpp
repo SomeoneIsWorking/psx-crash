@@ -11,7 +11,19 @@ namespace crash {
 
 Session::Session(const TitleFacts &facts)
     : frameCut(facts.frame), drawReplay_(facts.replay ? std::make_unique<DrawReplay>(*facts.replay) : nullptr),
-      poses_(facts.poses ? std::make_unique<PoseBlend>(*facts.poses) : nullptr) {}
+      poses_(facts.poses ? std::make_unique<PoseBlend>(*facts.poses) : nullptr) {
+  if (facts.cameraCuts) {
+    cameraCuts_.emplace(*facts.cameraCuts);
+  }
+}
+
+CameraCuts &Session::cameraCuts() {
+  if (!cameraCuts_) {
+    lucent::error("crash-runtime", "a camera cut override ran for a title without camera cut facts");
+    std::abort();
+  }
+  return *cameraCuts_;
+}
 
 MorphReader &Session::morphReader() {
   if (!poses_) {

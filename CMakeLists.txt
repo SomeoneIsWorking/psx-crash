@@ -137,6 +137,7 @@ add_library(
   "${CMAKE_CURRENT_SOURCE_DIR}/game/boot/callback_boot.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/boot/gpu_watchdog.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/boot/libcd_init.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/camera_cuts.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/frame_cut.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/debug/debug_menu.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/game/frame/frame_driver.cpp"
@@ -191,14 +192,12 @@ string(JSON crash1_bios_pad_word GET "${crash1_manifest_json}" runtime native_fr
 target_compile_definitions(crash1_runtime PRIVATE "CRASH1_BIOS_PAD_READ_WORD_ADDRESS=${crash1_bios_pad_word}u")
 add_crash_title(
   crash2
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/frame/camera_cuts.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_light.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_modes.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash2/render/world_renderer.cpp"
 )
 add_crash_title(
   crash3
-  "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash3/frame/camera_cuts.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash3/render/water_grid.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash3/render/world_renderer.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/titles/crash3/render/world_underwater.cpp"

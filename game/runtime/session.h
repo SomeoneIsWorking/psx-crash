@@ -1,5 +1,6 @@
 #pragma once
 
+#include "frame/camera_cuts.h"
 #include "frame/frame_cut.h"
 #include "game_runtime.h"
 #include "replay/draw_replay.h"
@@ -7,6 +8,7 @@
 #include "replay/pose_blend.h"
 
 #include <memory>
+#include <optional>
 
 class Core;
 
@@ -32,10 +34,13 @@ public:
   }
   // The morph reader the poses weigh; aborts for a title without pose facts.
   [[nodiscard]] MorphReader &morphReader();
+  // The camera cut declarations; aborts for a title without their facts.
+  [[nodiscard]] CameraCuts &cameraCuts();
 
 private:
   std::unique_ptr<DrawReplay> drawReplay_;
   std::unique_ptr<PoseBlend> poses_;
+  std::optional<CameraCuts> cameraCuts_;
 };
 
 // The session of the Game `core` belongs to; aborts when it has none.

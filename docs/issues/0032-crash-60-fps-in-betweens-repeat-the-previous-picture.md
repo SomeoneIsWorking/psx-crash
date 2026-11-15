@@ -25,8 +25,8 @@ setting. No interpolation capture goes in the README until this is done.
 Crash 2 (2026-11-13): fixed by replaying its draw section (`titles/crash2/frame/`, crash2-decomp
 `docs/notes/frame-loop.md`); `warp 15` (scene 0x15) held up, the `fps60dump` in-betweens land halfway (S007). Crash 1 still
 has no section, and Crash 3 no interpolation. Crash 2's remaining gaps: the retail morph drawer adds two frames at a fixed
-equal weight, so only a t = 1/2 pose whose frames pair up is drawn halfway and the rest step at 30 Hz; the prepared-cut and
-zone-walk cut declarations (`titles/crash2/frame/camera_cuts.cpp`) have not been seen firing in a run.
+equal weight, so only a t = 1/2 pose whose frames pair up is drawn halfway and the rest step at 30 Hz; the camera cuts are
+declared by `crash::CameraCuts` (`game/frame/camera_cuts.*`).
 
 Crash 1 (2026-11-15): replays `CORE_Loop`'s picture half (`titles/crash1/frame/`): `Gpu_Update`'s end state for the
 render buffer, then `Gfx_UpdateMatrices` to `Gpu_Update`'s `Audio_Update` with object logic off, sampled at
@@ -41,7 +41,8 @@ draw the later frame; no camera cut but the scene's is declared; the walk-order 
 Crash 3 (2026-11-15): replays the same picture half through the shared `crash::DrawReplay` (`titles/crash3/entry/facts.cpp`
 `kReplay`, crash3-decomp `docs/notes/frame-loop.md`). A t = 1 replay matched the real frame in all but the first frame
 after each `Sys_LoadCheckpoint` 0x80030388, which 0x800307F4 and the GOOL op 0x1C handler call without a scene request; that restore
-is now a declared cut (`titles/crash3/frame/camera_cuts.cpp`). Placement and the camera land halfway. Vertex poses
+is now a declared cut, and so are `Cam_Update`'s prepared cut and zone walk, whose modes are Crash 2's as bits
+(`crash::CameraCuts` over `kCameraCuts`). Placement and the camera land halfway. Vertex poses
 blend through the morph reader Crash 2 uses (`game/render/morph_reader.*`, `game/replay/pose_blend.*` over each title's
 `PoseFacts`): Crash 3's pose fetch 0x8001B0BC and unlit reader 0x8003E0FC are Crash 2's routines, the reader's sum
 scaled 8x. Open: `Cam_Update`'s own cuts are not mapped.

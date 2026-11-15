@@ -166,6 +166,15 @@ constexpr crash::PoseFacts kPoses{
                .sumZShift = 5},
 };
 
+// Cam_Update's mode 0x40 and 0x100 handlers (Crash 2's 7 and 9), its go byte and Sys_LoadCheckpoint (crash3-decomp
+// docs/notes/frame-loop.md, Camera modes).
+constexpr crash::CameraCutFacts kCameraCuts{
+    .preparedCut = 0x80024E80u,
+    .cutGo = 0x8005C63Fu,
+    .zoneWalk = 0x80024F54u,
+    .loadCheckpoint = 0x80030388u,
+};
+
 // The GPU watchdog check differs from Crash 1 and 2's, so it runs as guest code. libpad PadInitDirect
 // reads the pad through the title's own SIO code, so no receive buffers are published.
 constexpr crash::TitleFacts kFacts{
@@ -184,6 +193,7 @@ constexpr crash::TitleFacts kFacts{
     .padBuffers = std::nullopt,
     .replay = kReplay,
     .poses = kPoses,
+    .cameraCuts = kCameraCuts,
 };
 
 static_assert(crash::isCoherent(kFacts));
