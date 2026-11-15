@@ -141,6 +141,31 @@ constexpr crash::ReplayFacts kReplay{
          .object = {.exec = 0x0Cu, .trans = 0x60u, .rot = 0x6Cu, .scale = 0x78u, .anim = 0xE8u, .animFrame = 0xECu}},
 };
 
+// The vertex poses and the unlit morph reader (crash3-decomp docs/notes/frame-loop.md, Animation): the pose fetch
+// 0x8001B0BC, the reader 0x8003E0FC (Crash 2's, its sum scaled 8x), the stream opener 0x8003F63C and the morph draw
+// steps (table 0x8005C270's second entries).
+constexpr crash::PoseFacts kPoses{
+    .fetchPose = 0x8001B0BCu,
+    .block = 0x08u,
+    .scale = 0x78u,
+    .anim = 0xE8u,
+    .animFrame = 0xECu,
+    .firstFrame = 0x20u,
+    .secondFrame = 0x24u,
+    .vertexKind = 1,
+    .frameModel = 0x0Cu,
+    .reader = {.owner = "Crash 3 morph reader",
+               .unlitReader = 0x8003E0FCu,
+               .openStreams = 0x8003F63Cu,
+               .frameData = 0x18u,
+               .packetFirstFrame = 0x30u,
+               .packetSecondFrame = 0x34u,
+               .steps = {0x8003D36Cu, 0x8003D748u, 0x8003D788u, 0x8003D80Cu, 0x8003D8F8u, 0x8003E39Cu, 0x8003F2FCu},
+               .stepCount = 7,
+               .sumXyShift = 3,
+               .sumZShift = 5},
+};
+
 // The GPU watchdog check differs from Crash 1 and 2's, so it runs as guest code. libpad PadInitDirect
 // reads the pad through the title's own SIO code, so no receive buffers are published.
 constexpr crash::TitleFacts kFacts{
@@ -158,6 +183,7 @@ constexpr crash::TitleFacts kFacts{
     .codeModuleArena = {0x0006EA78u, 0x00200000u},
     .padBuffers = std::nullopt,
     .replay = kReplay,
+    .poses = kPoses,
 };
 
 static_assert(crash::isCoherent(kFacts));

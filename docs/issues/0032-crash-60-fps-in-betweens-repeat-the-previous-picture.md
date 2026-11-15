@@ -41,6 +41,7 @@ draw the later frame; no camera cut but the scene's is declared; the walk-order 
 Crash 3 (2026-11-15): replays the same picture half through the shared `crash::DrawReplay` (`titles/crash3/entry/facts.cpp`
 `kReplay`, crash3-decomp `docs/notes/frame-loop.md`). A t = 1 replay matched the real frame in all but the first frame
 after each `Sys_LoadCheckpoint` 0x80030388, which 0x800307F4 and the GOOL op 0x1C handler call without a scene request; that restore
-is now a declared cut (`titles/crash3/frame/camera_cuts.cpp`). Placement and the camera land halfway; open: Crash's
-vertex-animated pose is drawn as the later tick (its pose fetch and morph drawer are not read), and `Cam_Update`'s own
-cuts are not mapped.
+is now a declared cut (`titles/crash3/frame/camera_cuts.cpp`). Placement and the camera land halfway. Vertex poses
+blend through the morph reader Crash 2 uses (`game/render/morph_reader.*`, `game/replay/pose_blend.*` over each title's
+`PoseFacts`): Crash 3's pose fetch 0x8001B0BC and unlit reader 0x8003E0FC are Crash 2's routines, the reader's sum
+scaled 8x. Open: `Cam_Update`'s own cuts are not mapped.
