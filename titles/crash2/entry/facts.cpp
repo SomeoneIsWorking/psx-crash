@@ -122,9 +122,9 @@ constexpr psx::host::TitleIdentity kIdentity{
 constexpr crash::ReplayFacts kReplay{
     .mainLoop = 0x80011800u,
     .viewCall = 0x80011B68u,
-    .objectsCall = 0x80011D80u,
+    .objectsStop = 0x80011D80u,
     .drawObjects = 0x80011D94u,
-    .endFrameCall = 0x80011DB4u,
+    .endFrameStop = 0x80011DB4u,
     .sampleStub = 0x80011E88u,
     .objUpdateAll = 0x8001C29Cu,
     .resetFrame = 0x800163C4u,

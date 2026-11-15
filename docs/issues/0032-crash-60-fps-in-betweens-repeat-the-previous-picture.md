@@ -37,3 +37,10 @@ object pass and before its `Gpu_Update`: the screen shake it would read is the t
 written back, and the fade it steps to is the newest tick's, drawn t of the way from the tick before's
 (`crash1::ScreenEffects`). Open: CVTX models (`Gfx_TransformCvtx`)
 draw the later frame; no camera cut but the scene's is declared; the walk-order question of Crash 2's issue 0038 has not been checked here.
+
+Crash 3 (2026-11-15): replays the same picture half through the shared `crash::DrawReplay` (`titles/crash3/entry/facts.cpp`
+`kReplay`, crash3-decomp `docs/notes/frame-loop.md`). A t = 1 replay matched the real frame in all but the first frame
+after each `Sys_LoadCheckpoint` 0x80030388, which 0x800307F4 and the GOOL op 0x1C handler call without a scene request; that restore
+is now a declared cut (`titles/crash3/frame/camera_cuts.cpp`). Placement and the camera land halfway; open: Crash's
+vertex-animated pose is drawn as the later tick (its pose fetch and morph drawer are not read), and `Cam_Update`'s own
+cuts are not mapped.

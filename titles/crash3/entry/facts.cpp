@@ -103,6 +103,44 @@ constexpr psx::host::TitleIdentity kIdentity{
     .discExecutablePath = CRASH_EXE_NAME,
 };
 
+// The draw replay, read from the retail executable's disassembly (crash3-decomp docs/notes/frame-loop.md): the same
+// engine as Crash 2's, GpuUpdate as its end of frame, gp 0x80060878.
+constexpr crash::ReplayFacts kReplay{
+    .mainLoop = 0x8001166Cu,
+    .viewCall = 0x80011A4Cu,
+    .objectsStop = 0x8001D16Cu,
+    .drawObjects = 0x80011D98u,
+    .endFrameStop = 0x80016634u,
+    .sampleStub = 0x80011FC0u,
+    .objUpdateAll = 0x8001D16Cu,
+    .resetFrame = 0x8001660Cu,
+    .endFrame = 0x80016634u,
+    .endFrameArgument = 0u,
+    .endFrameDeviceTail = 0x800169ECu,
+    .buildBuffer = 0x80061A84u,
+    .orderingTable = 0x20u,
+    .packetHead = 0x2090u,
+    .paused = 0x8006087Cu,
+    .frameFlags = 0x80068F1Cu,
+    .objectLogic = 0x8u,
+    .additiveFade = 0x800000u,
+    .objectsFirst = 0x40000000u,
+    .updateView = 0x80018A54u,
+    .screenShake = 0x80068F00u,
+    .streakScroll = std::nullopt,
+    .drawFade = 0x800176A0u,
+    .objForEachList = 0x80019A38u,
+    .objUpdate = 0x8001D674u,
+    .queueObject = 0x8001B7A0u,
+    .tracks =
+        {.camera = 0x80065CF0u,
+         .objectPool = 0x80068E9Cu,
+         .objectStride = 0x23Cu,
+         .objectCount = 0x60u,
+         .player = 0x80060A90u,
+         .object = {.exec = 0x0Cu, .trans = 0x60u, .rot = 0x6Cu, .scale = 0x78u, .anim = 0xE8u, .animFrame = 0xECu}},
+};
+
 // The GPU watchdog check differs from Crash 1 and 2's, so it runs as guest code. libpad PadInitDirect
 // reads the pad through the title's own SIO code, so no receive buffers are published.
 constexpr crash::TitleFacts kFacts{
@@ -119,6 +157,7 @@ constexpr crash::TitleFacts kFacts{
     .vsyncQueryCounter = CRASH_TITLE_VSYNC_QUERY_COUNTER,
     .codeModuleArena = {0x0006EA78u, 0x00200000u},
     .padBuffers = std::nullopt,
+    .replay = kReplay,
 };
 
 static_assert(crash::isCoherent(kFacts));

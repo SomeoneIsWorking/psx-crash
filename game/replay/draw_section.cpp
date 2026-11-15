@@ -22,11 +22,11 @@ std::optional<std::uint32_t> DrawSection::draw(Core &core, psx::present::GuestRe
   const std::array<std::uint32_t, 1> endArgument{f.endFrameArgument.value_or(0u)};
   const std::span<const std::uint32_t> endArguments =
       f.endFrameArgument ? std::span<const std::uint32_t>(endArgument) : std::span<const std::uint32_t>{};
-  if (!redraw.dispatch(f.resetFrame, buffer) || !redraw.resumeTo(f.mainLoop, f.viewCall, f.objectsCall)) {
+  if (!redraw.dispatch(f.resetFrame, buffer) || !redraw.resumeTo(f.mainLoop, f.viewCall, f.objectsStop)) {
     return std::nullopt;
   }
   redraw.writeWord(f.frameFlags, core.mem_r32(f.frameFlags) & ~f.objectLogic);
-  if (!redraw.dispatch(f.objUpdateAll, unpaused) || !redraw.resumeTo(f.mainLoop, f.drawObjects, f.endFrameCall) ||
+  if (!redraw.dispatch(f.objUpdateAll, unpaused) || !redraw.resumeTo(f.mainLoop, f.drawObjects, f.endFrameStop) ||
       !redraw.dispatchTo(f.endFrame, f.endFrameDeviceTail, endArguments)) {
     return std::nullopt;
   }

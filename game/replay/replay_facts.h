@@ -10,13 +10,15 @@
 namespace crash {
 
 struct ReplayFacts {
-  // Sys_MainLoop, and in it: the jal Gfx_UpdateView after Cam_Update (the picture half's first block), the
-  // Obj_UpdateAll argument load, the first block past the Sys_BeforeDrawObjects call, and the jal of the end of frame.
+  // Sys_MainLoop, and in it: the jal Gfx_UpdateView after Cam_Update (the picture half's first block) and the first
+  // block past the Sys_BeforeDrawObjects call. The stretches before the object walk and before the end of frame stop
+  // at a block start: Crash 2 at the Obj_UpdateAll argument load and at the jal of its end of frame (both return
+  // addresses), Crash 3 at Obj_UpdateAll's and GpuUpdate's entries (its call sites follow branches inside a block).
   std::uint32_t mainLoop;
   std::uint32_t viewCall;
-  std::uint32_t objectsCall;
+  std::uint32_t objectsStop;
   std::uint32_t drawObjects;
-  std::uint32_t endFrameCall;
+  std::uint32_t endFrameStop;
   // Sys_BeforeDrawObjects, the empty function called between the object walk and Gfx_DrawObjects: the sample point.
   std::uint32_t sampleStub;
   std::uint32_t objUpdateAll;

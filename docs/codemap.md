@@ -60,7 +60,8 @@ Frame loop: not owned. Each step runs the core loop iteration (`native_frame.ite
 | `crash3::WorldRenderer` | `titles/crash3/render/world_*` | Crash 3's `world::Title` and registration (`world_renderer`) and its underwater mode (`world_underwater`) |
 | `crash3::WaterGrid` | `titles/crash3/render/water_grid.*` | The jet-ski levels' sea, the water grid 0x80043FFC with its row, vertex and cell routines, in host code (crash3-decomp `docs/notes/water-grid.md`): the retail walk, charged to the guest clock, then at 16:9 a walk over the canvas's columns (`world_screen`) that draws only the cells the retail test culls, with the scratchpad and GTE put back |
 | `crash2::camera_cuts` | `titles/crash2/frame/camera_cuts.*` | The game's camera cuts (prepared cut, zone walk, checkpoint restore) declared to `crash::FrameCut` |
-| `crash3::Runtime`, `crash3::facts` | `titles/crash3/entry/` | Crash 3's facts: no GPU watchdog override, libpad via the title's own SIO, code-module arena, scene table |
+| `crash3::camera_cuts` | `titles/crash3/frame/camera_cuts.*` | The game's checkpoint restore (`Sys_LoadCheckpoint` 0x80030388) declared to `crash::FrameCut` |
+| `crash3::Runtime`, `crash3::facts` | `titles/crash3/entry/` | Crash 3's facts: no GPU watchdog override, libpad via the title's own SIO, code-module arena, scene table, the draw replay's `ReplayFacts` |
 | `crash::Catalog`, `createCatalog` | `product/catalog.*` | The product's three identities and runtimes, provisioned under `scratch/bin` |
 | tools | `tools/` | Provisioning, executable verification, launcher, the verifier |
 
