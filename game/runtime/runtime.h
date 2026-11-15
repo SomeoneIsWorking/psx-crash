@@ -25,6 +25,8 @@ public:
   void deliverPad(Core &core, const psx::input::PadDelivery &delivery) override;
   void stockCdReadLanded(Core &core, const psx::cd::StockReadLanding &landing) override;
   bool sealedFrameIsCut(Core &core) const override;
+  // The frame driver delivers each field at the guest's wait; a present only plans its deadline.
+  std::optional<double> presentDeadline(Core &core, psx::frame::FieldCadence cadence) override;
   const psx::present::GuestWidescreenProjection *guestWidescreenProjection() const override;
   const psx::game::TitleDebugMenu &debugMenu() const override {
     return debugMenu_;

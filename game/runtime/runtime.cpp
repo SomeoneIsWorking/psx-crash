@@ -6,6 +6,7 @@
 #include "cd_stock_read_completion.h"
 #include "core.h"
 #include "frame/frame_driver.h"
+#include "frame_pacer.h"
 #include "game.h"
 #include "guest_code_module.h"
 #include "native_dispatch.h"
@@ -74,6 +75,10 @@ void Runtime::stockCdReadLanded(Core &core, const psx::cd::StockReadLanding &lan
     return;
   }
   psx::code_module::publishStockReadLanding(core, landing, facts_.codeModuleArena);
+}
+
+std::optional<double> Runtime::presentDeadline(Core &core, psx::frame::FieldCadence cadence) {
+  return core.game->framePacer.presentedFieldsDeadline(core, cadence);
 }
 
 bool Runtime::sealedFrameIsCut(Core &core) const {

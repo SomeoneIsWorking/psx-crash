@@ -22,10 +22,6 @@ constexpr std::uint32_t kRootCounterSpec = 0xF2000002u;
 // CNT2 counts the system clock divided by eight.
 constexpr std::uint64_t kRootCounterClockDivider = 8u;
 
-std::uint64_t fieldCpuTicks(std::uint32_t fields) {
-  return psx::frame::displayFieldCpuTicks(fields, 1u, psx::frame::FIELD_RATE_NTSC_MILLIHZ);
-}
-
 } // namespace
 
 psx::cpu::ExecutionResult FrameDriver::executeHostTurn(Core &core, std::uint32_t address) {
@@ -34,8 +30,7 @@ psx::cpu::ExecutionResult FrameDriver::executeHostTurn(Core &core, std::uint32_t
 
 FrameDriver::FrameDriver(
     Game &game, FrameCut &frameCut, const FrameProgram &program, std::uint32_t vsyncEntry, ExecuteSlice execute)
-    : game_(game), frameCut_(frameCut), program_(program), vsyncEntry_(vsyncEntry), execute_(std::move(execute)),
-      displayBoundaryTick_(game.timing.emulatedCpuTicks()) {
+    : game_(game), frameCut_(frameCut), program_(program), vsyncEntry_(vsyncEntry), execute_(std::move(execute)) {
   frameCut_.reset();
 }
 
@@ -145,31 +140,43 @@ void FrameDriver::loaderServiceSuper(Core *core) {
   }
 }
 
-void FrameDriver::deliverField(Core &core, std::uint64_t boundaryCpuTick) {
+void FrameDriver::deliverField(Core &core) {
   if (!rootCounterConfigured_ || !rootCounterRunning_) {
     lucent::error("crash-frame", "a display field was delivered before CNT2 was configured and started");
     std::abort();
   }
+  if (!game_.timing.advanceDisplayFields({1, 1}, psx::frame::fieldRateMilliHz(game_.timing.displayFieldRate()))) {
+    lucent::error("crash-frame", "the display clock refused a field");
+    std::abort();
+  }
   ++deliveredFields_;
-  serviceRootCounter(core, boundaryCpuTick);
+  serviceRootCounter(core, game_.timing.emulatedCpuTicks());
+  // The guest takes the VBlank in its wait, before the code after the wait reads what the callbacks counted.
+  if (core.irqPendingEnabled(IRQ_BIT_VBLANK)) {
+    game_.hle.irqPoll(&core);
+  }
   game_.spu_audio.frame();
+}
+
+void FrameDriver::deliverWaitFields(Core &core) {
+  const std::uint32_t fields = game_.timing.vsyncFields(0u);
+  for (std::uint32_t field = 0; field < fields; ++field) {
+    deliverField(core);
+  }
 }
 
 void FrameDriver::deliverDisplayWait(Core &core, Boundary wait) {
   const bool gpuUpdate = wait == Boundary::GpuUpdateWait;
-  WaitGroup &group = gpuUpdate ? gpuUpdateWaits_ : loadingSwapWaits_;
+  std::uint32_t &waits = gpuUpdate ? gpuUpdateWaits_ : loadingSwapWaits_;
   // GpuUpdate waits at most twice; the loader's loading picture swaps both buffers.
-  if (group.fields >= 2) {
+  if (waits >= 2) {
     lucent::error("crash-frame",
-                  "one retail {} requested more than its measured two display fields",
+                  "one retail {} waited more than its measured two times",
                   gpuUpdate ? "GpuUpdate" : "loading swap");
     std::abort();
   }
-  if (group.fields == 0) {
-    group.baseCpuTick = game_.timing.emulatedCpuTicks();
-  }
-  ++group.fields;
-  deliverField(core, group.baseCpuTick + fieldCpuTicks(group.fields));
+  ++waits;
+  deliverWaitFields(core);
 }
 
 bool FrameDriver::limiterSkippedWaits(Core &core) const {
@@ -182,20 +189,13 @@ bool FrameDriver::limiterSkippedWaits(Core &core) const {
 }
 
 void FrameDriver::deliverSkippedWaits(Core &core, std::uint32_t frame) {
-  const std::uint64_t elapsed = game_.timing.emulatedCpuTicks() - displayBoundaryTick_;
-  if (!limiterSkippedWaits(core) || elapsed == 0u) {
+  if (!limiterSkippedWaits(core)) {
     lucent::error(
         "crash-frame", "frame {} reached the loop transition with no display wait and no measured limiter skip", frame);
     std::abort();
   }
   // The picture shows at the first VBlank at or after the swap; the fields up to it belong to this frame.
-  std::uint32_t fields = static_cast<std::uint32_t>(elapsed / fieldCpuTicks(1u));
-  while (fieldCpuTicks(fields) < elapsed) {
-    ++fields;
-  }
-  for (std::uint32_t field = 1; field <= fields; ++field) {
-    deliverField(core, displayBoundaryTick_ + fieldCpuTicks(field));
-  }
+  deliverWaitFields(core);
 }
 
 void FrameDriver::finishFrameIteration(Core *core) {
@@ -257,8 +257,8 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
   warp_.apply(core, program_);
   game_.perf.markPre();
   deliveredFields_ = 0;
-  gpuUpdateWaits_ = {};
-  loadingSwapWaits_ = {};
+  gpuUpdateWaits_ = 0;
+  loadingSwapWaits_ = 0;
   frameCompleted_ = false;
 
   game_.perf.phaseBegin(GpuPerf::Phase::GameLogic);
@@ -276,7 +276,7 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
     const Boundary boundary = classifyBoundary(result.guestPc, core.r[31], vsyncEntry_, program_);
     if (boundary == Boundary::LoaderPoll) {
       if (deliveredFields_ == 0) {
-        deliverField(core, game_.timing.emulatedCpuTicks() + fieldCpuTicks(1u));
+        deliverWaitFields(core);
       }
       resumePc_ = core.r[31];
       frameCompleted_ = true;
@@ -328,7 +328,6 @@ void FrameDriver::stepFrame(Core &core, std::uint32_t frame) {
   game_.perf.phaseBegin(GpuPerf::Phase::Present);
   game_.presentation.commit(&core, static_cast<int>(deliveredFields_));
   game_.perf.phaseEnd(GpuPerf::Phase::Present);
-  displayBoundaryTick_ = game_.timing.emulatedCpuTicks();
   ++completedFrames_;
   game_.perf.frameEnd();
 }

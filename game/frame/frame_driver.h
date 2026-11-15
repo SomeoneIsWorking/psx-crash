@@ -14,8 +14,8 @@ class Game;
 
 namespace crash {
 
-// One host frame of a Crash title: guest turns to the measured display waits and the loop's transition,
-// one display field per wait, then the presentation commit.
+// One host frame of a Crash title: guest turns to the measured display waits and the loop's transition, each wait's
+// fields delivered on the guest clock at the wait (its VBlanks taken there), then the presentation commit.
 class FrameDriver : public psx::game::FrameDriver {
 public:
   using ExecuteSlice = std::function<psx::cpu::ExecutionResult(Core &, std::uint32_t)>;
@@ -87,10 +87,12 @@ private:
   static void loaderServiceSuper(Core *core);
 
   // The loader's poll ends the host frame once this frame has shown a loading picture, or when it waits for the
-  // next VBlank, which the guest only sees after the commit.
+  // next VBlank.
   [[nodiscard]] bool loaderPollEndsFrame(Core &core) const;
 
-  void deliverField(Core &core, std::uint64_t boundaryCpuTick);
+  // A VSync(0) wait: the next VBlank, past any field edges the guest clock already crossed.
+  void deliverWaitFields(Core &core);
+  void deliverField(Core &core);
   void deliverDisplayWait(Core &core, Boundary wait);
   [[nodiscard]] bool limiterSkippedWaits(Core &core) const;
   void deliverSkippedWaits(Core &core, std::uint32_t frame);
@@ -106,17 +108,10 @@ private:
   std::uint32_t completedFrames_{};
   // The host numbers steps from its own base (the title host starts at 1), so only consecutiveness is checked.
   std::uint32_t lastHostFrame_{};
-  // Display waits one source requested this frame, timed from its first wait.
-  struct WaitGroup {
-    std::uint32_t fields{};
-    std::uint64_t baseCpuTick{};
-  };
-
   std::uint32_t deliveredFields_{};
-  WaitGroup gpuUpdateWaits_;
-  WaitGroup loadingSwapWaits_;
-  // Emulated time after the last commit: the display boundary the next frame's fields count from.
-  std::uint64_t displayBoundaryTick_;
+  // Display waits each source made this frame.
+  std::uint32_t gpuUpdateWaits_{};
+  std::uint32_t loadingSwapWaits_{};
   std::uint64_t nextRootCounterTick_{};
   // CPU ticks between CNT2 targets, from the title's SetRCnt.
   std::uint64_t rootCounterPeriod_{};

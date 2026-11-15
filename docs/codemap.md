@@ -8,7 +8,7 @@ Product path: `run.sh` → the framework main (`psxport_add_product`, target `cr
 `psx::host::ProductHost` over `crash::Catalog` (in-window picker; `pick crash1|crash2|crash3`) →
 `TitleSession` → the title's `Runtime` → `crash::FrameDriver::stepFrame` on psxport's Lightrec executor.
 
-Frame loop: not owned. Each step runs the core loop iteration (`native_frame.iteration` in each `executable.json`) to GpuUpdate's VSync waits, one field per wait (issue 0031).
+Frame loop: not owned. Each step runs the core loop iteration (`native_frame.iteration` in each `executable.json`) to GpuUpdate's VSync waits; each wait delivers `Timing::vsyncFields(0)` fields with their VBlanks there (issue 0031).
 
 ## Placement rules
 
@@ -31,7 +31,7 @@ Frame loop: not owned. Each step runs the core loop iteration (`native_frame.ite
 | `crash::callback_boot` | `game/boot/callback_boot.*` | Native callback/event initializer; each BIOS leaf runs as guest code with its retail return address |
 | `crash::gpu_watchdog` | `game/boot/gpu_watchdog.*` | libgpu queue-timeout bookkeeping on the host display counter (Crash 1 and 2; Crash 3's check differs and runs as guest code) |
 | `crash::LeafCall`, `callLeaf` | `game/boot/leaf_call.h` | One guest leaf call from a native boot owner, at a return address inside the retail body |
-| `crash::FrameDriver` | `game/frame/frame_driver.*` | One host frame: CoreLoop iteration to the transition, one display field per guest VSync wait, CNT2 at its `SetRCnt` target, presentation commit; the perf meter's logic frame (game-logic, present) |
+| `crash::FrameDriver` | `game/frame/frame_driver.*` | One host frame: CoreLoop iteration to the transition, each guest VSync wait's fields (`Timing::vsyncFields`) delivered at the wait with their VBlanks, CNT2 at its `SetRCnt` target, presentation commit; the perf meter's logic frame (game-logic, present) |
 | `crash::FrameProgram`, `SceneTable` | `game/frame/frame_program.h` | A title's measured frame loop: CoreLoop, iteration, transition, GpuUpdate VSync sites, the loading swap, scene words, root-counter entries |
 | `crash::FrameCut` | `game/frame/frame_cut.*` | Whether a sealed frame is a cut: a new scene from the guest scene id and request words, or a cut the title declared |
 | `crash::DebugMenu` | `game/debug/debug_menu.*` | The title debug menu (psxport `TitleDebugMenu`): the warp catalogue (`scene 0xNN`) and `spawn <n>` over `SceneWarp`, refused until the game loop runs |
