@@ -1,16 +1,16 @@
 # Crash trilogy port
 
-One native PC product per title: title-owned native subsystems plus psxport's pinned Lightrec
-integration executing every remaining retail instruction. Product architecture and the ordered
+One native PC product per title: title-owned native subsystems plus psxport's per-`Core` interpreter
+(`GuestExecutor`) executing every remaining retail instruction. Product architecture and the ordered
 migration are in `docs/migration.md`. Workspace: `../AGENTS.md`; framework contract:
 `external/psxport/AGENTS.md`. Execution policy: the `dynarec-port` and `dynarec-overrides` skills.
 
 ## Execution
 
-- The products consume the user's identity-verified executable through the per-`Core`
-  psxport-Lightrec executor.
+- The products consume the user's identity-verified executable through psxport's per-`Core`
+  interpreter (`GuestExecutor`).
 - Frame suspension, host work, interrupts, exceptions, and title exit use explicit bounded executor
-  exits. C++ unwinding through JIT frames is forbidden.
+  exits. C++ unwinding through a guest segment is forbidden.
 
 ## Titles
 
